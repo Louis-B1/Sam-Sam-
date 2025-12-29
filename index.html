@@ -3,138 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paris Haussmann - Retrouve Samuel</title>
+    <title>Paris by Night - Investigation</title>
     <style>
-        :root {
-            --haussmann-stone: #e6dccf;
-            --paris-roof: #4a4e58;
-            --paris-gold: #c5a059;
-        }
         body {
             background-color: #000;
-            margin: 0;
-            padding: 0;
-            overflow: hidden; /* Empêche les barres de défilement */
-            font-family: 'Segoe UI', sans-serif;
-            user-select: none;
-            width: 100vw;
-            height: 100vh;
+            margin: 0; padding: 0;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+            width: 100vw; height: 100vh;
         }
-        
-        /* Le conteneur prend tout l'écran */
         #game-container {
             position: relative;
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             background: black;
         }
-        
-        /* Le canvas remplit le conteneur */
-        canvas { 
-            display: block; 
-            width: 100%; 
-            height: 100%;
-            image-rendering: pixelated; 
-        }
-        
-        /* Interface (HUD) Élégante */
-        #hud {
-            position: absolute;
-            top: 20px; left: 20px;
-            padding: 15px 25px;
-            background: rgba(20, 20, 30, 0.85);
-            border-left: 4px solid var(--paris-gold);
-            border-radius: 0 10px 10px 0;
-            color: white;
-            font-family: 'Georgia', serif; /* Police plus classique/chic */
-            pointer-events: none;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-        .hud-line { margin-bottom: 5px; font-size: 18px; }
-        #levelName { color: var(--paris-gold); font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
-        
-        /* Ecran de démarrage */
-        #start-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(40,40,60,0.95));
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 20;
-            cursor: pointer;
-        }
-        h1 { 
-            font-family: 'Georgia', serif;
-            font-size: 6vw; /* Taille adaptative */
-            margin: 0; color: var(--paris-gold); 
-            text-transform: uppercase; letter-spacing: 5px;
-            text-shadow: 0 0 30px rgba(197, 160, 89, 0.6);
-        }
-        p { font-size: 24px; color: #ddd; margin-top: 10px; font-style: italic;}
-        .btn-start { 
-            margin-top: 50px;
-            padding: 15px 40px;
-            background: transparent;
-            border: 2px solid var(--paris-gold);
-            color: var(--paris-gold);
-            font-size: 20px;
-            font-weight: bold;
-            transition: 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        .btn-start:hover { background: var(--paris-gold); color: black; box-shadow: 0 0 20px var(--paris-gold); }
+        canvas { display: block; width: 100%; height: 100%; }
 
-        /* Victoire */
+        /* EFFET DE PLUIE (Overlay CSS) */
+        .rain {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAH0lEQVQoU2nkCAMAAwkBmqMI4H8h/w+rhw0g32OYJQxwQDgfv99cAAAAAElFTkSuQmCC') repeat;
+            opacity: 0.15;
+            pointer-events: none;
+            animation: rainAnim 0.5s linear infinite;
+            z-index: 5;
+        }
+        @keyframes rainAnim { from { background-position: 0 0; } to { background-position: 10px 20px; } }
+
+        /* HUD */
+        #hud {
+            position: absolute; top: 20px; left: 20px;
+            color: #ffd700; text-shadow: 2px 2px 0 #000;
+            z-index: 10; font-size: 20px; pointer-events: none;
+            background: rgba(0,0,0,0.5); padding: 10px; border-left: 3px solid #ffd700;
+        }
+
+        /* ECRAN TITRE */
+        #start-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(0,0,0,0.8), #1a1005);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 20; color: white; cursor: pointer;
+        }
+        h1 { font-size: 60px; color: #ffd700; text-transform: uppercase; margin-bottom: 10px; text-shadow: 0 0 20px orange;}
+        .btn { 
+            border: 2px solid #ffd700; padding: 15px 30px; 
+            font-size: 24px; color: #ffd700; background: rgba(0,0,0,0.8);
+            margin-top: 20px; transition: 0.2s;
+        }
+        .btn:hover { background: #ffd700; color: black; }
+
+        /* VICTOIRE */
         #win-screen {
-            display: none;
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            z-index: 30;
-            width: 100%;
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 30;
+            flex-direction: column; justify-content: center; align-items: center;
         }
-        #win-screen h1 { color: #fff; text-shadow: 0 0 20px #fff; font-size: 5vw; margin-bottom: 20px;}
-        #samuel-reveal {
-            height: 50vh; /* S'adapte à la hauteur de l'écran */
-            object-fit: contain;
-            animation: bounce 2s infinite ease-in-out;
-            filter: drop-shadow(0 0 30px rgba(255,215,0,0.6));
-        }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
-        
-        /* Vidéo cachée mais active */
-        #youtube-audio { position: absolute; top: -9999px; left: -9999px; opacity: 0; pointer-events: none;}
+        #samuel-reveal { height: 60vh; animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
     </style>
 </head>
 <body>
 
-    <div id="youtube-audio"></div>
+    <div id="youtube-audio" style="position:absolute; top:-9999px;"></div>
 
     <div id="game-container">
-        <canvas id="gameCanvas"></canvas>
+        <div class="rain"></div> <canvas id="gameCanvas"></canvas>
         
         <div id="hud">
-            <div class="hud-line"><span id="levelName">Quartier Latin</span></div>
-            <div class="hud-line" style="font-size: 14px; color: #ccc;">Mission : Trouve l'escalier</div>
+            <div>QUARTIER : <span id="zoneName">Le Marais</span></div>
+            <div style="font-size:14px; color:#aaa;">Objectif : Trouve l'escalier</div>
         </div>
 
         <div id="start-screen">
-            <h1>PARIS LOST</h1>
-            <p>Retrouve Samuel dans les rues de la capitale</p>
-            <div class="btn-start">CLIQUER POUR JOUER</div>
+            <h1>PARIS NOIR</h1>
+            <p>Retrouve Samuel dans les ruelles.</p>
+            <div class="btn">CLIQUER POUR JOUER (SON ON)</div>
         </div>
 
         <div id="win-screen">
-            <h1>SAMUEL RETROUVÉ !</h1>
+            <h1 style="color:#0f0;">SAMUEL RETROUVÉ !</h1>
             <img id="samuel-reveal" src="samuel.png">
         </div>
     </div>
 
     <script>
-        // --- 1. AUDIO (YOUTUBE API) ---
+        // --- AUDIO ---
         var player;
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
@@ -143,85 +97,65 @@
 
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('youtube-audio', {
-                height: '0', width: '0', 
-                videoId: 'bUKC5RAjUdg',
-                playerVars: { 
-                    'autoplay': 0, 
-                    'controls': 0, 
-                    'loop': 1, 
-                    'playlist': 'bUKC5RAjUdg',
-                    'playsinline': 1 
-                }
+                height: '0', width: '0', videoId: 'bUKC5RAjUdg',
+                playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': 'bUKC5RAjUdg' }
             });
         }
 
-        // --- 2. CONFIGURATION GRAPHIQUE ---
+        // --- GRAPHISMES & MOTEUR ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         ctx.imageSmoothingEnabled = false;
 
-        // Redimensionnement Plein Écran
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            // On recalculera le nombre de rayons dans la boucle de jeu
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize);
+        resize();
 
         // Assets
-        const samuelSprite = new Image(); 
-        samuelSprite.src = "samuel.png";
-        
-        // --- GÉNÉRATEUR TEXTURE HAUSSMANNIENNE ---
-        const wallCanvas = document.createElement('canvas'); 
-        wallCanvas.width = 64; wallCanvas.height = 64;
+        const samuelSprite = new Image(); samuelSprite.src = "samuel.png";
+
+        // --- GÉNERATEUR DE TEXTURE "HAUSSMANN V2" (Plus détaillé) ---
+        const texSize = 128; // Plus haute résolution
+        const wallCanvas = document.createElement('canvas'); wallCanvas.width = texSize; wallCanvas.height = texSize;
         const wCtx = wallCanvas.getContext('2d');
 
-        // 1. Fond Pierre de taille (Beige crème)
-        wCtx.fillStyle = '#eaddcf'; 
-        wCtx.fillRect(0,0,64,64);
-
-        // 2. Joints de pierre (Lignes subtiles)
-        wCtx.fillStyle = '#d1c4b5';
-        wCtx.fillRect(0, 32, 64, 2); // Ligne horizontale milieu
-        wCtx.fillRect(0, 62, 64, 2); // Ligne horizontale bas
-        wCtx.fillRect(32, 0, 2, 32); // Joint vertical haut
-        wCtx.fillRect(10, 32, 2, 32); // Joint vertical bas décalé
-
-        // 3. Fenêtre Parisienne (Cadre + Vitre sombre)
-        // Cadre gris
-        wCtx.fillStyle = '#eee'; 
-        wCtx.fillRect(12, 8, 40, 40);
-        // Intérieur fenêtre (Bleu nuit/reflet)
-        wCtx.fillStyle = '#2c3e50'; 
-        wCtx.fillRect(14, 10, 36, 36);
-        // Reflet vitre
-        wCtx.fillStyle = 'rgba(255,255,255,0.2)';
-        wCtx.beginPath(); wCtx.moveTo(14, 30); wCtx.lineTo(30, 10); wCtx.lineTo(40, 10); wCtx.lineTo(14, 40); wCtx.fill();
-
-        // 4. Garde-corps (Balcon en fer forgé noir)
-        wCtx.fillStyle = '#1a1a1a';
-        wCtx.fillRect(10, 42, 44, 2); // Barre haut
-        wCtx.fillRect(10, 48, 44, 2); // Barre bas
-        // Barreaux verticaux
-        for(let i=12; i<52; i+=6) {
-            wCtx.fillRect(i, 42, 2, 8);
+        // 1. Pierre Beige Sale
+        wCtx.fillStyle = '#cbbfa9'; wCtx.fillRect(0,0,texSize,texSize);
+        // Bruit (Salissure)
+        for(let i=0; i<400; i++) {
+            wCtx.fillStyle = Math.random() < 0.5 ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)';
+            wCtx.fillRect(Math.random()*texSize, Math.random()*texSize, 2, 2);
         }
+
+        // 2. Éléments Haussmanniens
+        wCtx.fillStyle = '#2c2c2c'; // Gris foncé pour fer forgé
+        // Balcon (Ligne horizontale + barreaux)
+        wCtx.fillRect(0, texSize*0.6, texSize, 4); 
+        wCtx.fillRect(0, texSize*0.75, texSize, 4);
+        for(let x=4; x<texSize; x+=12) wCtx.fillRect(x, texSize*0.6, 3, texSize*0.15);
+
+        // Fenêtre (Grand rectangle sombre avec reflet)
+        wCtx.fillStyle = '#1a1a2e'; // Bleu nuit (vitre)
+        wCtx.fillRect(16, 10, texSize-32, texSize*0.5);
+        wCtx.strokeStyle = '#e0e0e0'; wCtx.lineWidth = 2; wCtx.strokeRect(16, 10, texSize-32, texSize*0.5); // Cadre blanc
+        
+        // Corniche en bas
+        wCtx.fillStyle = '#8a7f70'; wCtx.fillRect(0, texSize-10, texSize, 10);
 
         const wallTexture = new Image(); wallTexture.src = wallCanvas.toDataURL();
 
-        // Variables Jeu
-        const TILE_SIZE = 64; 
-        const FOV = Math.PI / 3; 
+        // --- JEU ---
+        const TILE_SIZE = 64; const FOV = Math.PI / 2.5; 
+        let playerObj = { x: 0, y: 0, dir: 0 };
+        // VITESSE RÉDUITE ICI :
+        const MOVE_SPEED = 3.0; 
+        const ROT_SPEED = 0.04;
         
-        let playerObj = { x: 0, y: 0, dir: 0, speed: 7 }; // Un peu plus rapide
-        let currentLevel = 0;
-        let gameActive = false;
-        
+        let currentLevel = 0; let gameActive = false; let timer = 0; // Pour l'animation de marche
+
         const levels = [
             {
-                name: "Quartier Latin",
+                name: "Le Marais",
                 map: [
                     [1,1,1,1,1,1,1,1,1,1,1,1],
                     [1,0,0,0,0,1,0,0,0,0,0,1],
@@ -230,140 +164,110 @@
                     [1,0,1,0,1,1,1,1,0,0,0,1],
                     [1,0,0,0,0,0,0,1,1,1,9,1],
                     [1,1,1,1,1,1,1,1,1,1,1,1]
-                ],
-                start: {x: 1.5, y: 1.5, dir: 0}
+                ], start: {x: 1.5, y: 1.5, dir: 0}
             },
             {
-                name: "Grands Boulevards",
-                map: [
-                    [1,1,1,1,1,1,1,1,1,1,1],
-                    [1,0,0,0,0,0,1,0,0,0,1],
-                    [1,0,1,1,1,0,1,0,1,0,1],
-                    [1,0,1,0,0,0,0,0,1,0,1],
-                    [1,0,1,1,1,1,1,1,1,0,1],
-                    [1,0,0,0,0,9,0,0,0,0,1],
-                    [1,1,1,1,1,1,1,1,1,1,1]
-                ],
-                start: {x: 1.5, y: 1.5, dir: 0}
-            },
-            {
-                name: "Place de l'Étoile (Final)",
+                name: "Pigalle",
                 map: [
                     [1,1,1,1,1,1,1,1],
                     [1,0,0,0,0,0,0,1],
                     [1,0,1,1,0,1,0,1],
-                    [1,0,1,8,0,1,0,1],
+                    [1,0,1,8,0,1,0,1], // 8 = Samuel
                     [1,0,1,1,0,1,0,1],
                     [1,0,0,0,0,0,0,1],
                     [1,1,1,1,1,1,1,1]
-                ],
-                start: {x: 3.5, y: 5.5, dir: -Math.PI/2}
+                ], start: {x: 3.5, y: 5.5, dir: -Math.PI/2}
             }
         ];
 
-        let map = []; let items = [];
+        let map=[]; let items=[];
 
         function loadLevel(idx) {
-            if (idx >= levels.length) return;
+            if(idx>=levels.length) return;
             currentLevel = idx;
-            const lvl = levels[idx];
-            document.getElementById('levelName').innerText = lvl.name;
-            map = lvl.map;
-            playerObj.x = lvl.start.x * TILE_SIZE;
-            playerObj.y = lvl.start.y * TILE_SIZE;
-            playerObj.dir = lvl.start.dir;
+            document.getElementById('zoneName').innerText = levels[idx].name;
+            map = levels[idx].map;
+            playerObj.x = levels[idx].start.x * TILE_SIZE;
+            playerObj.y = levels[idx].start.y * TILE_SIZE;
+            playerObj.dir = levels[idx].start.dir;
             items = [];
             for(let y=0; y<map.length; y++) for(let x=0; x<map[y].length; x++) {
-                if(map[y][x] === 8) { 
-                    items.push({x: x*TILE_SIZE+TILE_SIZE/2, y: y*TILE_SIZE+TILE_SIZE/2, type: 'samuel'}); 
-                    map[y][x] = 0; 
-                }
+                if(map[y][x] === 8) { items.push({x: x*TILE_SIZE+TILE_SIZE/2, y: y*TILE_SIZE+TILE_SIZE/2, type: 'samuel'}); map[y][x]=0; }
             }
         }
 
-        // --- DÉMARRAGE ---
-        function start() {
-            document.getElementById('start-screen').style.display = 'none';
-            loadLevel(0);
-            gameActive = true;
-            
-            // Lancement Audio FORCÉ ici
-            if (player && typeof player.playVideo === 'function') {
-                player.unMute(); // Important
-                player.setVolume(70);
-                player.playVideo();
-            } else {
-                console.log("Lecteur audio pas prêt ou bloqué.");
-            }
-            
-            loop();
-        }
-        document.getElementById('start-screen').addEventListener('click', start);
-
+        // --- ENTRÉES CLAVIER ---
         const keys = {};
         window.addEventListener('keydown', e => keys[e.code] = true);
         window.addEventListener('keyup', e => keys[e.code] = false);
 
+        // --- UPDATE ---
         function update() {
             if(!gameActive) return;
-            // Contrôles
-            if (keys['ArrowLeft']) playerObj.dir -= 0.04;
-            if (keys['ArrowRight']) playerObj.dir += 0.04;
+
+            // Rotation douce
+            if (keys['ArrowLeft']) playerObj.dir -= ROT_SPEED;
+            if (keys['ArrowRight']) playerObj.dir += ROT_SPEED;
+
+            // Déplacement
             let step = 0;
-            if (keys['ArrowUp']) step = playerObj.speed;
-            if (keys['ArrowDown']) step = -playerObj.speed;
-            
+            if (keys['ArrowUp']) step = MOVE_SPEED;
+            if (keys['ArrowDown']) step = -MOVE_SPEED;
+
+            // Head Bobbing (Marche)
+            if(step !== 0) timer += 0.15;
+            else timer = 0;
+
             if (step !== 0) {
                 let nextX = playerObj.x + Math.cos(playerObj.dir) * step;
                 let nextY = playerObj.y + Math.sin(playerObj.dir) * step;
                 let gridX = Math.floor(nextX / TILE_SIZE);
                 let gridY = Math.floor(nextY / TILE_SIZE);
                 
-                // Collision glissante simple
+                // Collision
                 if (map[gridY] && map[gridY][gridX] !== 1) {
                     playerObj.x = nextX; playerObj.y = nextY;
                     if (map[gridY][gridX] === 9) loadLevel(currentLevel + 1);
                 }
             }
 
+            // Check Samuel
             items.forEach(item => {
                 if (Math.hypot(playerObj.x - item.x, playerObj.y - item.y) < 40 && item.type === 'samuel') {
                     gameActive = false;
-                    document.getElementById('win-screen').style.display = 'block';
+                    document.getElementById('win-screen').style.display = 'flex';
                     document.getElementById('hud').style.display = 'none';
                 }
             });
         }
 
+        // --- DESSIN (RAYCASTING) ---
         function draw() {
-            // Effacer l'écran
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // --- CIEL & SOL (Ambiance Parisienne Crépuscule) ---
-            // Ciel : Dégradé bleu/rose typique des soirées parisiennes
-            let skyGrad = ctx.createLinearGradient(0,0,0,canvas.height/2);
-            skyGrad.addColorStop(0, "#2c3e50"); // Bleu nuit haut
-            skyGrad.addColorStop(0.5, "#4a69bd"); // Bleu clair
-            skyGrad.addColorStop(1, "#e58e26"); // Orange horizon (lumières ville)
-            ctx.fillStyle = skyGrad; 
-            ctx.fillRect(0,0,canvas.width,canvas.height/2);
-            
-            // Sol : Trottoirs gris clair
-            ctx.fillStyle = "#555"; 
-            ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
+            // Effacement
+            ctx.fillStyle = "#111"; ctx.fillRect(0,0,canvas.width,canvas.height);
 
-            // RAYCASTING
-            // On calcule le nombre de rayons en fonction de la largeur réelle de l'écran
-            // Pour la performance en plein écran, on peut réduire la résolution (ex: canvas.width / 2)
-            const numRays = Math.floor(canvas.width / 2); 
-            
+            // Ciel (Dégradé Nuit)
+            let skyGrad = ctx.createLinearGradient(0,0,0,canvas.height/2);
+            skyGrad.addColorStop(0, "#050510"); skyGrad.addColorStop(1, "#2a1a0a"); // Halo orange ville
+            ctx.fillStyle = skyGrad; ctx.fillRect(0,0,canvas.width,canvas.height/2);
+
+            // Sol (Reflet)
+            let floorGrad = ctx.createLinearGradient(0,canvas.height/2,0,canvas.height);
+            floorGrad.addColorStop(0, "#1a1005"); floorGrad.addColorStop(1, "#050505");
+            ctx.fillStyle = floorGrad; ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
+
+            // Raycasting
+            const numRays = Math.floor(canvas.width / 2); // Optimisation
+            // Effet de marche (Bobbing)
+            const bobOffset = Math.sin(timer) * 10; 
+
             for (let i = 0; i < numRays; i++) {
                 let rayAngle = (playerObj.dir - FOV / 2.0) + (i / numRays) * FOV;
                 let dist = 0; let hit = false;
                 let eyeX = Math.cos(rayAngle), eyeY = Math.sin(rayAngle);
 
-                while (!hit && dist < 1000) {
-                    dist += 1; // Augmenter pour perf si besoin
+                while (!hit && dist < 800) {
+                    dist += 1; // Pas de raymarching
                     let testX = Math.floor((playerObj.x + eyeX * dist) / TILE_SIZE);
                     let testY = Math.floor((playerObj.y + eyeY * dist) / TILE_SIZE);
                     if (testX < 0 || testX >= map[0].length || testY < 0 || testY >= map.length || map[testY][testX] === 1) hit = true;
@@ -371,38 +275,63 @@
                 
                 let correctDist = dist * Math.cos(rayAngle - playerObj.dir);
                 let h = (TILE_SIZE * canvas.height) / (correctDist || 1);
-                let x = i * 2; // Largeur du rayon
-
-                // Texture Mur
-                ctx.drawImage(wallTexture, 0, 0, 64, 64, x, (canvas.height-h)/2, 2, h);
+                let x = i * 2;
                 
-                // Ombre distance (Fog) - Légèrement bleuté pour l'air frais
-                let fogAmount = Math.min(0.8, dist/800);
-                ctx.fillStyle = `rgba(20, 30, 50, ${fogAmount})`;
-                ctx.fillRect(x, (canvas.height-h)/2, 2, h);
+                // Centre vertical + Bobbing
+                let yPos = (canvas.height - h) / 2 + bobOffset;
+
+                // Affichage Texture
+                // On calcule le décalage texture (texX)
+                let wallX = 0;
+                let hitX = playerObj.x + eyeX * dist;
+                let hitY = playerObj.y + eyeY * dist;
+                
+                // Détection coté mur (Nord/Sud ou Est/Ouest) pour la texture
+                if (Math.abs(hitX % TILE_SIZE) < 1.5 || Math.abs(hitX % TILE_SIZE) > TILE_SIZE - 1.5) {
+                    wallX = hitY % TILE_SIZE;
+                } else {
+                    wallX = hitX % TILE_SIZE;
+                }
+                
+                let texX = Math.floor((wallX / TILE_SIZE) * texSize);
+
+                ctx.drawImage(wallTexture, texX, 0, 1, texSize, x, yPos, 2, h);
+
+                // Ombre (Distance Fog) - Plus joli
+                let fog = Math.min(0.9, dist / 600);
+                ctx.fillStyle = `rgba(10, 5, 0, ${fog})`; // Ombre brune/noire
+                ctx.fillRect(x, yPos, 2, h);
             }
 
-            // Sprites
+            // Sprites (Samuel)
             items.forEach(item => {
                 let dx = item.x - playerObj.x; let dy = item.y - playerObj.y;
                 let dist = Math.sqrt(dx*dx + dy*dy);
                 let angle = Math.atan2(dy, dx) - playerObj.dir;
                 while(angle < -Math.PI) angle += 2*Math.PI;
                 while(angle > Math.PI) angle -= 2*Math.PI;
-                
-                if(Math.abs(angle) < FOV/1.5 && dist > 15) {
+
+                if(Math.abs(angle) < FOV/1.5 && dist > 20) {
                     let h = (TILE_SIZE * canvas.height) / dist;
                     let screenX = (0.5 * (angle/(FOV/2)) + 0.5) * canvas.width - h/2;
-                    ctx.drawImage(samuelSprite, screenX, (canvas.height-h)/2, h, h);
+                    let yPos = (canvas.height - h) / 2 + bobOffset;
+                    ctx.drawImage(samuelSprite, screenX, yPos, h, h);
                 }
             });
         }
 
-        function loop() {
-            update();
-            draw();
-            requestAnimationFrame(loop);
-        }
+        function loop() { update(); draw(); requestAnimationFrame(loop); }
+
+        // Start
+        document.getElementById('start-screen').addEventListener('click', () => {
+            document.getElementById('start-screen').style.display = 'none';
+            loadLevel(0);
+            gameActive = true;
+            // Force Audio
+            if(player && player.unMute) { player.unMute(); player.setVolume(80); player.playVideo(); }
+            loop();
+        });
+
     </script>
 </body>
 </html>
