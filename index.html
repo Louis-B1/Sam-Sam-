@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paris Investigation - Haussmann Edition</title>
+    <title>Paris Investigation - Dynamic Textures V6</title>
     <style>
         body {
             background-color: #000;
@@ -19,7 +19,7 @@
         }
         canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated;}
 
-        /* PLUIE FINE ET DISCRÈTE */
+        /* PLUIE */
         .rain {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAH0lEQVQoU2nkCAMAAwkBmqMI4H8h/w+rhw0g32OYJQxwQDgfv99cAAAAAElFTkSuQmCC') repeat;
@@ -28,7 +28,7 @@
         }
         @keyframes rainAnim { from { background-position: 0 0; } to { background-position: 5px 20px; } }
 
-        /* HUD STYLISÉ */
+        /* HUD */
         #hud {
             position: absolute; top: 20px; left: 20px;
             color: #d4af37; text-shadow: 2px 2px 0 #000;
@@ -91,13 +91,12 @@
     </div>
 
     <script>
-        // --- 1. AUDIO FIX (YouTube) ---
+        // --- 1. AUDIO (YouTube) ---
         var player;
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('youtube-audio', {
                 height: '0', width: '0', videoId: 'bUKC5RAjUdg',
@@ -105,81 +104,80 @@
             });
         }
 
-        // --- 2. CONFIGURATION ---
+        // --- 2. CONFIGURATION MOTEUR ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         ctx.imageSmoothingEnabled = false;
-
         function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resize);
-        resize();
-
+        window.addEventListener('resize', resize); resize();
         const samuelSprite = new Image(); samuelSprite.src = "samuel.png";
 
-        // --- 3. GÉNÉRATEUR TEXTURE "HAUSSMANN ULTRA" ---
-        // Texture haute résolution (256x256) pour plus de détails
-        const texSize = 256; 
-        const wallCanvas = document.createElement('canvas'); wallCanvas.width = 64; wallCanvas.height = texSize;
-        const wCtx = wallCanvas.getContext('2d');
+        // --- 3. SYSTÈME DE TEXTURES DYNAMIQUES ---
+        const texSize = 256;
+        let currentWallTexture = new Image(); // La texture active
 
-        // A. Façade Pierre (Beige)
-        wCtx.fillStyle = '#dcd0c0'; wCtx.fillRect(0, 40, 64, texSize); // On laisse 40px en haut pour le toit
-
-        // B. Le Toit en Zinc (Gris-Bleu) - Partie demandée
-        let gradZinc = wCtx.createLinearGradient(0,0,0,40);
-        gradZinc.addColorStop(0, '#2c3e50'); // Sombre en haut
-        gradZinc.addColorStop(1, '#5d6d7e'); // Clair en bas
-        wCtx.fillStyle = gradZinc; wCtx.fillRect(0, 0, 64, 40);
-        
-        // Lucarne (Fenêtre de toit)
-        wCtx.fillStyle = '#1a1a1a'; wCtx.fillRect(20, 10, 24, 20); // Trou fenêtre
-        wCtx.strokeStyle = '#5d6d7e'; wCtx.strokeRect(20, 10, 24, 20); // Cadre
-
-        // Corniche sous le toit
-        wCtx.fillStyle = '#8a7f70'; wCtx.fillRect(0, 40, 64, 8);
-
-        // C. Détails Façade (Salissures & Joints)
-        for(let i=0; i<600; i++) {
-            wCtx.fillStyle = Math.random()<0.5 ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.1)';
-            wCtx.fillRect(Math.random()*64, 48 + Math.random()*(texSize-48), 2, 2);
+        // Générateur 1 : Style Haussmann (Marais)
+        function generateHaussmannTexture() {
+            const wallCanvas = document.createElement('canvas'); wallCanvas.width = 64; wallCanvas.height = texSize;
+            const wCtx = wallCanvas.getContext('2d');
+            // Façade Pierre
+            wCtx.fillStyle = '#dcd0c0'; wCtx.fillRect(0, 40, 64, texSize); 
+            // Toit Zinc
+            let gradZinc = wCtx.createLinearGradient(0,0,0,40);
+            gradZinc.addColorStop(0, '#2c3e50'); gradZinc.addColorStop(1, '#5d6d7e');
+            wCtx.fillStyle = gradZinc; wCtx.fillRect(0, 0, 64, 40);
+            // Lucarne & Corniche
+            wCtx.fillStyle = '#1a1a1a'; wCtx.fillRect(20, 10, 24, 20);
+            wCtx.strokeStyle = '#5d6d7e'; wCtx.strokeRect(20, 10, 24, 20);
+            wCtx.fillStyle = '#8a7f70'; wCtx.fillRect(0, 40, 64, 8);
+            // Salissures
+            for(let i=0; i<600; i++) { wCtx.fillStyle = Math.random()<0.5?'rgba(0,0,0,0.05)':'rgba(255,255,255,0.1)'; wCtx.fillRect(Math.random()*64, 48+Math.random()*(texSize-48), 2, 2); }
+            // Étages
+            function drawFloor(y) {
+                wCtx.fillStyle = '#151520'; wCtx.fillRect(12, y, 40, 50);
+                wCtx.fillStyle = 'rgba(255,255,255,0.1)'; wCtx.beginPath(); wCtx.moveTo(12, y+30); wCtx.lineTo(30, y); wCtx.lineTo(52, y); wCtx.fill();
+                wCtx.fillStyle = '#111'; wCtx.fillRect(8, y+35, 48, 2); wCtx.fillRect(8, y+45, 48, 2);
+                for(let x=10; x<54; x+=5) wCtx.fillRect(x, y+35, 2, 12);
+            }
+            drawFloor(60); drawFloor(140);
+            wCtx.fillStyle = '#5d554a'; wCtx.fillRect(0, 230, 64, 26);
+            const img = new Image(); img.src = wallCanvas.toDataURL(); return img;
         }
 
-        // D. Fenêtres et Balcons (2 étages visibles)
-        function drawFloor(y) {
-            // Grande porte-fenêtre sombre
-            wCtx.fillStyle = '#151520'; wCtx.fillRect(12, y, 40, 50);
-            // Reflet vitre
-            wCtx.fillStyle = 'rgba(255,255,255,0.1)'; wCtx.beginPath(); wCtx.moveTo(12, y+30); wCtx.lineTo(30, y); wCtx.lineTo(52, y); wCtx.fill();
-            // Garde-corps (Balcon) Fer Forgé
-            wCtx.fillStyle = '#111';
-            wCtx.fillRect(8, y+35, 48, 2); // Main courante
-            wCtx.fillRect(8, y+45, 48, 2); // Barre basse
-            for(let x=10; x<54; x+=5) wCtx.fillRect(x, y+35, 2, 12); // Barreaux
+        // Générateur 2 : Style Pigalle (Briques sombres & Néons)
+        function generatePigalleTexture() {
+            const wallCanvas = document.createElement('canvas'); wallCanvas.width = 64; wallCanvas.height = texSize;
+            const wCtx = wallCanvas.getContext('2d');
+            // Fond Briques Sombres
+            wCtx.fillStyle = '#3a2520'; wCtx.fillRect(0,0,64,texSize);
+            // Joints Mortier foncé
+            wCtx.fillStyle = '#1a100a';
+            for(let y=0; y<texSize; y+=32) {
+                wCtx.fillRect(0, y, 64, 4); // Joint horizontal
+                let offset = (y/32)%2===0 ? 0 : 32;
+                wCtx.fillRect(offset+30, y, 4, 32); wCtx.fillRect(offset-2, y, 4, 32); // Joints verticaux
+            }
+            // Reflet Néon Rougeâtre (Ambiance Pigalle)
+            let gradNeon = wCtx.createLinearGradient(0,0,64,texSize);
+            gradNeon.addColorStop(0, 'rgba(255, 20, 20, 0.3)'); // Haut rouge
+            gradNeon.addColorStop(0.5, 'rgba(0,0,0,0.6)'); // Milieu sombre
+            gradNeon.addColorStop(1, 'rgba(50, 20, 0, 0.4)'); // Bas orange
+            wCtx.fillStyle = gradNeon; wCtx.fillRect(0,0,64,texSize);
+            
+            const img = new Image(); img.src = wallCanvas.toDataURL(); return img;
         }
 
-        drawFloor(60);  // Etage 1
-        drawFloor(140); // Etage 2
-        
-        // Soubassement (Bas du mur)
-        wCtx.fillStyle = '#5d554a'; wCtx.fillRect(0, 230, 64, 26);
 
-        const wallTexture = new Image(); wallTexture.src = wallCanvas.toDataURL();
-
-        // --- 4. MOTEUR DE JEU ---
-        const TILE_SIZE = 64; 
-        const FOV = Math.PI / 2.5; 
+        // --- 4. DONNÉES DU JEU ---
+        const TILE_SIZE = 64; const FOV = Math.PI / 2.5; 
         let playerObj = { x: 0, y: 0, dir: 0 };
-        
-        // VITESSE TRÈS RALENTIE (Promenade)
-        const MOVE_SPEED = 1.8; 
-        const ROT_SPEED = 0.03;
-        
+        const MOVE_SPEED = 1.8; const ROT_SPEED = 0.03;
         let currentLevel = 0; let gameActive = false; let timer = 0;
 
-        // CARTES CORRIGÉES (Plus d'espaces, moins de bugs)
         const levels = [
             {
                 name: "Le Marais",
+                textureFunc: generateHaussmannTexture, // Texture associée
                 map: [
                     [1,1,1,1,1,1,1,1,1,1,1,1],
                     [1,0,0,0,0,1,0,0,0,0,0,1],
@@ -192,15 +190,18 @@
             },
             {
                 name: "Pigalle",
+                textureFunc: generatePigalleTexture, // Nouvelle texture ici !
                 map: [
                     [1,1,1,1,1,1,1,1],
-                    [1,0,0,0,0,0,0,1], // Couloir large
+                    [1,0,0,0,0,0,0,1], 
                     [1,0,1,1,0,1,0,1],
                     [1,0,1,8,0,1,0,1], // 8 = Samuel
                     [1,0,1,1,0,1,0,1],
                     [1,0,0,0,0,0,0,1],
                     [1,1,1,1,1,1,1,1]
-                ], start: {x: 1.5, y: 1.5, dir: 0} // Départ déplacé pour éviter le mur en face
+                ], 
+                // CORRECTION DU DÉPART : Milieu du couloir, orienté vers le bas
+                start: {x: 3.5, y: 1.5, dir: Math.PI/2} 
             }
         ];
 
@@ -210,6 +211,9 @@
             if(idx>=levels.length) return;
             currentLevel = idx;
             document.getElementById('zoneName').innerText = levels[idx].name;
+            // Chargement de la bonne texture pour ce niveau
+            currentWallTexture = levels[idx].textureFunc();
+
             map = levels[idx].map;
             playerObj.x = levels[idx].start.x * TILE_SIZE;
             playerObj.y = levels[idx].start.y * TILE_SIZE;
@@ -228,17 +232,11 @@
         // --- UPDATE ---
         function update() {
             if(!gameActive) return;
-
-            // Rotation fluide
             if (keys['ArrowLeft']) playerObj.dir -= ROT_SPEED;
             if (keys['ArrowRight']) playerObj.dir += ROT_SPEED;
-
-            // Déplacement lent
             let step = 0;
             if (keys['ArrowUp']) step = MOVE_SPEED;
             if (keys['ArrowDown']) step = -MOVE_SPEED;
-
-            // Head Bobbing (Effet de marche)
             if(step !== 0) timer += 0.12; else timer = 0;
 
             if (step !== 0) {
@@ -247,18 +245,11 @@
                 let gridX = Math.floor(nextX / TILE_SIZE);
                 let gridY = Math.floor(nextY / TILE_SIZE);
                 
-                // Collision
                 if (map[gridY] && map[gridY][gridX] !== 1) {
                     playerObj.x = nextX; playerObj.y = nextY;
-                    // Sortie
-                    if (map[gridY][gridX] === 9) {
-                        loadLevel(currentLevel + 1);
-                        return; // IMPORTANT : Arrêter l'update ici pour éviter le bug
-                    }
+                    if (map[gridY][gridX] === 9) { loadLevel(currentLevel + 1); return; }
                 }
             }
-
-            // Détection Samuel
             items.forEach(item => {
                 if (Math.hypot(playerObj.x - item.x, playerObj.y - item.y) < 40 && item.type === 'samuel') {
                     gameActive = false;
@@ -270,62 +261,50 @@
 
         // --- DRAW ---
         function draw() {
-            // Ciel Nuit Parisienne (Bleu Nuit vers Orange Ville)
+            // Ciel
             let skyGrad = ctx.createLinearGradient(0,0,0,canvas.height/2);
-            skyGrad.addColorStop(0, "#080812"); 
-            skyGrad.addColorStop(1, "#352515"); 
+            skyGrad.addColorStop(0, "#080812"); skyGrad.addColorStop(1, "#352515"); 
             ctx.fillStyle = skyGrad; ctx.fillRect(0,0,canvas.width,canvas.height/2);
-
-            // Sol (Trottoir humide)
+            // Sol
             let floorGrad = ctx.createLinearGradient(0,canvas.height/2,0,canvas.height);
             floorGrad.addColorStop(0, "#181008"); floorGrad.addColorStop(1, "#050505");
             ctx.fillStyle = floorGrad; ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
 
             const numRays = Math.floor(canvas.width / 2); 
-            const bobOffset = Math.sin(timer) * 6; // Oscillation verticale
+            const bobOffset = Math.sin(timer) * 6; 
 
             for (let i = 0; i < numRays; i++) {
                 let rayAngle = (playerObj.dir - FOV / 2.0) + (i / numRays) * FOV;
                 let dist = 0; let hit = false;
                 let eyeX = Math.cos(rayAngle), eyeY = Math.sin(rayAngle);
-
                 while (!hit && dist < 800) {
                     dist += 1;
                     let testX = Math.floor((playerObj.x + eyeX * dist) / TILE_SIZE);
                     let testY = Math.floor((playerObj.y + eyeY * dist) / TILE_SIZE);
                     if (testX < 0 || testX >= map[0].length || testY < 0 || testY >= map.length || map[testY][testX] === 1) hit = true;
                 }
-                
                 let correctDist = dist * Math.cos(rayAngle - playerObj.dir);
                 let h = (TILE_SIZE * canvas.height) / (correctDist || 1);
                 let x = i * 2;
                 let yPos = (canvas.height - h) / 2 + bobOffset;
 
-                // Texture Mapping
                 let wallX = 0;
                 let hitX = playerObj.x + eyeX * dist; let hitY = playerObj.y + eyeY * dist;
-                if (Math.abs(hitX % TILE_SIZE) < 1.5 || Math.abs(hitX % TILE_SIZE) > TILE_SIZE - 1.5) wallX = hitY % TILE_SIZE;
-                else wallX = hitX % TILE_SIZE;
-                
+                if (Math.abs(hitX % TILE_SIZE) < 1.5 || Math.abs(hitX % TILE_SIZE) > TILE_SIZE - 1.5) wallX = hitY % TILE_SIZE; else wallX = hitX % TILE_SIZE;
                 let texX = Math.floor((wallX / TILE_SIZE) * 64);
 
-                // Dessin Texture Mur
-                ctx.drawImage(wallTexture, texX, 0, 1, texSize, x, yPos, 2, h);
+                // On utilise la texture active (currentWallTexture)
+                ctx.drawImage(currentWallTexture, texX, 0, 1, texSize, x, yPos, 2, h);
 
-                // Ombre Distance (Brouillard ville)
                 let fog = Math.min(0.9, dist / 700);
-                ctx.fillStyle = `rgba(15, 12, 10, ${fog})`;
-                ctx.fillRect(x, yPos, 2, h);
+                ctx.fillStyle = `rgba(15, 12, 10, ${fog})`; ctx.fillRect(x, yPos, 2, h);
             }
 
-            // Sprites
             items.forEach(item => {
                 let dx = item.x - playerObj.x; let dy = item.y - playerObj.y;
                 let dist = Math.sqrt(dx*dx + dy*dy);
                 let angle = Math.atan2(dy, dx) - playerObj.dir;
-                while(angle < -Math.PI) angle += 2*Math.PI;
-                while(angle > Math.PI) angle -= 2*Math.PI;
-
+                while(angle < -Math.PI) angle += 2*Math.PI; while(angle > Math.PI) angle -= 2*Math.PI;
                 if(Math.abs(angle) < FOV/1.5 && dist > 20) {
                     let h = (TILE_SIZE * canvas.height) / dist;
                     let screenX = (0.5 * (angle/(FOV/2)) + 0.5) * canvas.width - h/2;
@@ -341,11 +320,9 @@
             document.getElementById('start-screen').style.display = 'none';
             loadLevel(0);
             gameActive = true;
-            // Force Audio ON
             if(player && player.unMute) { player.unMute(); player.setVolume(100); player.playVideo(); }
             loop();
         });
-
     </script>
 </body>
 </html>
