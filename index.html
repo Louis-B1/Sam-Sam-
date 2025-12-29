@@ -3,57 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paris Investigation - Dynamic Textures V6</title>
+    <title>Paris Investigation - Gameplay Update</title>
     <style>
         body {
             background-color: #000;
             margin: 0; padding: 0;
             overflow: hidden;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Segoe UI', sans-serif;
             width: 100vw; height: 100vh;
+            user-select: none;
         }
-        #game-container {
-            position: relative;
-            width: 100%; height: 100%;
-            background: #000;
-        }
+        #game-container { position: relative; width: 100%; height: 100%; background: #000; }
         canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated;}
 
-        /* PLUIE */
-        .rain {
+        /* EFFET LAMPE TORCHE (Vignette) */
+        #flashlight {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAH0lEQVQoU2nkCAMAAwkBmqMI4H8h/w+rhw0g32OYJQxwQDgfv99cAAAAAElFTkSuQmCC') repeat;
-            opacity: 0.08; pointer-events: none;
-            animation: rainAnim 0.6s linear infinite; z-index: 5;
+            background: radial-gradient(circle at center, transparent 10%, rgba(0,0,0,0.85) 80%);
+            pointer-events: none; z-index: 4;
         }
-        @keyframes rainAnim { from { background-position: 0 0; } to { background-position: 5px 20px; } }
 
-        /* HUD */
-        #hud {
-            position: absolute; top: 20px; left: 20px;
-            color: #d4af37; text-shadow: 2px 2px 0 #000;
-            z-index: 10; font-size: 22px; pointer-events: none;
-            background: linear-gradient(90deg, rgba(0,0,0,0.8), transparent); 
-            padding: 15px 25px; border-left: 5px solid #d4af37;
-            font-family: 'Segoe UI', sans-serif; letter-spacing: 1px;
+        /* HUD & RADAR */
+        #ui-layer {
+            position: absolute; top: 20px; left: 20px; z-index: 10;
+            display: flex; flex-direction: column; gap: 10px;
         }
-        #zoneName { font-weight: bold; text-transform: uppercase; font-size: 26px; }
+        #radar {
+            background: rgba(0, 20, 0, 0.8);
+            border: 2px solid #4f4;
+            border-radius: 50%;
+            width: 150px; height: 150px;
+            box-shadow: 0 0 10px #4f4;
+        }
+        #mission-box {
+            color: #d4af37; text-shadow: 1px 1px 0 #000;
+            background: rgba(0,0,0,0.7); padding: 10px; 
+            border-left: 4px solid #d4af37;
+            font-size: 18px; font-weight: bold;
+        }
+
+        /* MESSAGES FLOTTANTS */
+        #alert-msg {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 40px; color: white; font-weight: bold; text-shadow: 0 0 10px red;
+            display: none; z-index: 15; text-align: center;
+        }
 
         /* ECRAN TITRE */
         #start-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(10,10,15,0.95), #1a1005);
+            background: linear-gradient(rgba(0,0,0,0.8), #1a0505);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             z-index: 20; color: white; cursor: pointer;
         }
-        h1 { font-size: 7vw; color: #d4af37; margin: 0; letter-spacing: 10px; text-shadow: 0 0 40px orange; font-family: 'Times New Roman', serif;}
-        p { font-size: 24px; color: #ccc; margin-top: 10px; font-style: italic; }
+        h1 { font-size: 80px; color: #d4af37; margin: 0; text-transform: uppercase; letter-spacing: 5px; text-shadow: 0 0 30px orange; }
         .btn { 
-            border: 1px solid #d4af37; padding: 20px 60px; 
-            font-size: 24px; color: #d4af37; background: rgba(0,0,0,0.6);
-            margin-top: 50px; transition: 0.3s; text-transform: uppercase; letter-spacing: 2px;
+            border: 2px solid #d4af37; padding: 20px 50px; 
+            font-size: 24px; color: #d4af37; background: rgba(0,0,0,0.8);
+            margin-top: 40px; transition: 0.2s; text-transform: uppercase;
         }
-        .btn:hover { background: #d4af37; color: black; box-shadow: 0 0 30px #d4af37; }
+        .btn:hover { background: #d4af37; color: black; }
 
         /* VICTOIRE */
         #win-screen {
@@ -61,8 +70,8 @@
             background: rgba(0,0,0,0.95); z-index: 30;
             flex-direction: column; justify-content: center; align-items: center;
         }
-        #samuel-reveal { height: 60vh; animation: pop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes pop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        #samuel-reveal { height: 60vh; animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
     </style>
 </head>
 <body>
@@ -70,28 +79,34 @@
     <div id="youtube-audio" style="position:absolute; top:-9999px;"></div>
 
     <div id="game-container">
-        <div class="rain"></div>
+        <div id="flashlight"></div>
         <canvas id="gameCanvas"></canvas>
         
-        <div id="hud">
-            <div><span id="zoneName">Le Marais</span></div>
-            <div style="font-size:16px; color:#bbb; margin-top:5px; font-style:italic;">Mission : Trouve l'escalier</div>
+        <div id="ui-layer">
+            <canvas id="radar" width="150" height="150"></canvas>
+            <div id="mission-box">
+                <div id="zoneName">QUARTIER LATIN</div>
+                <div style="color:white; margin-top:5px;">Indices : <span id="score" style="color:#0f0">0</span> / 3</div>
+                <div style="font-size:12px; color:#aaa; margin-top:5px;">[MAJ] Courir</div>
+            </div>
         </div>
+
+        <div id="alert-msg">PORTE VERROUILLÉE<br><span style="font-size:20px">Trouvez les 3 indices !</span></div>
 
         <div id="start-screen">
             <h1>PARIS</h1>
-            <p>Retrouve Samuel</p>
-            <div class="btn">CLIQUER POUR JOUER</div>
+            <p style="font-size: 20px; color: #ccc;">L'Enquête Nocturne</p>
+            <div class="btn">COMMENCER L'ENQUÊTE</div>
         </div>
 
         <div id="win-screen">
-            <h1 style="color:#50ff50; font-family:sans-serif; text-shadow:0 0 20px green;">SAMUEL RETROUVÉ !</h1>
+            <h1 style="color:#50ff50;">SAMUEL RETROUVÉ !</h1>
             <img id="samuel-reveal" src="samuel.png">
         </div>
     </div>
 
     <script>
-        // --- 1. AUDIO (YouTube) ---
+        // --- AUDIO ---
         var player;
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
@@ -104,104 +119,87 @@
             });
         }
 
-        // --- 2. CONFIGURATION MOTEUR ---
+        // --- MOTEUR ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const radarCanvas = document.getElementById('radar');
+        const radarCtx = radarCanvas.getContext('2d');
         ctx.imageSmoothingEnabled = false;
+
         function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.addEventListener('resize', resize); resize();
+
+        // Assets
         const samuelSprite = new Image(); samuelSprite.src = "samuel.png";
+        
+        // Génération Sprite "Indice" (Lingot d'or pixel art)
+        const clueCanvas = document.createElement('canvas'); clueCanvas.width=64; clueCanvas.height=64;
+        const cCtx = clueCanvas.getContext('2d');
+        cCtx.fillStyle = '#ffd700'; cCtx.fillRect(16, 20, 32, 24); // Or
+        cCtx.fillStyle = '#fff'; cCtx.fillRect(18, 22, 28, 4); // Reflet
+        cCtx.strokeStyle = '#b8860b'; cCtx.lineWidth=2; cCtx.strokeRect(16, 20, 32, 24);
+        cCtx.shadowColor = "yellow"; cCtx.shadowBlur = 10; cCtx.font="40px Arial"; cCtx.fillText("?", 20, 45);
+        const clueSprite = new Image(); clueSprite.src = clueCanvas.toDataURL();
 
-        // --- 3. SYSTÈME DE TEXTURES DYNAMIQUES ---
+        // --- TEXTURES ---
         const texSize = 256;
-        let currentWallTexture = new Image(); // La texture active
+        let currentWallTexture;
 
-        // Générateur 1 : Style Haussmann (Marais)
-        function generateHaussmannTexture() {
-            const wallCanvas = document.createElement('canvas'); wallCanvas.width = 64; wallCanvas.height = texSize;
-            const wCtx = wallCanvas.getContext('2d');
-            // Façade Pierre
-            wCtx.fillStyle = '#dcd0c0'; wCtx.fillRect(0, 40, 64, texSize); 
-            // Toit Zinc
-            let gradZinc = wCtx.createLinearGradient(0,0,0,40);
-            gradZinc.addColorStop(0, '#2c3e50'); gradZinc.addColorStop(1, '#5d6d7e');
-            wCtx.fillStyle = gradZinc; wCtx.fillRect(0, 0, 64, 40);
-            // Lucarne & Corniche
-            wCtx.fillStyle = '#1a1a1a'; wCtx.fillRect(20, 10, 24, 20);
-            wCtx.strokeStyle = '#5d6d7e'; wCtx.strokeRect(20, 10, 24, 20);
-            wCtx.fillStyle = '#8a7f70'; wCtx.fillRect(0, 40, 64, 8);
-            // Salissures
-            for(let i=0; i<600; i++) { wCtx.fillStyle = Math.random()<0.5?'rgba(0,0,0,0.05)':'rgba(255,255,255,0.1)'; wCtx.fillRect(Math.random()*64, 48+Math.random()*(texSize-48), 2, 2); }
-            // Étages
-            function drawFloor(y) {
-                wCtx.fillStyle = '#151520'; wCtx.fillRect(12, y, 40, 50);
-                wCtx.fillStyle = 'rgba(255,255,255,0.1)'; wCtx.beginPath(); wCtx.moveTo(12, y+30); wCtx.lineTo(30, y); wCtx.lineTo(52, y); wCtx.fill();
-                wCtx.fillStyle = '#111'; wCtx.fillRect(8, y+35, 48, 2); wCtx.fillRect(8, y+45, 48, 2);
-                for(let x=10; x<54; x+=5) wCtx.fillRect(x, y+35, 2, 12);
-            }
-            drawFloor(60); drawFloor(140);
-            wCtx.fillStyle = '#5d554a'; wCtx.fillRect(0, 230, 64, 26);
-            const img = new Image(); img.src = wallCanvas.toDataURL(); return img;
+        function genHaussmann() {
+            const c = document.createElement('canvas'); c.width=64; c.height=texSize; const x=c.getContext('2d');
+            x.fillStyle='#dcd0c0'; x.fillRect(0,0,64,texSize);
+            x.fillStyle='#2c3e50'; x.fillRect(0,0,64,40); // Toit
+            x.fillStyle='#111'; x.fillRect(10,80,44,50); x.fillStyle='#445'; x.fillRect(12,82,40,40); // Fenetre
+            x.fillStyle='#222'; x.fillRect(5,130,54,4); // Balcon
+            for(let i=0;i<100;i++){x.fillStyle='rgba(0,0,0,0.1)'; x.fillRect(Math.random()*64,Math.random()*texSize,2,2);}
+            const i=new Image(); i.src=c.toDataURL(); return i;
         }
 
-        // Générateur 2 : Style Pigalle (Briques sombres & Néons)
-        function generatePigalleTexture() {
-            const wallCanvas = document.createElement('canvas'); wallCanvas.width = 64; wallCanvas.height = texSize;
-            const wCtx = wallCanvas.getContext('2d');
-            // Fond Briques Sombres
-            wCtx.fillStyle = '#3a2520'; wCtx.fillRect(0,0,64,texSize);
-            // Joints Mortier foncé
-            wCtx.fillStyle = '#1a100a';
-            for(let y=0; y<texSize; y+=32) {
-                wCtx.fillRect(0, y, 64, 4); // Joint horizontal
-                let offset = (y/32)%2===0 ? 0 : 32;
-                wCtx.fillRect(offset+30, y, 4, 32); wCtx.fillRect(offset-2, y, 4, 32); // Joints verticaux
-            }
-            // Reflet Néon Rougeâtre (Ambiance Pigalle)
-            let gradNeon = wCtx.createLinearGradient(0,0,64,texSize);
-            gradNeon.addColorStop(0, 'rgba(255, 20, 20, 0.3)'); // Haut rouge
-            gradNeon.addColorStop(0.5, 'rgba(0,0,0,0.6)'); // Milieu sombre
-            gradNeon.addColorStop(1, 'rgba(50, 20, 0, 0.4)'); // Bas orange
-            wCtx.fillStyle = gradNeon; wCtx.fillRect(0,0,64,texSize);
-            
-            const img = new Image(); img.src = wallCanvas.toDataURL(); return img;
+        function genPigalle() {
+            const c = document.createElement('canvas'); c.width=64; c.height=texSize; const x=c.getContext('2d');
+            x.fillStyle='#2a1a15'; x.fillRect(0,0,64,texSize); // Brique sombre
+            x.fillStyle='#110'; for(let y=0;y<texSize;y+=20) x.fillRect(0,y,64,2); // Joints
+            // Neon glow
+            const g = x.createLinearGradient(0,0,64,texSize);
+            g.addColorStop(0, 'rgba(255,0,0,0.2)'); g.addColorStop(1, 'rgba(0,0,0,0.5)');
+            x.fillStyle=g; x.fillRect(0,0,64,texSize);
+            const i=new Image(); i.src=c.toDataURL(); return i;
         }
 
-
-        // --- 4. DONNÉES DU JEU ---
+        // --- VARIABLES JEU ---
         const TILE_SIZE = 64; const FOV = Math.PI / 2.5; 
         let playerObj = { x: 0, y: 0, dir: 0 };
-        const MOVE_SPEED = 1.8; const ROT_SPEED = 0.03;
+        const WALK_SPEED = 2.0; const RUN_SPEED = 4.0; const ROT_SPEED = 0.04;
         let currentLevel = 0; let gameActive = false; let timer = 0;
+        let cluesFound = 0;
 
+        // 5 = Indice, 8 = Samuel, 9 = Sortie
         const levels = [
             {
                 name: "Le Marais",
-                textureFunc: generateHaussmannTexture, // Texture associée
+                tex: genHaussmann,
                 map: [
                     [1,1,1,1,1,1,1,1,1,1,1,1],
-                    [1,0,0,0,0,1,0,0,0,0,0,1],
+                    [1,0,0,0,5,1,0,0,0,5,0,1],
                     [1,0,1,1,0,1,0,1,1,1,0,1],
                     [1,0,1,0,0,0,0,0,0,1,0,1],
                     [1,0,1,0,1,1,1,1,0,0,0,1],
-                    [1,0,0,0,0,0,0,1,1,1,9,1],
+                    [1,0,5,0,0,0,0,1,1,1,9,1],
                     [1,1,1,1,1,1,1,1,1,1,1,1]
                 ], start: {x: 1.5, y: 1.5, dir: 0}
             },
             {
                 name: "Pigalle",
-                textureFunc: generatePigalleTexture, // Nouvelle texture ici !
+                tex: genPigalle,
                 map: [
-                    [1,1,1,1,1,1,1,1],
-                    [1,0,0,0,0,0,0,1], 
-                    [1,0,1,1,0,1,0,1],
-                    [1,0,1,8,0,1,0,1], // 8 = Samuel
-                    [1,0,1,1,0,1,0,1],
-                    [1,0,0,0,0,0,0,1],
-                    [1,1,1,1,1,1,1,1]
-                ], 
-                // CORRECTION DU DÉPART : Milieu du couloir, orienté vers le bas
-                start: {x: 3.5, y: 1.5, dir: Math.PI/2} 
+                    [1,1,1,1,1,1,1,1,1,1],
+                    [1,0,0,5,0,0,0,0,0,1],
+                    [1,0,1,1,0,1,1,1,0,1],
+                    [1,0,0,0,0,0,0,5,0,1],
+                    [1,0,1,1,0,1,0,1,1,1],
+                    [1,5,0,0,0,1,0,0,8,1], // 8 = Samuel au fond
+                    [1,1,1,1,1,1,1,1,1,1]
+                ], start: {x: 1.5, y: 1.5, dir: 0}
             }
         ];
 
@@ -210,21 +208,22 @@
         function loadLevel(idx) {
             if(idx>=levels.length) return;
             currentLevel = idx;
+            cluesFound = 0;
             document.getElementById('zoneName').innerText = levels[idx].name;
-            // Chargement de la bonne texture pour ce niveau
-            currentWallTexture = levels[idx].textureFunc();
-
+            document.getElementById('score').innerText = "0";
+            currentWallTexture = levels[idx].tex();
             map = levels[idx].map;
             playerObj.x = levels[idx].start.x * TILE_SIZE;
             playerObj.y = levels[idx].start.y * TILE_SIZE;
             playerObj.dir = levels[idx].start.dir;
             items = [];
             for(let y=0; y<map.length; y++) for(let x=0; x<map[y].length; x++) {
-                if(map[y][x] === 8) { items.push({x: x*TILE_SIZE+TILE_SIZE/2, y: y*TILE_SIZE+TILE_SIZE/2, type: 'samuel'}); map[y][x]=0; }
+                if(map[y][x] === 5) { items.push({x: x*TILE_SIZE+32, y: y*TILE_SIZE+32, type: 'clue', active:true}); map[y][x]=0; }
+                if(map[y][x] === 8) { items.push({x: x*TILE_SIZE+32, y: y*TILE_SIZE+32, type: 'samuel', active:true}); map[y][x]=0; }
             }
         }
 
-        // --- ENTRÉES ---
+        // --- INPUT ---
         const keys = {};
         window.addEventListener('keydown', e => keys[e.code] = true);
         window.addEventListener('keyup', e => keys[e.code] = false);
@@ -232,12 +231,16 @@
         // --- UPDATE ---
         function update() {
             if(!gameActive) return;
+
+            // Mouvement
             if (keys['ArrowLeft']) playerObj.dir -= ROT_SPEED;
             if (keys['ArrowRight']) playerObj.dir += ROT_SPEED;
+            
+            let speed = keys['ShiftLeft'] ? RUN_SPEED : WALK_SPEED;
             let step = 0;
-            if (keys['ArrowUp']) step = MOVE_SPEED;
-            if (keys['ArrowDown']) step = -MOVE_SPEED;
-            if(step !== 0) timer += 0.12; else timer = 0;
+            if (keys['ArrowUp']) step = speed;
+            if (keys['ArrowDown']) step = -speed;
+            if(step !== 0) timer += (speed/15); else timer = 0;
 
             if (step !== 0) {
                 let nextX = playerObj.x + Math.cos(playerObj.dir) * step;
@@ -245,29 +248,57 @@
                 let gridX = Math.floor(nextX / TILE_SIZE);
                 let gridY = Math.floor(nextY / TILE_SIZE);
                 
+                // Collision Mur
                 if (map[gridY] && map[gridY][gridX] !== 1) {
                     playerObj.x = nextX; playerObj.y = nextY;
-                    if (map[gridY][gridX] === 9) { loadLevel(currentLevel + 1); return; }
+                    
+                    // Sortie (9)
+                    if (map[gridY][gridX] === 9) {
+                        if (cluesFound >= 3) {
+                            loadLevel(currentLevel + 1);
+                        } else {
+                            // Rebondir pour ne pas rester coincé sur la porte
+                            playerObj.x -= Math.cos(playerObj.dir) * 5;
+                            playerObj.y -= Math.sin(playerObj.dir) * 5;
+                            showAlert("PORTE FERMÉE : TROUVEZ LES 3 INDICES !");
+                        }
+                    }
                 }
             }
+
+            // Collisions Items
             items.forEach(item => {
-                if (Math.hypot(playerObj.x - item.x, playerObj.y - item.y) < 40 && item.type === 'samuel') {
-                    gameActive = false;
-                    document.getElementById('win-screen').style.display = 'flex';
-                    document.getElementById('hud').style.display = 'none';
+                if (!item.active) return;
+                let dist = Math.hypot(playerObj.x - item.x, playerObj.y - item.y);
+                if (dist < 40) {
+                    if (item.type === 'clue') {
+                        item.active = false;
+                        cluesFound++;
+                        document.getElementById('score').innerText = cluesFound;
+                        showAlert("INDICE TROUVÉ !");
+                    } else if (item.type === 'samuel') {
+                        gameActive = false;
+                        document.getElementById('win-screen').style.display = 'flex';
+                        document.getElementById('ui-layer').style.display = 'none';
+                    }
                 }
             });
         }
 
+        function showAlert(text) {
+            const el = document.getElementById('alert-msg');
+            el.innerHTML = text; el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 2000);
+        }
+
         // --- DRAW ---
         function draw() {
-            // Ciel
+            // 1. Raycasting (World)
             let skyGrad = ctx.createLinearGradient(0,0,0,canvas.height/2);
-            skyGrad.addColorStop(0, "#080812"); skyGrad.addColorStop(1, "#352515"); 
+            skyGrad.addColorStop(0, "#050510"); skyGrad.addColorStop(1, "#352010"); 
             ctx.fillStyle = skyGrad; ctx.fillRect(0,0,canvas.width,canvas.height/2);
-            // Sol
             let floorGrad = ctx.createLinearGradient(0,canvas.height/2,0,canvas.height);
-            floorGrad.addColorStop(0, "#181008"); floorGrad.addColorStop(1, "#050505");
+            floorGrad.addColorStop(0, "#201005"); floorGrad.addColorStop(1, "#050505");
             ctx.fillStyle = floorGrad; ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
 
             const numRays = Math.floor(canvas.width / 2); 
@@ -285,22 +316,21 @@
                 }
                 let correctDist = dist * Math.cos(rayAngle - playerObj.dir);
                 let h = (TILE_SIZE * canvas.height) / (correctDist || 1);
-                let x = i * 2;
-                let yPos = (canvas.height - h) / 2 + bobOffset;
+                let x = i * 2; let yPos = (canvas.height - h) / 2 + bobOffset;
 
                 let wallX = 0;
                 let hitX = playerObj.x + eyeX * dist; let hitY = playerObj.y + eyeY * dist;
                 if (Math.abs(hitX % TILE_SIZE) < 1.5 || Math.abs(hitX % TILE_SIZE) > TILE_SIZE - 1.5) wallX = hitY % TILE_SIZE; else wallX = hitX % TILE_SIZE;
                 let texX = Math.floor((wallX / TILE_SIZE) * 64);
 
-                // On utilise la texture active (currentWallTexture)
                 ctx.drawImage(currentWallTexture, texX, 0, 1, texSize, x, yPos, 2, h);
-
-                let fog = Math.min(0.9, dist / 700);
-                ctx.fillStyle = `rgba(15, 12, 10, ${fog})`; ctx.fillRect(x, yPos, 2, h);
+                let fog = Math.min(0.95, dist / 600);
+                ctx.fillStyle = `rgba(10, 5, 2, ${fog})`; ctx.fillRect(x, yPos, 2, h);
             }
 
+            // 2. Sprites (Items)
             items.forEach(item => {
+                if(!item.active) return;
                 let dx = item.x - playerObj.x; let dy = item.y - playerObj.y;
                 let dist = Math.sqrt(dx*dx + dy*dy);
                 let angle = Math.atan2(dy, dx) - playerObj.dir;
@@ -309,9 +339,52 @@
                     let h = (TILE_SIZE * canvas.height) / dist;
                     let screenX = (0.5 * (angle/(FOV/2)) + 0.5) * canvas.width - h/2;
                     let yPos = (canvas.height - h) / 2 + bobOffset;
-                    ctx.drawImage(samuelSprite, screenX, yPos, h, h);
+                    let img = item.type === 'samuel' ? samuelSprite : clueSprite;
+                    // Animation flottante pour les indices
+                    let floatY = item.type === 'clue' ? Math.sin(Date.now()/200)*10 : 0;
+                    ctx.drawImage(img, screenX, yPos + floatY, h, h);
                 }
             });
+
+            // 3. Radar (Minimap)
+            drawRadar();
+        }
+
+        function drawRadar() {
+            radarCtx.clearRect(0,0,150,150);
+            // Fond radar
+            radarCtx.fillStyle = 'rgba(0,0,0,0.5)'; radarCtx.fillRect(0,0,150,150);
+            
+            const scale = 10;
+            const offsetX = 75 - (playerObj.x / TILE_SIZE) * scale;
+            const offsetY = 75 - (playerObj.y / TILE_SIZE) * scale;
+
+            for(let y=0; y<map.length; y++) {
+                for(let x=0; x<map[y].length; x++) {
+                    let rX = x * scale + offsetX;
+                    let rY = y * scale + offsetY;
+                    // Mur
+                    if(map[y][x] === 1) { radarCtx.fillStyle = '#4f4'; radarCtx.fillRect(rX, rY, scale, scale); }
+                    // Sortie
+                    if(map[y][x] === 9) { radarCtx.fillStyle = '#f00'; radarCtx.fillRect(rX, rY, scale, scale); }
+                }
+            }
+            // Items
+            items.forEach(item => {
+                if(item.active) {
+                    let iX = (item.x/TILE_SIZE) * scale + offsetX;
+                    let iY = (item.y/TILE_SIZE) * scale + offsetY;
+                    radarCtx.fillStyle = item.type === 'clue' ? 'yellow' : 'cyan';
+                    radarCtx.beginPath(); radarCtx.arc(iX + scale/2, iY + scale/2, 3, 0, Math.PI*2); radarCtx.fill();
+                }
+            });
+            // Joueur (Centre)
+            radarCtx.fillStyle = 'white'; radarCtx.beginPath(); radarCtx.arc(75, 75, 4, 0, Math.PI*2); radarCtx.fill();
+            // Cone vision
+            radarCtx.strokeStyle = 'rgba(255,255,255,0.3)'; radarCtx.beginPath(); radarCtx.moveTo(75, 75);
+            radarCtx.lineTo(75 + Math.cos(playerObj.dir - FOV/2)*20, 75 + Math.sin(playerObj.dir - FOV/2)*20);
+            radarCtx.lineTo(75 + Math.cos(playerObj.dir + FOV/2)*20, 75 + Math.sin(playerObj.dir + FOV/2)*20);
+            radarCtx.lineTo(75, 75); radarCtx.stroke();
         }
 
         function loop() { update(); draw(); requestAnimationFrame(loop); }
