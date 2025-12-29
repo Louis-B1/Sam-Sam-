@@ -221,20 +221,19 @@
             const x = c.getContext('2d');
             
             if (type === 'vosges_wall') { // Pierre et Brique (Arcades)
-                x.fillStyle = '#dcb'; x.fillRect(0,0,64,texSize);
-                x.fillStyle = '#a54'; // Briques rouges typiques Place des Vosges
-                for(let y=0; y<texSize; y+=32) { x.fillRect(0,y,64,2); if((y/32)%2) x.fillRect(32,y,2,32); else x.fillRect(0,y,2,32); }
+                x.fillStyle = '#e8dcca'; x.fillRect(0,0,64,texSize); // Pierre claire
+                x.fillStyle = '#a53535'; // Briques rouges
+                for(let y=0; y<texSize; y+=32) { x.fillRect(0,y,64,4); if((y/32)%2) x.fillRect(32,y,4,32); else x.fillRect(0,y,4,32); }
                 // Arche sombre en bas
-                x.fillStyle = '#211'; x.fillRect(0,350,64,162); 
+                x.fillStyle = '#1a1210'; x.fillRect(0,320,64,192); 
             } 
-            else if (type === 'vosges_tree') { // Arbres du parc
-                x.fillStyle = '#081805'; x.fillRect(0,0,64,texSize); // Fond sombre
-                // Feuilles
-                for(let i=0; i<300; i++) {
-                    x.fillStyle = Math.random()>0.5 ? '#284d15' : '#1a360e';
-                    x.beginPath(); x.arc(Math.random()*64, Math.random()*400, Math.random()*4+2, 0, Math.PI*2); x.fill();
+            else if (type === 'vosges_tree') { // Arbres du parc (Haie taillée)
+                x.fillStyle = '#051505'; x.fillRect(0,0,64,texSize);
+                for(let i=0; i<500; i++) {
+                    x.fillStyle = Math.random()>0.5 ? '#2a5a1a' : '#1a3a0e';
+                    x.beginPath(); x.arc(Math.random()*64, Math.random()*texSize, Math.random()*6+3, 0, Math.PI*2); x.fill();
                 }
-                x.fillStyle = '#1a0d05'; x.fillRect(10,400,44,112); // Tronc
+                x.fillStyle = '#111'; x.fillRect(0,450,64,62); // Ombre bas
             }
             else if (type === 'pigalle') { // Sale et sombre
                 x.fillStyle = '#2a2a2a'; x.fillRect(0,0,64,texSize);
@@ -251,16 +250,17 @@
         // --- 4. CONFIG NIVEAUX ---
         const TILE_SIZE = 64; const FOV = Math.PI / 2.5; 
         let playerObj = { x: 0, y: 0, dir: 0 };
-        const WALK = 2.5; const RUN = 5.0; const ROT = 0.04;
+        // Vitesse augmentée pour la grande carte
+        const WALK = 2.8; const RUN = 5.5; const ROT = 0.04;
         let currentLevel = 0; let gameActive = false; let timer = 0;
         let cluesFound = 0; let dialogueTimer = null;
 
         // NARRATION DYNAMIQUE
         const narrative = [
             [ // NIVEAU 0 : Place des Vosges (Parc)
-                "Un ticket de caisse du 'Café Hugo'. Payé à 21h15. Il était là.",
-                "Son carnet de croquis. Il est tombé dans l'herbe. Une page est arrachée.",
-                "Une carte Navigo au sol. C'est celle de Samuel. Il ne l'aurait jamais jetée."
+                "Un ticket de caisse du 'Café Hugo' juste à côté. Payé à 21h15. Il était là.",
+                "Son carnet de croquis. Tombé près de la statue centrale. Une page est arrachée.",
+                "Une carte Navigo au sol. C'est celle de Samuel. Il ne l'aurait jamais jetée volontairement."
             ],
             [ // NIVEAU 1 : Pigalle (Ruelle)
                 "Un flyer froissé : 'Le Moulin Rouge - Entrée Staff'. Samuel ne bosse pas là-bas...",
@@ -269,39 +269,54 @@
             ]
         ];
 
-        // 1 = Mur Brique, 2 = Arbre (Parc), 9 = Sortie
+        // 1 = Mur Brique (Arcades), 2 = Arbre/Haie (Parc), 9 = Sortie
         const levels = [
             {
                 name: "PLACE DES VOSGES (22H45)",
                 texWall: TEX_VOSGES,
                 texTree: TEX_TREE,
-                // Design Parc : Arbres au centre (2), Arcades autour (1)
+                // GRANDE CARTE 24x24 SYMETRIQUE
                 map: [
-                    [1,1,1,1,1,1,1,1,1,1,1,1],
-                    [1,0,0,0,0,1,0,0,0,0,0,1],
-                    [1,0,2,2,2,1,2,2,2,5,0,1], // 5 = Indice
-                    [1,0,2,5,2,0,2,0,0,0,0,1],
-                    [1,0,2,2,2,0,2,2,2,0,0,1],
-                    [1,0,0,0,0,0,0,0,0,0,9,1], // 9 = Sortie
-                    [1,1,1,1,1,1,1,1,1,1,1,1]
-                ], start: {x: 1.5, y: 1.5, dir: 1.5}
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                    [1,0,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,1],
+                    [1,0,0,2,0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,2,0,0,1],
+                    [1,0,0,2,0,0,0,0,0,0,0,2,2,0,0,0,0,5,0,0,2,0,0,1], // Indice 1
+                    [1,0,0,2,0,0,0,2,2,0,0,2,2,0,0,2,2,0,0,0,2,0,0,1],
+                    [1,0,0,2,0,0,0,2,2,0,0,0,0,0,0,2,2,0,0,0,2,0,0,1],
+                    [1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,1],
+                    [1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,1],
+                    [1,0,0,2,0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,2,0,0,1],
+                    [1,0,0,2,2,2,0,0,0,0,2,2,2,2,0,0,0,0,2,2,2,0,0,1], // Centre (Statue)
+                    [1,0,0,2,2,2,0,0,0,0,2,2,2,2,0,0,0,0,2,2,2,0,0,1],
+                    [1,0,0,2,0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,2,0,0,1],
+                    [1,0,0,2,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,2,0,0,1], // Indice 2
+                    [1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,1],
+                    [1,0,0,2,0,0,0,2,2,0,0,0,0,0,0,2,2,0,0,0,2,0,0,1],
+                    [1,0,0,2,0,0,0,2,2,0,0,2,2,0,0,2,2,0,0,0,2,0,0,1],
+                    [1,0,0,2,0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,2,0,0,1],
+                    [1,0,0,2,0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,2,0,5,1], // Indice 3
+                    [1,0,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,1],
+                    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9,1], // Sortie
+                    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+                ], start: {x: 2.5, y: 2.5, dir: 0.8} // Départ coin Nord-Ouest dans la rue
             },
             {
                 name: "PIGALLE - IMPASSE (23H30)",
                 texWall: TEX_PIGALLE,
-                texTree: TEX_PIGALLE, // Pas d'arbres ici
-                // Map Pigalle corrigée pour éviter le blocage
+                texTree: TEX_PIGALLE,
                 map: [
                     [1,1,1,1,1,1,1,1,1,1],
                     [1,0,0,5,0,0,0,0,0,1],
                     [1,0,1,1,0,1,1,1,0,1],
                     [1,0,0,0,0,0,0,5,0,1],
                     [1,0,1,1,0,1,0,1,1,1],
-                    [1,5,0,0,0,1,0,0,8,1], // 8 = Samuel
+                    [1,5,0,0,0,1,0,0,8,1],
                     [1,1,1,1,1,1,1,1,1,1]
                 ], 
-                // CORRECTION BUG : Départ en x:2.5 pour être sûr de ne pas être dans un mur
-                start: {x: 2.5, y: 1.5, dir: 0} 
+                start: {x: 2.5, y: 1.5, dir: 0}
             }
         ];
 
@@ -318,12 +333,10 @@
             changeMusic(idx);
 
             map = lvl.map;
-            // Placement Joueur
             playerObj.x = lvl.start.x * TILE_SIZE;
             playerObj.y = lvl.start.y * TILE_SIZE;
             playerObj.dir = lvl.start.dir;
 
-            // Placement Items
             items = [];
             let clueCount = 0;
             for(let y=0; y<map.length; y++) for(let x=0; x<map[y].length; x++) {
@@ -366,7 +379,6 @@
                 let gridX = Math.floor(nextX / TILE_SIZE);
                 let gridY = Math.floor(nextY / TILE_SIZE);
 
-                // Vérifie si on marche dans un mur (1) ou un arbre (2)
                 if (map[gridY] && map[gridY][gridX] !== 1 && map[gridY][gridX] !== 2) {
                     playerObj.x = nextX;
                     playerObj.y = nextY;
@@ -374,12 +386,14 @@
                     // Sortie Niveau (9)
                     if (map[gridY][gridX] === 9) {
                         if (cluesFound >= 3) {
-                            showDialogue("J'ai trouvé une piste vers le Nord... Pigalle.", 3000);
-                            playerObj.x -= Math.cos(playerObj.dir)*20; // Recule pour pas spammer
+                            showDialogue("La piste continue vers le Nord... Pigalle.", 3000);
+                            playerObj.x -= Math.cos(playerObj.dir)*30; 
+                            playerObj.y -= Math.sin(playerObj.dir)*30;
                             setTimeout(() => loadLevel(1), 2000);
                         } else {
-                            playerObj.x -= Math.cos(playerObj.dir)*10;
-                            showDialogue("Je ne peux pas partir sans avoir tout fouillé.", 2000);
+                            playerObj.x -= Math.cos(playerObj.dir)*20;
+                            playerObj.y -= Math.sin(playerObj.dir)*20;
+                            showDialogue("La place est trop grande. Je n'ai pas encore tout fouillé.", 2000);
                         }
                     }
                 }
@@ -412,11 +426,10 @@
         }
         function hideDialogue() { document.getElementById('dialogue-box').classList.remove('active'); }
 
-        // --- 6. RENDU (RAYCASTING) ---
+        // --- 6. RENDU (RAYCASTING OPTIMISÉ LARGE MAP) ---
         function draw() {
-            // Sol et Plafond
             ctx.fillStyle = "#050505"; ctx.fillRect(0,0,canvas.width,canvas.height/2);
-            ctx.fillStyle = "#111"; ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
+            ctx.fillStyle = "#151515"; ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
 
             const numRays = Math.ceil(canvas.width / 2);
             const bob = Math.sin(timer) * 5;
@@ -428,40 +441,35 @@
                 let rayX = playerObj.x, rayY = playerObj.y;
                 let textureId = 1;
 
-                // Raycast
-                while(dist < 800 && hit === 0) {
-                    dist += 2; rayX += eyeX*2; rayY += eyeY*2;
+                // Augmentation de la distance de rendu pour la grande carte
+                while(dist < 2500 && hit === 0) {
+                    dist += 4; // Pas plus grand pour aller plus loin vite
+                    rayX += eyeX*4; rayY += eyeY*4;
                     let tx = Math.floor(rayX/TILE_SIZE), ty = Math.floor(rayY/TILE_SIZE);
                     if(ty<0 || ty>=map.length || tx<0 || tx>=map[0].length) { hit=1; }
                     else if(map[ty][tx] > 0 && map[ty][tx] !== 9 && map[ty][tx] !== 5 && map[ty][tx] !== 8) { 
-                        hit = 1; 
-                        textureId = map[ty][tx]; // 1 = Mur, 2 = Arbre
+                        hit = 1; textureId = map[ty][tx]; 
                     }
                 }
 
-                // Dessin Mur
-                if(dist < 800) {
+                if(dist < 2500) {
                     let correctedDist = dist * Math.cos(angle - playerObj.dir);
                     let h = (TILE_SIZE * canvas.height) / correctedDist;
-                    let x = i*2; 
-                    let y = (canvas.height - h)/2 + bob;
+                    let x = i*2; let y = (canvas.height - h)/2 + bob;
                     
-                    // Choix texture
                     let tex = (textureId === 2) ? levels[currentLevel].texTree : levels[currentLevel].texWall;
-                    
-                    // Calcul coord texture X
                     let texX = 0;
                     if(Math.abs((rayX%TILE_SIZE) - TILE_SIZE) < 3 || (rayX%TILE_SIZE) < 3) texX = rayY%TILE_SIZE;
                     else texX = rayX%TILE_SIZE;
                     texX = Math.floor((texX/TILE_SIZE)*64);
 
-                    let shade = Math.max(0, 1 - dist/600);
+                    // Brouillard adapté à la grande distance
+                    let shade = Math.max(0, 1 - dist/2000);
                     ctx.drawImage(tex, texX, 0, 1, 512, x, y, 2, h);
                     ctx.fillStyle = `rgba(0,0,0,${1-shade})`; ctx.fillRect(x,y,2,h);
                 }
             }
 
-            // Sprites (Indices / Samuel)
             items.sort((a,b) => Math.hypot(playerObj.x-b.x, playerObj.y-b.y) - Math.hypot(playerObj.x-a.x, playerObj.y-a.y));
             items.forEach(item => {
                 if(!item.active) return;
@@ -478,19 +486,18 @@
                     if(img.complete) ctx.drawImage(img, x, y, h, h);
                 }
             });
-
             drawRadar();
         }
 
         function drawRadar() {
             radarCtx.clearRect(0,0,120,120);
-            const zoom = 6; const cx=60, cy=60;
+            const zoom = 4; const cx=60, cy=60; // Zoom dézoomé pour voir plus de map
             for(let y=0; y<map.length; y++) for(let x=0; x<map[0].length; x++) {
                 let dx = (x*TILE_SIZE - playerObj.x)/TILE_SIZE * zoom;
                 let dy = (y*TILE_SIZE - playerObj.y)/TILE_SIZE * zoom;
                 if(Math.abs(dx)<60 && Math.abs(dy)<60) {
-                    if(map[y][x]===1) { radarCtx.fillStyle='#444'; radarCtx.fillRect(cx+dx,cy+dy,zoom,zoom); }
-                    if(map[y][x]===2) { radarCtx.fillStyle='#252'; radarCtx.fillRect(cx+dx,cy+dy,zoom,zoom); } // Arbres vert
+                    if(map[y][x]===1) { radarCtx.fillStyle='#555'; radarCtx.fillRect(cx+dx,cy+dy,zoom,zoom); }
+                    if(map[y][x]===2) { radarCtx.fillStyle='#262'; radarCtx.fillRect(cx+dx,cy+dy,zoom,zoom); }
                     if(map[y][x]===9) { radarCtx.fillStyle='#f00'; radarCtx.fillRect(cx+dx,cy+dy,zoom,zoom); }
                 }
             }
@@ -499,8 +506,6 @@
 
         function loop() { update(); draw(); requestAnimationFrame(loop); }
 
-        // Start automatique géré par l'intro
-        
         // Clic sur fin pour reload
         document.getElementById('win-screen').addEventListener('click', () => location.reload());
 
