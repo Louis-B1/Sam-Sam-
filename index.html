@@ -5,110 +5,77 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paris Investigation : La Disparition</title>
     <style>
-        /* --- ESTHÉTIQUE GÉNÉRALE --- */
         body {
-            background-color: #000;
-            margin: 0; padding: 0;
-            overflow: hidden;
+            background-color: #000; margin: 0; padding: 0; overflow: hidden;
             font-family: 'Courier New', Courier, monospace;
-            width: 100vw; height: 100vh;
-            user-select: none;
-            color: #ddd;
+            width: 100vw; height: 100vh; user-select: none; color: #ddd;
         }
         #game-container { position: relative; width: 100%; height: 100%; }
         canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated;}
 
-        /* --- FX VISUELS --- */
+        /* FX VISUELS */
         #flashlight {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, transparent 15%, rgba(0,0,0,0.98) 65%);
+            background: radial-gradient(circle at center, transparent 20%, rgba(0,0,0,0.95) 60%);
             pointer-events: none; z-index: 4; mix-blend-mode: multiply;
         }
         #vignette {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            box-shadow: inset 0 0 150px rgba(0,0,0,1);
-            pointer-events: none; z-index: 5;
+            box-shadow: inset 0 0 150px rgba(0,0,0,1); pointer-events: none; z-index: 5;
         }
         .rain {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAH0lEQVQoU2nkCAMAAwkBmqMI4H8h/w+rhw0g32OYJQxwQDgfv99cAAAAAElFTkSuQmCC') repeat;
-            opacity: 0.1; pointer-events: none;
-            animation: rainAnim 0.5s linear infinite; z-index: 3;
+            opacity: 0.1; pointer-events: none; animation: rainAnim 0.5s linear infinite; z-index: 3;
         }
         @keyframes rainAnim { from { background-position: 0 0; } to { background-position: 10px 20px; } }
 
-        /* --- UI / HUD --- */
+        /* UI */
         #ui-layer {
-            position: absolute; top: 20px; left: 20px; z-index: 10;
-            display: none; /* Caché pendant l'intro */
+            position: absolute; top: 20px; left: 20px; z-index: 10; display: none;
             gap: 20px; align-items: flex-start;
         }
         #radar {
-            background: rgba(0, 10, 0, 0.9);
-            border: 2px solid #555; border-radius: 50%;
-            width: 120px; height: 120px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.8);
+            background: rgba(0, 10, 0, 0.9); border: 2px solid #555; border-radius: 50%;
+            width: 120px; height: 120px; box-shadow: 0 0 15px rgba(0,0,0,0.8);
         }
         #mission-panel {
-            background: rgba(10, 10, 10, 0.85); padding: 15px;
-            border-left: 3px solid #d4af37; color: #ccc;
-            backdrop-filter: blur(4px);
-            font-size: 14px;
+            background: rgba(10, 10, 10, 0.85); padding: 15px; border-left: 3px solid #d4af37;
+            color: #ccc; backdrop-filter: blur(4px); font-size: 14px;
         }
 
-        /* --- NARRATION & DIALOGUES --- */
+        /* NARRATION */
         #intro-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 100;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            padding: 40px; box-sizing: border-box;
-            text-align: left;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 100;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px;
         }
-        #intro-text {
-            font-size: 20px; line-height: 1.6; color: #eee;
-            max-width: 700px; white-space: pre-wrap;
-        }
+        #intro-text { font-size: 20px; line-height: 1.6; color: #eee; max-width: 700px; white-space: pre-wrap; }
         #skip-btn {
-            margin-top: 30px; border: 1px solid #444; padding: 10px 20px;
-            cursor: pointer; color: #888; font-size: 14px; opacity: 0; transition: opacity 1s;
+            margin-top: 30px; border: 1px solid #444; padding: 10px 20px; cursor: pointer;
+            color: #888; font-size: 14px; opacity: 0; transition: opacity 1s;
         }
-
         #dialogue-box {
-            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
-            width: 70%; background: rgba(0, 0, 0, 0.9);
-            border: 1px solid #666; border-top: 4px solid #d4af37;
-            padding: 20px; z-index: 20; display: none;
-            color: #fff; font-size: 18px; box-shadow: 0 10px 30px #000;
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 70%;
+            background: rgba(0, 0, 0, 0.9); border: 1px solid #666; border-top: 4px solid #d4af37;
+            padding: 20px; z-index: 20; display: none; color: #fff; font-size: 18px; box-shadow: 0 10px 30px #000;
         }
         #dialogue-box.active { display: block; animation: popUp 0.3s ease-out; }
         @keyframes popUp { from { transform: translate(-50%, 50px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
-
-        /* --- ÉCRANS DE FIN --- */
         #win-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(5,0,0,0.95); display: none;
-            flex-direction: column; justify-content: center; align-items: center; z-index: 50;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,0,0,0.95);
+            display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 50;
         }
         #samuel-reveal { height: 40vh; border: 4px solid #fff; margin-bottom: 20px; box-shadow: 0 0 50px rgba(200,0,0,0.3); }
-
     </style>
 </head>
 <body>
-
     <div id="youtube-audio" style="position:absolute; top:-9999px;"></div>
-
     <div id="game-container">
-        <div id="flashlight"></div>
-        <div id="vignette"></div>
-        <div class="rain"></div>
-        
+        <div id="flashlight"></div><div id="vignette"></div><div class="rain"></div>
         <canvas id="gameCanvas"></canvas>
-        
         <div id="intro-screen">
-            <div id="intro-text"></div>
-            <div id="skip-btn">CLIQUER POUR COMMENCER L'ENQUÊTE</div>
+            <div id="intro-text"></div><div id="skip-btn">CLIQUER POUR COMMENCER L'ENQUÊTE</div>
         </div>
-
         <div id="ui-layer">
             <canvas id="radar" width="120" height="120"></canvas>
             <div id="mission-panel">
@@ -117,384 +84,199 @@
                 <div style="font-size: 11px; color: #777;">[FLÈCHES] Marcher - [SHIFT] Courir</div>
             </div>
         </div>
-
         <div id="dialogue-box"></div>
-
         <div id="win-screen">
             <h1 style="color:#d43737; font-size: 50px; text-shadow: 0 0 20px #500;">IL EST LÀ.</h1>
             <img id="samuel-reveal" src="samuel.png" alt="Samuel">
             <p style="color: #888;">Cliquez pour relancer l'histoire.</p>
         </div>
     </div>
-
     <script>
-        // --- 1. AUDIO SYSTÈME ---
-        var player;
-        var tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        var firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        // --- AUDIO ---
+        var player; var tag = document.createElement('script'); tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0]; firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        function onYouTubeIframeAPIReady() { player = new YT.Player('youtube-audio', { height: '0', width: '0', videoId: 'bUKC5RAjUdg', playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': 'bUKC5RAjUdg' } }); }
+        function changeMusic(mode) { if(!player || !player.loadVideoById) return; if(mode === 0) player.loadVideoById('bUKC5RAjUdg'); if(mode === 1) player.loadVideoById('vvHCLeS0bCY'); }
 
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('youtube-audio', {
-                height: '0', width: '0', videoId: 'bUKC5RAjUdg',
-                playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': 'bUKC5RAjUdg' }
-            });
-        }
-        function changeMusic(mode) {
-            if(!player || !player.loadVideoById) return;
-            // 0 = Marais/Intro (Jazz Noir), 1 = Pigalle (Tension/Accordéon)
-            if(mode === 0) player.loadVideoById('bUKC5RAjUdg'); 
-            if(mode === 1) player.loadVideoById('vvHCLeS0bCY');
-        }
-
-        // --- 2. INTRO NARRATIVE (TYPEWRITER) ---
-        const introLines = [
-            "Paris. 22h30.",
-            "Je sors à peine de la fac. Une journée interminable.",
-            "Mon téléphone vibre. C'est Samuel.",
-            "...",
-            "Message vide. Juste une localisation GPS.",
-            "Il n'est pas rentré hier soir. Personne n'a de nouvelles.",
-            "La localisation pointe vers le Marais... Place des Vosges.",
-            "Je dois le retrouver."
-        ];
-        
-        let lineIndex = 0;
-        let charIndex = 0;
-        const introTextEl = document.getElementById('intro-text');
-        const skipBtn = document.getElementById('skip-btn');
-
-        function typeWriter() {
-            if (lineIndex < introLines.length) {
-                if (charIndex < introLines[lineIndex].length) {
-                    introTextEl.innerHTML += introLines[lineIndex].charAt(charIndex);
-                    charIndex++;
-                    setTimeout(typeWriter, 40); // Vitesse de frappe
-                } else {
-                    introTextEl.innerHTML += "<br><br>";
-                    lineIndex++;
-                    charIndex = 0;
-                    setTimeout(typeWriter, 600); // Pause entre les lignes
-                }
-            } else {
-                skipBtn.style.opacity = 1;
-            }
-        }
-
-        // Lance l'animation au chargement
+        // --- INTRO ---
+        const introLines = ["Paris. 22h30.","Je sors à peine de la fac. Une journée interminable.","Mon téléphone vibre. C'est Samuel.","...","Message vide. Juste une localisation GPS.","Il n'est pas rentré hier soir. Personne n'a de nouvelles.","La localisation pointe vers le Marais... Place des Vosges.","Je dois le retrouver."];
+        let lineIndex = 0; let charIndex = 0; const introTextEl = document.getElementById('intro-text'); const skipBtn = document.getElementById('skip-btn');
+        function typeWriter() { if (lineIndex < introLines.length) { if (charIndex < introLines[lineIndex].length) { introTextEl.innerHTML += introLines[lineIndex].charAt(charIndex); charIndex++; setTimeout(typeWriter, 40); } else { introTextEl.innerHTML += "<br><br>"; lineIndex++; charIndex = 0; setTimeout(typeWriter, 600); } } else { skipBtn.style.opacity = 1; } }
         window.onload = typeWriter;
+        skipBtn.addEventListener('click', () => { document.getElementById('intro-screen').style.display = 'none'; document.getElementById('ui-layer').style.display = 'flex'; gameActive = true; loadLevel(0); if(player && player.unMute) { player.unMute(); player.setVolume(100); player.playVideo(); } loop(); });
 
-        // Clic pour lancer le jeu
-        skipBtn.addEventListener('click', () => {
-            document.getElementById('intro-screen').style.display = 'none';
-            document.getElementById('ui-layer').style.display = 'flex';
-            gameActive = true;
-            loadLevel(0);
-            if(player && player.unMute) { player.unMute(); player.setVolume(100); player.playVideo(); }
-            loop();
-        });
-
-        // --- 3. MOTEUR 3D ---
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const radarCanvas = document.getElementById('radar');
-        const radarCtx = radarCanvas.getContext('2d');
+        // --- MOTEUR ---
+        const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d');
+        const radarCanvas = document.getElementById('radar'); const radarCtx = radarCanvas.getContext('2d');
         ctx.imageSmoothingEnabled = false;
-
-        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resize); resize();
-
-        // Assets
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; } window.addEventListener('resize', resize); resize();
         const samuelSprite = new Image(); samuelSprite.src = "samuel.png";
-        
-        // Texture Indices
-        const clueCanvas = document.createElement('canvas'); clueCanvas.width=64; clueCanvas.height=64;
-        const cCtx = clueCanvas.getContext('2d');
-        cCtx.fillStyle = '#ffcc00'; cCtx.fillRect(15,20,34,40); cCtx.strokeStyle='#fff'; cCtx.lineWidth=3; cCtx.strokeRect(15,20,34,40);
-        const clueSprite = new Image(); clueSprite.src = clueCanvas.toDataURL();
+        const clueCanvas = document.createElement('canvas'); clueCanvas.width=64; clueCanvas.height=64; const cCtx = clueCanvas.getContext('2d'); cCtx.fillStyle = '#ffcc00'; cCtx.fillRect(15,20,34,40); cCtx.strokeStyle='#fff'; cCtx.lineWidth=3; cCtx.strokeRect(15,20,34,40); const clueSprite = new Image(); clueSprite.src = clueCanvas.toDataURL();
 
-        // TEXTURES MURALES
+        // --- GÉNÉRATEUR DE TEXTURES AMÉLIORÉ ---
         const texSize = 512;
         function createTexture(type) {
-            const c = document.createElement('canvas'); c.width = 64; c.height = texSize;
-            const x = c.getContext('2d');
-            
-            if (type === 'vosges_wall') { // Pierre et Brique (Arcades)
-                x.fillStyle = '#e8dcca'; x.fillRect(0,0,64,texSize); // Pierre claire
-                x.fillStyle = '#a53535'; // Briques rouges
-                for(let y=0; y<texSize; y+=32) { x.fillRect(0,y,64,4); if((y/32)%2) x.fillRect(32,y,4,32); else x.fillRect(0,y,4,32); }
-                // Arche sombre en bas
-                x.fillStyle = '#1a1210'; x.fillRect(0,320,64,192); 
-            } 
-            else if (type === 'vosges_tree') { // Arbres du parc (Haie taillée)
-                x.fillStyle = '#051505'; x.fillRect(0,0,64,texSize);
-                for(let i=0; i<500; i++) {
-                    x.fillStyle = Math.random()>0.5 ? '#2a5a1a' : '#1a3a0e';
-                    x.beginPath(); x.arc(Math.random()*64, Math.random()*texSize, Math.random()*6+3, 0, Math.PI*2); x.fill();
+            const c = document.createElement('canvas'); c.width = 64; c.height = texSize; const x = c.getContext('2d');
+            if (type === 'vosges_wall') { 
+                // Pierre de taille (Soubassement)
+                x.fillStyle = '#989088'; x.fillRect(0,320,64,192);
+                x.fillStyle = '#787068'; for(let i=0; i<50;i++) x.fillRect(Math.random()*64, 320+Math.random()*192, 2, 2); // Bruit pierre
+                x.fillStyle = '#585048'; x.fillRect(0,320,64,4); // Joint haut pierre
+                // Briques détaillées
+                x.fillStyle = '#8a3a3a'; x.fillRect(0,0,64,320); // Base rouge brique
+                for(let y=0; y<320; y+=32) {
+                    let offset = (y/32)%2 === 0 ? 0 : 32;
+                    // Mortier (Joints gris)
+                    x.fillStyle = '#6a6a6a'; x.fillRect(0,y,64,4); // Horizontal
+                    x.fillRect(offset, y+4, 4, 28); x.fillRect(offset+64, y+4, 4, 28);// Vertical
+                    // Variation couleur brique
+                    x.fillStyle = (y%64===0) ? '#9e4545' : '#8a3a3a';
+                    x.fillRect(offset+4, y+4, 28, 28); x.fillRect(offset+36, y+4, 28, 28);
                 }
-                x.fillStyle = '#111'; x.fillRect(0,450,64,62); // Ombre bas
+            } 
+            else if (type === 'vosges_tree') { 
+                // Feuillage dense avec volume
+                x.fillStyle = '#0a1a0a'; x.fillRect(0,0,64,texSize); // Fond très sombre
+                // Couche 1 : Sombre
+                x.fillStyle = '#1a3a15'; for(let i=0; i<300; i++) { x.beginPath(); x.arc(Math.random()*64, Math.random()*texSize, Math.random()*8+4, 0, Math.PI*2); x.fill(); }
+                // Couche 2 : Moyen
+                x.fillStyle = '#2a5a25'; for(let i=0; i<300; i++) { x.beginPath(); x.arc(Math.random()*64, Math.random()*texSize, Math.random()*6+3, 0, Math.PI*2); x.fill(); }
+                 // Couche 3 : Lumière
+                x.fillStyle = '#3a7a35'; for(let i=0; i<200; i++) { x.beginPath(); x.arc(Math.random()*64, Math.random()*texSize, Math.random()*4+2, 0, Math.PI*2); x.fill(); }
+                x.fillStyle = '#051005'; x.fillRect(0,480,64,32); // Ombre base très forte
             }
-            else if (type === 'pigalle') { // Sale et sombre
+            else if (type === 'pigalle') {
                 x.fillStyle = '#2a2a2a'; x.fillRect(0,0,64,texSize);
-                x.fillStyle = '#111'; for(let i=0; i<20; i++) x.fillRect(Math.random()*60, Math.random()*texSize, Math.random()*10, Math.random()*50);
-                x.shadowBlur=20; x.shadowColor='#f05'; x.fillStyle='#f05'; x.fillRect(10,200,44,5); x.shadowBlur=0;
+                x.fillStyle = '#151515'; for(let y=0;y<texSize;y+=16) x.fillRect(0,y,64,2); // Lignes briques sales
+                x.fillStyle = '#111'; for(let i=0; i<30; i++) x.fillRect(Math.random()*60, Math.random()*texSize, Math.random()*15, Math.random()*40); // Crasse
+                x.shadowBlur=25; x.shadowColor='#ff0044'; x.fillStyle='#ff0044'; x.fillRect(5,250,54,8); x.shadowBlur=0; // Néon
             }
             const img = new Image(); img.src = c.toDataURL(); return img;
         }
+        const TEX_VOSGES = createTexture('vosges_wall'); const TEX_TREE = createTexture('vosges_tree'); const TEX_PIGALLE = createTexture('pigalle');
 
-        const TEX_VOSGES = createTexture('vosges_wall');
-        const TEX_TREE = createTexture('vosges_tree');
-        const TEX_PIGALLE = createTexture('pigalle');
-
-        // --- 4. CONFIG NIVEAUX ---
+        // --- CONFIG ---
         const TILE_SIZE = 64; const FOV = Math.PI / 2.5; 
         let playerObj = { x: 0, y: 0, dir: 0 };
-        // Vitesse augmentée pour la grande carte
         const WALK = 2.8; const RUN = 5.5; const ROT = 0.04;
-        let currentLevel = 0; let gameActive = false; let timer = 0;
-        let cluesFound = 0; let dialogueTimer = null;
+        let currentLevel = 0; let gameActive = false; let timer = 0; let cluesFound = 0; let dialogueTimer = null;
 
-        // NARRATION DYNAMIQUE
-        const narrative = [
-            [ // NIVEAU 0 : Place des Vosges (Parc)
-                "Un ticket de caisse du 'Café Hugo' juste à côté. Payé à 21h15. Il était là.",
-                "Son carnet de croquis. Tombé près de la statue centrale. Une page est arrachée.",
-                "Une carte Navigo au sol. C'est celle de Samuel. Il ne l'aurait jamais jetée volontairement."
-            ],
-            [ // NIVEAU 1 : Pigalle (Ruelle)
-                "Un flyer froissé : 'Le Moulin Rouge - Entrée Staff'. Samuel ne bosse pas là-bas...",
-                "Des lunettes de soleil cassées. Les siennes.",
-                "Son téléphone. Écran brisé. Il y a un message non envoyé : 'AIDE MOI'."
-            ]
-        ];
+        const narrative = [[ "Un ticket de caisse du 'Café Hugo'. 21h15. Il était là.", "Son carnet de croquis. Tombé près de la statue. Une page est arrachée.", "Sa carte Navigo. Samuel ne l'aurait jamais jetée." ],[ "Un flyer froissé : 'Le Moulin Rouge - Staff'. Samuel ne bosse pas là...", "Des lunettes de soleil cassées. Les siennes.", "Son téléphone. Écran brisé. Message non envoyé : 'AIDE MOI'." ]];
 
-        // 1 = Mur Brique (Arcades), 2 = Arbre/Haie (Parc), 9 = Sortie
         const levels = [
             {
-                name: "PLACE DES VOSGES (22H45)",
-                texWall: TEX_VOSGES,
-                texTree: TEX_TREE,
-                // GRANDE CARTE 24x24 SYMETRIQUE
+                name: "PLACE DES VOSGES (22H45)", texWall: TEX_VOSGES, texTree: TEX_TREE, hasGrass: true,
                 map: [
                     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
                     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
                     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-                    [1,0,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,1],
-                    [1,0,0,2,0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,2,0,0,1],
-                    [1,0,0,2,0,0,0,0,0,0,0,2,2,0,0,0,0,5,0,0,2,0,0,1], // Indice 1
-                    [1,0,0,2,0,0,0,2,2,0,0,2,2,0,0,2,2,0,0,0,2,0,0,1],
+                    [1,0,0,2,2,2,2,2,2,2,2,0,0,2,2,2,2,2,2,2,2,0,0,1], // Ouvertures (0) ajoutées
+                    [1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,1],
+                    [1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,2,0,0,1],
+                    [1,0,0,2,0,0,0,2,2,0,0,0,0,0,0,2,2,0,0,0,2,0,0,1],
                     [1,0,0,2,0,0,0,2,2,0,0,0,0,0,0,2,2,0,0,0,2,0,0,1],
                     [1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,1],
-                    [1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,1],
-                    [1,0,0,2,0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,2,0,0,1],
-                    [1,0,0,2,2,2,0,0,0,0,2,2,2,2,0,0,0,0,2,2,2,0,0,1], // Centre (Statue)
+                    [1,0,0,0,0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,0,0,0,1], // Ouverture Ouest/Est
+                    [1,0,0,0,0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,0,0,0,1],
+                    [1,0,0,2,2,2,0,0,0,0,2,2,2,2,0,0,0,0,2,2,2,0,0,1],
                     [1,0,0,2,2,2,0,0,0,0,2,2,2,2,0,0,0,0,2,2,2,0,0,1],
                     [1,0,0,2,0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,2,0,0,1],
-                    [1,0,0,2,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,2,0,0,1], // Indice 2
+                    [1,0,0,2,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,2,0,0,1],
                     [1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,1],
                     [1,0,0,2,0,0,0,2,2,0,0,0,0,0,0,2,2,0,0,0,2,0,0,1],
-                    [1,0,0,2,0,0,0,2,2,0,0,2,2,0,0,2,2,0,0,0,2,0,0,1],
-                    [1,0,0,2,0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,2,0,0,1],
-                    [1,0,0,2,0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,2,0,5,1], // Indice 3
-                    [1,0,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,1],
-                    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9,1], // Sortie
+                    [1,0,0,2,0,0,0,2,2,0,0,0,0,0,0,2,2,0,0,0,2,0,0,1],
+                    [1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,1],
+                    [1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,5,1],
+                    [1,0,0,2,2,2,2,2,2,2,2,0,0,2,2,2,2,2,2,2,2,0,0,1], // Ouvertures Sud
+                    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9,1],
                     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
                     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-                ], start: {x: 2.5, y: 2.5, dir: 0.8} // Départ coin Nord-Ouest dans la rue
+                ], start: {x: 2.5, y: 2.5, dir: 0.8}
             },
             {
-                name: "PIGALLE - IMPASSE (23H30)",
-                texWall: TEX_PIGALLE,
-                texTree: TEX_PIGALLE,
-                map: [
-                    [1,1,1,1,1,1,1,1,1,1],
-                    [1,0,0,5,0,0,0,0,0,1],
-                    [1,0,1,1,0,1,1,1,0,1],
-                    [1,0,0,0,0,0,0,5,0,1],
-                    [1,0,1,1,0,1,0,1,1,1],
-                    [1,5,0,0,0,1,0,0,8,1],
-                    [1,1,1,1,1,1,1,1,1,1]
-                ], 
+                name: "PIGALLE - IMPASSE (23H30)", texWall: TEX_PIGALLE, texTree: TEX_PIGALLE, hasGrass: false,
+                map: [[1,1,1,1,1,1,1,1,1,1],[1,0,0,5,0,0,0,0,0,1],[1,0,1,1,0,1,1,1,0,1],[1,0,0,0,0,0,0,5,0,1],[1,0,1,1,0,1,0,1,1,1],[1,5,0,0,0,1,0,0,8,1],[1,1,1,1,1,1,1,1,1,1]], 
                 start: {x: 2.5, y: 1.5, dir: 0}
             }
         ];
 
         let map=[]; let items=[];
-
         function loadLevel(idx) {
-            if(idx >= levels.length) return;
-            currentLevel = idx; cluesFound = 0;
-            const lvl = levels[idx];
-
-            document.getElementById('zoneName').innerText = lvl.name;
-            document.getElementById('score').innerText = "0";
-            hideDialogue();
-            changeMusic(idx);
-
-            map = lvl.map;
-            playerObj.x = lvl.start.x * TILE_SIZE;
-            playerObj.y = lvl.start.y * TILE_SIZE;
-            playerObj.dir = lvl.start.dir;
-
-            items = [];
-            let clueCount = 0;
+            if(idx >= levels.length) return; currentLevel = idx; cluesFound = 0; const lvl = levels[idx];
+            document.getElementById('zoneName').innerText = lvl.name; document.getElementById('score').innerText = "0"; hideDialogue(); changeMusic(idx);
+            map = lvl.map; playerObj.x = lvl.start.x * TILE_SIZE; playerObj.y = lvl.start.y * TILE_SIZE; playerObj.dir = lvl.start.dir;
+            items = []; let clueCount = 0;
             for(let y=0; y<map.length; y++) for(let x=0; x<map[y].length; x++) {
-                if(map[y][x] === 5) {
-                    let txt = narrative[currentLevel][clueCount] || "Un indice étrange...";
-                    items.push({x: x*TILE_SIZE+32, y: y*TILE_SIZE+32, type: 'clue', active:true, text: txt});
-                    map[y][x] = 0; clueCount++;
-                }
-                if(map[y][x] === 8) {
-                    items.push({x: x*TILE_SIZE+32, y: y*TILE_SIZE+32, type: 'samuel', active:true});
-                    map[y][x] = 0;
-                }
+                if(map[y][x] === 5) { let txt = narrative[currentLevel][clueCount] || "Un indice."; items.push({x: x*TILE_SIZE+32, y: y*TILE_SIZE+32, type: 'clue', active:true, text: txt}); map[y][x] = 0; clueCount++; }
+                if(map[y][x] === 8) { items.push({x: x*TILE_SIZE+32, y: y*TILE_SIZE+32, type: 'samuel', active:true}); map[y][x] = 0; }
             }
         }
 
-        // --- 5. LOGIQUE JEU ---
-        const keys = {};
-        window.addEventListener('keydown', e => keys[e.code] = true);
-        window.addEventListener('keyup', e => keys[e.code] = false);
-
+        const keys = {}; window.addEventListener('keydown', e => keys[e.code] = true); window.addEventListener('keyup', e => keys[e.code] = false);
         function update() {
             if(!gameActive) return;
-
-            // Rotation
-            if (keys['ArrowLeft']) playerObj.dir -= ROT;
-            if (keys['ArrowRight']) playerObj.dir += ROT;
-
-            // Mouvement
-            let speed = keys['ShiftLeft'] ? RUN : WALK;
-            let step = 0;
-            if (keys['ArrowUp']) step = speed;
-            if (keys['ArrowDown']) step = -speed;
-            
+            if (keys['ArrowLeft']) playerObj.dir -= ROT; if (keys['ArrowRight']) playerObj.dir += ROT;
+            let speed = keys['ShiftLeft'] ? RUN : WALK; let step = 0; if (keys['ArrowUp']) step = speed; if (keys['ArrowDown']) step = -speed;
             if (step !== 0) {
-                timer += speed * 0.1;
-                let nextX = playerObj.x + Math.cos(playerObj.dir) * step;
-                let nextY = playerObj.y + Math.sin(playerObj.dir) * step;
-                
-                // Collision simple
-                let gridX = Math.floor(nextX / TILE_SIZE);
-                let gridY = Math.floor(nextY / TILE_SIZE);
-
+                timer += speed * 0.1; let nextX = playerObj.x + Math.cos(playerObj.dir) * step; let nextY = playerObj.y + Math.sin(playerObj.dir) * step;
+                let gridX = Math.floor(nextX / TILE_SIZE); let gridY = Math.floor(nextY / TILE_SIZE);
                 if (map[gridY] && map[gridY][gridX] !== 1 && map[gridY][gridX] !== 2) {
-                    playerObj.x = nextX;
-                    playerObj.y = nextY;
-
-                    // Sortie Niveau (9)
+                    playerObj.x = nextX; playerObj.y = nextY;
                     if (map[gridY][gridX] === 9) {
-                        if (cluesFound >= 3) {
-                            showDialogue("La piste continue vers le Nord... Pigalle.", 3000);
-                            playerObj.x -= Math.cos(playerObj.dir)*30; 
-                            playerObj.y -= Math.sin(playerObj.dir)*30;
-                            setTimeout(() => loadLevel(1), 2000);
-                        } else {
-                            playerObj.x -= Math.cos(playerObj.dir)*20;
-                            playerObj.y -= Math.sin(playerObj.dir)*20;
-                            showDialogue("La place est trop grande. Je n'ai pas encore tout fouillé.", 2000);
-                        }
+                        if (cluesFound >= 3) { showDialogue("La piste continue vers le Nord... Pigalle.", 3000); playerObj.x -= Math.cos(playerObj.dir)*30; playerObj.y -= Math.sin(playerObj.dir)*30; setTimeout(() => loadLevel(1), 2000); } 
+                        else { playerObj.x -= Math.cos(playerObj.dir)*20; playerObj.y -= Math.sin(playerObj.dir)*20; showDialogue("Je n'ai pas encore tout fouillé ici.", 2000); }
                     }
                 }
             }
-
-            // Objets
             items.forEach(item => {
-                if(!item.active) return;
-                let d = Math.hypot(playerObj.x - item.x, playerObj.y - item.y);
+                if(!item.active) return; let d = Math.hypot(playerObj.x - item.x, playerObj.y - item.y);
                 if(d < 40) {
-                    if(item.type === 'clue') {
-                        item.active = false; cluesFound++;
-                        document.getElementById('score').innerText = cluesFound;
-                        showDialogue(item.text, 5000);
-                    } else if(item.type === 'samuel') {
-                        gameActive = false;
-                        document.getElementById('win-screen').style.display = 'flex';
-                        document.getElementById('ui-layer').style.display = 'none';
-                        document.getElementById('dialogue-box').style.display = 'none';
-                    }
+                    if(item.type === 'clue') { item.active = false; cluesFound++; document.getElementById('score').innerText = cluesFound; showDialogue(item.text, 5000); } 
+                    else if(item.type === 'samuel') { gameActive = false; document.getElementById('win-screen').style.display = 'flex'; document.getElementById('ui-layer').style.display = 'none'; document.getElementById('dialogue-box').style.display = 'none'; }
                 }
             });
         }
-
-        function showDialogue(text, time) {
-            const box = document.getElementById('dialogue-box');
-            box.innerText = text; box.classList.add('active');
-            if(dialogueTimer) clearTimeout(dialogueTimer);
-            if(time) dialogueTimer = setTimeout(hideDialogue, time);
-        }
+        function showDialogue(text, time) { const box = document.getElementById('dialogue-box'); box.innerText = text; box.classList.add('active'); if(dialogueTimer) clearTimeout(dialogueTimer); if(time) dialogueTimer = setTimeout(hideDialogue, time); }
         function hideDialogue() { document.getElementById('dialogue-box').classList.remove('active'); }
 
-        // --- 6. RENDU (RAYCASTING OPTIMISÉ LARGE MAP) ---
+        // --- RENDU ---
         function draw() {
             ctx.fillStyle = "#050505"; ctx.fillRect(0,0,canvas.width,canvas.height/2);
-            ctx.fillStyle = "#151515"; ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
-
-            const numRays = Math.ceil(canvas.width / 2);
-            const bob = Math.sin(timer) * 5;
-
+            // Sol différent selon le niveau (Herbe ou Pavés)
+            ctx.fillStyle = levels[currentLevel].hasGrass ? "#0a1a0a" : "#151515"; ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
+            const numRays = Math.ceil(canvas.width / 2); const bob = Math.sin(timer) * 5;
             for (let i = 0; i < numRays; i++) {
-                let angle = (playerObj.dir - FOV/2) + (i/numRays) * FOV;
-                let eyeX = Math.cos(angle), eyeY = Math.sin(angle);
-                let dist = 0, hit = 0;
-                let rayX = playerObj.x, rayY = playerObj.y;
-                let textureId = 1;
-
-                // Augmentation de la distance de rendu pour la grande carte
+                let angle = (playerObj.dir - FOV/2) + (i/numRays) * FOV; let eyeX = Math.cos(angle), eyeY = Math.sin(angle);
+                let dist = 0, hit = 0; let rayX = playerObj.x, rayY = playerObj.y; let textureId = 1;
                 while(dist < 2500 && hit === 0) {
-                    dist += 4; // Pas plus grand pour aller plus loin vite
-                    rayX += eyeX*4; rayY += eyeY*4;
-                    let tx = Math.floor(rayX/TILE_SIZE), ty = Math.floor(rayY/TILE_SIZE);
+                    dist += 4; rayX += eyeX*4; rayY += eyeY*4; let tx = Math.floor(rayX/TILE_SIZE), ty = Math.floor(rayY/TILE_SIZE);
                     if(ty<0 || ty>=map.length || tx<0 || tx>=map[0].length) { hit=1; }
-                    else if(map[ty][tx] > 0 && map[ty][tx] !== 9 && map[ty][tx] !== 5 && map[ty][tx] !== 8) { 
-                        hit = 1; textureId = map[ty][tx]; 
-                    }
+                    else if(map[ty][tx] > 0 && map[ty][tx] !== 9 && map[ty][tx] !== 5 && map[ty][tx] !== 8) { hit = 1; textureId = map[ty][tx]; }
                 }
-
                 if(dist < 2500) {
-                    let correctedDist = dist * Math.cos(angle - playerObj.dir);
-                    let h = (TILE_SIZE * canvas.height) / correctedDist;
-                    let x = i*2; let y = (canvas.height - h)/2 + bob;
-                    
+                    let correctedDist = dist * Math.cos(angle - playerObj.dir); let h = (TILE_SIZE * canvas.height) / correctedDist; let x = i*2; let y = (canvas.height - h)/2 + bob;
                     let tex = (textureId === 2) ? levels[currentLevel].texTree : levels[currentLevel].texWall;
-                    let texX = 0;
-                    if(Math.abs((rayX%TILE_SIZE) - TILE_SIZE) < 3 || (rayX%TILE_SIZE) < 3) texX = rayY%TILE_SIZE;
-                    else texX = rayX%TILE_SIZE;
-                    texX = Math.floor((texX/TILE_SIZE)*64);
-
-                    // Brouillard adapté à la grande distance
+                    let texX = 0; if(Math.abs((rayX%TILE_SIZE) - TILE_SIZE) < 3 || (rayX%TILE_SIZE) < 3) texX = rayY%TILE_SIZE; else texX = rayX%TILE_SIZE; texX = Math.floor((texX/TILE_SIZE)*64);
                     let shade = Math.max(0, 1 - dist/2000);
                     ctx.drawImage(tex, texX, 0, 1, 512, x, y, 2, h);
                     ctx.fillStyle = `rgba(0,0,0,${1-shade})`; ctx.fillRect(x,y,2,h);
                 }
             }
-
             items.sort((a,b) => Math.hypot(playerObj.x-b.x, playerObj.y-b.y) - Math.hypot(playerObj.x-a.x, playerObj.y-a.y));
             items.forEach(item => {
-                if(!item.active) return;
-                let dx = item.x - playerObj.x, dy = item.y - playerObj.y;
-                let d = Math.sqrt(dx*dx + dy*dy);
-                let itemAngle = Math.atan2(dy, dx) - playerObj.dir;
-                while(itemAngle < -Math.PI) itemAngle += 2*Math.PI; while(itemAngle > Math.PI) itemAngle -= 2*Math.PI;
-
+                if(!item.active) return; let dx = item.x - playerObj.x, dy = item.y - playerObj.y; let d = Math.sqrt(dx*dx + dy*dy);
+                let itemAngle = Math.atan2(dy, dx) - playerObj.dir; while(itemAngle < -Math.PI) itemAngle += 2*Math.PI; while(itemAngle > Math.PI) itemAngle -= 2*Math.PI;
                 if(Math.abs(itemAngle) < FOV/1.5 && d > 20) {
-                    let h = (TILE_SIZE * canvas.height) / d;
-                    let x = (0.5 * (itemAngle/(FOV/2)) + 0.5) * canvas.width - h/2;
-                    let y = (canvas.height - h)/2 + bob;
-                    let img = item.type==='samuel' ? samuelSprite : clueSprite;
-                    if(img.complete) ctx.drawImage(img, x, y, h, h);
+                    let h = (TILE_SIZE * canvas.height) / d; let x = (0.5 * (itemAngle/(FOV/2)) + 0.5) * canvas.width - h/2; let y = (canvas.height - h)/2 + bob;
+                    let img = item.type==='samuel' ? samuelSprite : clueSprite; if(img.complete) ctx.drawImage(img, x, y, h, h);
                 }
             });
             drawRadar();
         }
-
         function drawRadar() {
-            radarCtx.clearRect(0,0,120,120);
-            const zoom = 4; const cx=60, cy=60; // Zoom dézoomé pour voir plus de map
+            radarCtx.clearRect(0,0,120,120); const zoom = 4; const cx=60, cy=60;
             for(let y=0; y<map.length; y++) for(let x=0; x<map[0].length; x++) {
-                let dx = (x*TILE_SIZE - playerObj.x)/TILE_SIZE * zoom;
-                let dy = (y*TILE_SIZE - playerObj.y)/TILE_SIZE * zoom;
+                let dx = (x*TILE_SIZE - playerObj.x)/TILE_SIZE * zoom; let dy = (y*TILE_SIZE - playerObj.y)/TILE_SIZE * zoom;
                 if(Math.abs(dx)<60 && Math.abs(dy)<60) {
                     if(map[y][x]===1) { radarCtx.fillStyle='#555'; radarCtx.fillRect(cx+dx,cy+dy,zoom,zoom); }
                     if(map[y][x]===2) { radarCtx.fillStyle='#262'; radarCtx.fillRect(cx+dx,cy+dy,zoom,zoom); }
@@ -503,12 +285,8 @@
             }
             radarCtx.fillStyle='#fff'; radarCtx.beginPath(); radarCtx.arc(cx,cy,2,0,6.28); radarCtx.fill();
         }
-
         function loop() { update(); draw(); requestAnimationFrame(loop); }
-
-        // Clic sur fin pour reload
         document.getElementById('win-screen').addEventListener('click', () => location.reload());
-
     </script>
 </body>
 </html>
