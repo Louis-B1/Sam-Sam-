@@ -2,10 +2,11 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Retrouve Samuel - Paris Night</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost in Paname - Retrouve Samuel</title>
     <style>
         body {
-            background-color: #050510; /* Nuit profonde */
+            background-color: #000;
             margin: 0;
             display: flex;
             flex-direction: column;
@@ -13,44 +14,82 @@
             align-items: center;
             height: 100vh;
             color: white;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Arial', sans-serif;
             overflow: hidden;
+            user-select: none;
         }
         #game-container {
             position: relative;
-            box-shadow: 0 0 50px #ff4500; /* Lueur orange des lampadaires */
-            border: 4px solid #333;
+            box-shadow: 0 0 80px rgba(255, 69, 0, 0.3);
+            border: 2px solid #333;
         }
-        canvas { display: block; }
+        canvas { display: block; image-rendering: pixelated; }
+        
+        /* Interface (HUD) */
         #hud {
             position: absolute;
             top: 10px; left: 10px;
-            font-size: 18px;
-            background: rgba(0,0,0,0.7);
-            padding: 10px;
-            border-left: 3px solid #ff4500;
+            padding: 15px;
+            background: linear-gradient(90deg, rgba(0,0,0,0.8), transparent);
+            border-left: 4px solid #ff4500;
+            font-family: 'Courier New', Courier, monospace;
         }
-        #message {
+        .hud-line { margin-bottom: 5px; font-size: 18px; text-shadow: 1px 1px 0 #000; }
+        .gold { color: #ffd700; font-weight: bold; }
+        
+        /* Ecran de démarrage */
+        #start-screen {
             position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 40px;
-            text-align: center;
-            text-shadow: 2px 2px 0 black;
-            display: none;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            cursor: pointer;
         }
+        h1 { font-size: 50px; margin: 0; color: white; text-transform: uppercase; letter-spacing: 5px; }
+        p { font-size: 20px; color: #aaa; }
+        .blink { animation: blinker 1s linear infinite; color: #ff4500; font-weight: bold; margin-top: 20px;}
+        @keyframes blinker { 50% { opacity: 0; } }
+
+        /* Message de victoire */
+        #win-screen {
+            display: none;
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 20;
+        }
+        #samuel-reveal {
+            width: 200px; height: 200px;
+            object-fit: contain;
+            animation: bounce 1s infinite alternate;
+        }
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-20px); } }
     </style>
 </head>
 <body>
 
     <div id="game-container">
         <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
         <div id="hud">
-            <div>QUARTIER: <span id="levelName" style="color:#ffae00">Montmartre</span></div>
-            <div>OBJECTIF: <span id="objective">Trouve les escaliers !</span></div>
-            <div>BAGUETTES D'OR: <span id="score">0</span></div>
+            <div class="hud-line">Lieu : <span id="levelName" style="color:#ffae00">Ruelle Sombre</span></div>
+            <div class="hud-line">Objectif : <span id="objective">Trouve l'escalier</span></div>
         </div>
-        <div id="message"></div>
+
+        <div id="start-screen">
+            <h1>PANAME</h1>
+            <p>Retrouve Samuel</p>
+            <div class="blink">CLIQUER POUR JOUER</div>
+        </div>
+
+        <div id="win-screen">
+            <h1 style="color:#0f0; text-shadow: 0 0 20px green;">SAMUEL RETROUVÉ !</h1>
+            <img id="samuel-reveal" src="samuel.png">
+        </div>
     </div>
 
     <audio id="bgMusic" loop>
@@ -58,151 +97,132 @@
     </audio>
 
     <script>
-        // --- MOTEUR & SETUP ---
+        // --- SETUP ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         ctx.imageSmoothingEnabled = false;
 
-        // Charger l'image de Samuel
-        const samuelSprite = new Image();
-        samuelSprite.src = "samuel.png"; 
-
-        // Gestion Musique (cliquez pour démarrer)
-        document.body.addEventListener('click', () => {
-            document.getElementById('bgMusic').play().catch(e => console.log("Pas de musique trouvée"));
-        }, {once:true});
-
-        // --- GÉNÉRATION TEXTURE PARIS (Briques sombres) ---
-        const wallCanvas = document.createElement('canvas');
-        wallCanvas.width = 64; wallCanvas.height = 64;
+        // Assets
+        const samuelSprite = new Image(); samuelSprite.src = "samuel.png";
+        
+        // Texture Mur (Générée : Briques sombres)
+        const wallCanvas = document.createElement('canvas'); wallCanvas.width = 64; wallCanvas.height = 64;
         const wCtx = wallCanvas.getContext('2d');
-        // Fond gris foncé
-        wCtx.fillStyle = '#2a2a2a'; wCtx.fillRect(0,0,64,64);
-        // Briques
-        wCtx.fillStyle = '#1f1f1f'; wCtx.fillRect(2,2,60,28); wCtx.fillRect(2,34,60,28);
-        // Salissures (Graffiti style)
-        wCtx.fillStyle = '#333'; wCtx.fillRect(10, 10, 20, 5);
+        wCtx.fillStyle = '#1a1a1a'; wCtx.fillRect(0,0,64,64); // Gris très sombre
+        wCtx.fillStyle = '#111'; wCtx.fillRect(2,2,60,28); wCtx.fillRect(2,34,60,28); // Joints
+        wCtx.fillStyle = '#220000'; wCtx.fillRect(10,10,20,10); // Tache sombre
         const wallTexture = new Image(); wallTexture.src = wallCanvas.toDataURL();
 
-        // --- CONSTANTES ---
-        const TILE_SIZE = 64;
-        const FOV = Math.PI / 3;
-        const RAYS = canvas.width / 2; // Qualité
-        
-        let player = { x: 0, y: 0, dir: 0, speed: 5 };
+        // Variables Jeu
+        const TILE_SIZE = 64; const FOV = Math.PI / 3; const RAYS = canvas.width / 2;
+        let player = { x: 0, y: 0, dir: 0, speed: 6 };
         let currentLevel = 0;
-        let score = 0;
-        let gameWon = false;
-
-        // --- NIVEAUX (1 = Mur, 0 = Vide, 9 = Escalier/Sortie, 8 = Samuel, 5 = Easter Egg) ---
+        let gameActive = false;
+        
+        // Niveaux (1=Mur, 0=Vide, 9=Escalier, 8=Samuel)
         const levels = [
             {
-                name: "Ruelle Sombre (Niveau 1)",
+                name: "Ruelle 92i (RDC)",
                 map: [
                     [1,1,1,1,1,1,1,1,1,1],
-                    [1,0,0,0,1,0,5,0,0,1],
-                    [1,0,1,0,1,0,1,1,0,1],
-                    [1,0,1,0,0,0,0,0,0,1],
-                    [1,0,1,1,1,1,1,1,0,1],
-                    [1,0,0,0,0,1,9,1,0,1], // 9 = Escalier
-                    [1,1,1,1,0,0,0,0,0,1],
+                    [1,0,0,1,0,0,0,0,0,1],
+                    [1,0,0,1,0,1,1,1,0,1],
+                    [1,0,0,0,0,1,0,0,0,1],
+                    [1,1,1,1,1,1,0,1,1,1],
+                    [1,0,0,0,0,0,0,0,9,1], // 9 = Sortie
                     [1,1,1,1,1,1,1,1,1,1]
                 ],
-                startX: 1.5, startY: 1.5, dir: 0
+                start: {x: 1.5, y: 1.5, dir: 0}
             },
             {
-                name: "Les Catacombes (Niveau 2)",
+                name: "Sous-sol Métro (Niv -1)",
                 map: [
-                    [1,1,1,1,1,1,1,1,1,1,1,1],
-                    [1,0,0,0,0,0,1,5,0,0,0,1],
-                    [1,0,1,1,1,0,1,0,1,1,0,1],
-                    [1,0,1,0,0,0,0,0,0,1,0,1],
-                    [1,0,1,0,1,1,1,1,0,1,0,1],
-                    [1,0,0,0,1,9,0,0,0,1,0,1], // 9 = Escalier
-                    [1,1,1,0,1,1,1,1,1,1,0,1],
-                    [1,5,0,0,0,0,0,0,0,0,0,1],
-                    [1,1,1,1,1,1,1,1,1,1,1,1]
+                    [1,1,1,1,1,1,1,1,1,1,1],
+                    [1,0,0,0,0,0,1,0,0,0,1],
+                    [1,0,1,1,1,0,1,0,1,0,1],
+                    [1,0,1,0,0,0,0,0,1,0,1],
+                    [1,0,1,1,1,1,1,1,1,0,1],
+                    [1,0,0,0,0,9,0,0,0,0,1], // 9 = Sortie
+                    [1,1,1,1,1,1,1,1,1,1,1]
                 ],
-                startX: 1.5, startY: 1.5, dir: 0
+                start: {x: 1.5, y: 1.5, dir: 0}
             },
             {
-                name: "Toits de Paris (Niveau Final)",
+                name: "Toits de Paris (Final)",
                 map: [
                     [1,1,1,1,1,1,1,1],
                     [1,0,0,0,0,0,0,1],
                     [1,0,1,1,0,1,0,1],
-                    [1,0,1,8,0,1,0,1], // 8 = SAMUEL !
+                    [1,0,1,8,0,1,0,1], // 8 = SAMUEL
                     [1,0,1,1,0,1,0,1],
                     [1,0,0,0,0,0,0,1],
                     [1,1,1,1,1,1,1,1]
                 ],
-                startX: 1.5, startY: 5.5, dir: -Math.PI/2
+                start: {x: 3.5, y: 5.5, dir: -Math.PI/2}
             }
         ];
 
         let map = [];
-        let items = []; // Baguettes et Samuel
+        let items = [];
 
-        function loadLevel(index) {
-            if (index >= levels.length) return; // Fin
-            
-            const lvl = levels[index];
-            currentLevel = index;
+        // --- MOTEUR ---
+        function loadLevel(idx) {
+            if (idx >= levels.length) return;
+            currentLevel = idx;
+            const lvl = levels[idx];
             document.getElementById('levelName').innerText = lvl.name;
             
-            // Copie de la carte
             map = lvl.map;
-            // Position Joueur
-            player.x = lvl.startX * TILE_SIZE;
-            player.y = lvl.startY * TILE_SIZE;
-            player.dir = lvl.dir;
+            player.x = lvl.start.x * TILE_SIZE;
+            player.y = lvl.start.y * TILE_SIZE;
+            player.dir = lvl.start.dir;
 
-            // Charger les items
             items = [];
             for(let y=0; y<map.length; y++) {
                 for(let x=0; x<map[y].length; x++) {
-                    if(map[y][x] === 5) { // Baguette
-                        items.push({x: x*TILE_SIZE + TILE_SIZE/2, y: y*TILE_SIZE + TILE_SIZE/2, type: 'baguette', active: true});
-                        map[y][x] = 0; // On vide la case
-                    } else if (map[y][x] === 8) { // Samuel
-                        items.push({x: x*TILE_SIZE + TILE_SIZE/2, y: y*TILE_SIZE + TILE_SIZE/2, type: 'samuel', active: true});
+                    if(map[y][x] === 8) {
+                        items.push({x: x*TILE_SIZE + TILE_SIZE/2, y: y*TILE_SIZE + TILE_SIZE/2, type: 'samuel'});
                         map[y][x] = 0;
                     }
                 }
             }
         }
 
-        // Charger niveau 1
-        loadLevel(0);
+        function start() {
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('bgMusic').volume = 0.5;
+            document.getElementById('bgMusic').play();
+            loadLevel(0);
+            gameActive = true;
+            loop();
+        }
 
-        // --- CONTRÔLES ---
+        document.getElementById('start-screen').addEventListener('click', start);
+
+        // Input
         const keys = {};
         window.addEventListener('keydown', e => keys[e.code] = true);
         window.addEventListener('keyup', e => keys[e.code] = false);
 
         function update() {
-            if (gameWon) return;
-
+            if(!gameActive) return;
             // Rotation
-            if (keys['ArrowLeft'] || keys['KeyA']) player.dir -= 0.05;
-            if (keys['ArrowRight'] || keys['KeyD']) player.dir += 0.05;
-
-            // Déplacement
+            if (keys['ArrowLeft']) player.dir -= 0.05;
+            if (keys['ArrowRight']) player.dir += 0.05;
+            // Mouvement
             let step = 0;
-            if (keys['ArrowUp'] || keys['KeyW']) step = player.speed;
-            if (keys['ArrowDown'] || keys['KeyS']) step = -player.speed;
+            if (keys['ArrowUp']) step = player.speed;
+            if (keys['ArrowDown']) step = -player.speed;
 
             if (step !== 0) {
                 let nextX = player.x + Math.cos(player.dir) * step;
                 let nextY = player.y + Math.sin(player.dir) * step;
-                
-                // Collisions Mur
                 let gridX = Math.floor(nextX / TILE_SIZE);
                 let gridY = Math.floor(nextY / TILE_SIZE);
 
+                // Collision Mur
                 if (map[gridY] && map[gridY][gridX] !== 1) {
-                    player.x = nextX;
-                    player.y = nextY;
+                    player.x = nextX; player.y = nextY;
                     
                     // Escalier (9)
                     if (map[gridY][gridX] === 9) {
@@ -211,35 +231,26 @@
                 }
             }
 
-            // Collisions Items
+            // Détection Samuel
             items.forEach(item => {
-                if (!item.active) return;
                 let dist = Math.hypot(player.x - item.x, player.y - item.y);
-                if (dist < 30) {
-                    if (item.type === 'baguette') {
-                        item.active = false;
-                        score++;
-                        document.getElementById('score').innerText = score;
-                    } else if (item.type === 'samuel') {
-                        gameWon = true;
-                        const msg = document.getElementById('message');
-                        msg.style.display = 'block';
-                        msg.style.color = '#00ff00';
-                        msg.innerHTML = "TU AS RETROUVÉ SAMUEL !<br>Bravo !";
-                    }
+                if (dist < 40 && item.type === 'samuel') {
+                    gameActive = false;
+                    document.getElementById('win-screen').style.display = 'block';
+                    document.getElementById('hud').style.display = 'none';
                 }
             });
         }
 
         function draw() {
-            // Ciel (Nuit Parisienne - Dégradé)
+            // Ciel (Dégradé Pollution Parisienne)
             let grad = ctx.createLinearGradient(0,0,0,canvas.height/2);
-            grad.addColorStop(0, "#050510");
-            grad.addColorStop(1, "#1a1a3d");
+            grad.addColorStop(0, "#2c1e1e"); // Rougeâtre sombre
+            grad.addColorStop(1, "#524040"); // Brume
             ctx.fillStyle = grad; ctx.fillRect(0,0,canvas.width,canvas.height/2);
             
-            // Sol (Pavés gris)
-            ctx.fillStyle = '#222'; ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
+            // Sol (Bitume)
+            ctx.fillStyle = "#111"; ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
 
             // Raycasting
             for (let i = 0; i < RAYS; i++) {
@@ -248,64 +259,39 @@
                 let eyeX = Math.cos(rayAngle), eyeY = Math.sin(rayAngle);
 
                 while (!hit && dist < 800) {
-                    dist += 1; // Précision
+                    dist += 1;
                     let testX = Math.floor((player.x + eyeX * dist) / TILE_SIZE);
                     let testY = Math.floor((player.y + eyeY * dist) / TILE_SIZE);
-                    
-                    if (testX < 0 || testX >= map[0].length || testY < 0 || testY >= map.length) {
-                        hit = true; dist = 800;
-                    } else if (map[testY][testX] === 1) {
+                    if (testX < 0 || testX >= map[0].length || testY < 0 || testY >= map.length || map[testY][testX] === 1) {
                         hit = true;
                     }
                 }
-
+                
                 let correctDist = dist * Math.cos(rayAngle - player.dir);
                 let h = (TILE_SIZE * canvas.height) / (correctDist || 1);
-                let x = i * 2; // Largeur ligne
+                let x = i * 2;
 
-                // Dessin mur + Ombre distance
-                ctx.drawImage(wallTexture, 0,0,64,64, x, (canvas.height-h)/2, 2, h);
-                ctx.fillStyle = `rgba(0,0,0,${Math.min(0.8, dist/600)})`;
+                // Mur
+                ctx.drawImage(wallTexture, 0, 0, 64, 64, x, (canvas.height-h)/2, 2, h);
+                // Ombre distance
+                ctx.fillStyle = `rgba(0,0,0,${Math.min(0.9, dist/600)})`;
                 ctx.fillRect(x, (canvas.height-h)/2, 2, h);
             }
 
-            // Sprites (Samuel & Baguettes)
-            // On trie pour afficher le plus loin en premier
-            items.sort((a,b) => {
-                return Math.hypot(b.x-player.x, b.y-player.y) - Math.hypot(a.x-player.x, a.y-player.y);
-            });
-
+            // Sprites (Samuel)
             items.forEach(item => {
-                if(!item.active) return;
-
-                let dx = item.x - player.x;
-                let dy = item.y - player.y;
+                let dx = item.x - player.x; let dy = item.y - player.y;
                 let dist = Math.sqrt(dx*dx + dy*dy);
                 let angle = Math.atan2(dy, dx) - player.dir;
                 while(angle < -Math.PI) angle += 2*Math.PI;
                 while(angle > Math.PI) angle -= 2*Math.PI;
 
-                if(Math.abs(angle) < FOV/1.5 && dist > 10) {
+                if(Math.abs(angle) < FOV/1.5 && dist > 15) {
                     let h = (TILE_SIZE * canvas.height) / dist;
                     let screenX = (0.5 * (angle/(FOV/2)) + 0.5) * canvas.width - h/2;
-                    let screenY = (canvas.height - h)/2;
-
-                    if (item.type === 'samuel') {
-                        ctx.drawImage(samuelSprite, screenX, screenY, h, h);
-                        // Petit nom au dessus
-                        ctx.fillStyle = "white"; ctx.font = "12px Arial";
-                        ctx.fillText("Samuel", screenX + h/4, screenY - 10);
-                    } else {
-                        // Dessin Baguette d'Or (simple rectangle doré)
-                        ctx.fillStyle = "gold";
-                        ctx.fillRect(screenX + h/3, screenY + h/3, h/3, h/1.5);
-                        ctx.strokeStyle = "orange"; ctx.strokeRect(screenX + h/3, screenY + h/3, h/3, h/1.5);
-                    }
+                    ctx.drawImage(samuelSprite, screenX, (canvas.height-h)/2, h, h);
                 }
             });
-            
-            // Escalier (Indicateur visuel simple si on est proche de la case 9)
-            // (Simplification : on ne dessine pas l'escalier en 3D complexe, mais l'objectif HUD change)
         }
 
         function loop() {
@@ -313,9 +299,6 @@
             draw();
             requestAnimationFrame(loop);
         }
-
-        loop();
-        console.log("Jeu lancé !");
     </script>
 </body>
 </html>
