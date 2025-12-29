@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paris by Night - Investigation</title>
+    <title>Paris Haussmann - V4</title>
     <style>
         body {
             background-color: #000;
@@ -19,39 +19,39 @@
         }
         canvas { display: block; width: 100%; height: 100%; }
 
-        /* EFFET DE PLUIE (Overlay CSS) */
+        /* PLUIE */
         .rain {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAH0lEQVQoU2nkCAMAAwkBmqMI4H8h/w+rhw0g32OYJQxwQDgfv99cAAAAAElFTkSuQmCC') repeat;
-            opacity: 0.15;
-            pointer-events: none;
-            animation: rainAnim 0.5s linear infinite;
-            z-index: 5;
+            opacity: 0.1; pointer-events: none;
+            animation: rainAnim 0.4s linear infinite; z-index: 5;
         }
-        @keyframes rainAnim { from { background-position: 0 0; } to { background-position: 10px 20px; } }
+        @keyframes rainAnim { from { background-position: 0 0; } to { background-position: 5px 20px; } }
 
         /* HUD */
         #hud {
             position: absolute; top: 20px; left: 20px;
             color: #ffd700; text-shadow: 2px 2px 0 #000;
             z-index: 10; font-size: 20px; pointer-events: none;
-            background: rgba(0,0,0,0.5); padding: 10px; border-left: 3px solid #ffd700;
+            background: rgba(0,0,0,0.6); padding: 10px 20px; 
+            border-left: 4px solid #ffd700; border-radius: 4px;
         }
 
         /* ECRAN TITRE */
         #start-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(0,0,0,0.8), #1a1005);
+            background: linear-gradient(rgba(0,0,0,0.9), #1a1005);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             z-index: 20; color: white; cursor: pointer;
         }
-        h1 { font-size: 60px; color: #ffd700; text-transform: uppercase; margin-bottom: 10px; text-shadow: 0 0 20px orange;}
+        h1 { font-size: 80px; color: #ffd700; text-transform: uppercase; margin: 0; letter-spacing: 5px; text-shadow: 0 0 30px orange;}
+        p { font-size: 20px; color: #ccc; margin-top: 10px; }
         .btn { 
-            border: 2px solid #ffd700; padding: 15px 30px; 
-            font-size: 24px; color: #ffd700; background: rgba(0,0,0,0.8);
-            margin-top: 20px; transition: 0.2s;
+            border: 2px solid #ffd700; padding: 20px 50px; 
+            font-size: 30px; color: #ffd700; background: rgba(0,0,0,0.8);
+            margin-top: 40px; transition: 0.2s; text-transform: uppercase;
         }
-        .btn:hover { background: #ffd700; color: black; }
+        .btn:hover { background: #ffd700; color: black; box-shadow: 0 0 20px #ffd700; }
 
         /* VICTOIRE */
         #win-screen {
@@ -68,17 +68,18 @@
     <div id="youtube-audio" style="position:absolute; top:-9999px;"></div>
 
     <div id="game-container">
-        <div class="rain"></div> <canvas id="gameCanvas"></canvas>
+        <div class="rain"></div>
+        <canvas id="gameCanvas"></canvas>
         
         <div id="hud">
             <div>QUARTIER : <span id="zoneName">Le Marais</span></div>
-            <div style="font-size:14px; color:#aaa;">Objectif : Trouve l'escalier</div>
+            <div style="font-size:14px; color:#aaa; margin-top:5px;">Objectif : Trouve l'escalier</div>
         </div>
 
         <div id="start-screen">
-            <h1>PARIS NOIR</h1>
-            <p>Retrouve Samuel dans les ruelles.</p>
-            <div class="btn">CLIQUER POUR JOUER (SON ON)</div>
+            <h1>PANAME</h1>
+            <p>Retrouve Samuel</p>
+            <div class="btn">CLIQUER POUR JOUER</div>
         </div>
 
         <div id="win-screen">
@@ -102,7 +103,7 @@
             });
         }
 
-        // --- GRAPHISMES & MOTEUR ---
+        // --- MOTEUR ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         ctx.imageSmoothingEnabled = false;
@@ -111,47 +112,64 @@
         window.addEventListener('resize', resize);
         resize();
 
-        // Assets
         const samuelSprite = new Image(); samuelSprite.src = "samuel.png";
 
-        // --- GÉNERATEUR DE TEXTURE "HAUSSMANN V2" (Plus détaillé) ---
-        const texSize = 128; // Plus haute résolution
-        const wallCanvas = document.createElement('canvas'); wallCanvas.width = texSize; wallCanvas.height = texSize;
+        // --- GÉNÉRATEUR DE TEXTURE "IMMEUBLE COMPLET" ---
+        // On crée une texture plus haute (256px) pour dessiner des étages
+        const texSize = 256; 
+        const wallCanvas = document.createElement('canvas'); wallCanvas.width = 64; wallCanvas.height = texSize;
         const wCtx = wallCanvas.getContext('2d');
 
-        // 1. Pierre Beige Sale
-        wCtx.fillStyle = '#cbbfa9'; wCtx.fillRect(0,0,texSize,texSize);
-        // Bruit (Salissure)
-        for(let i=0; i<400; i++) {
-            wCtx.fillStyle = Math.random() < 0.5 ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)';
-            wCtx.fillRect(Math.random()*texSize, Math.random()*texSize, 2, 2);
+        // 1. Fond Pierre de Taille (Beige)
+        wCtx.fillStyle = '#cbbfa9'; wCtx.fillRect(0,0,64,texSize);
+        // Bruit (Salissures)
+        for(let i=0; i<800; i++) {
+            wCtx.fillStyle = Math.random()<0.5 ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)';
+            wCtx.fillRect(Math.random()*64, Math.random()*texSize, 2, 2);
         }
 
-        // 2. Éléments Haussmanniens
-        wCtx.fillStyle = '#2c2c2c'; // Gris foncé pour fer forgé
-        // Balcon (Ligne horizontale + barreaux)
-        wCtx.fillRect(0, texSize*0.6, texSize, 4); 
-        wCtx.fillRect(0, texSize*0.75, texSize, 4);
-        for(let x=4; x<texSize; x+=12) wCtx.fillRect(x, texSize*0.6, 3, texSize*0.15);
+        // 2. Le "Toit" en Zinc (La partie haute entourée)
+        // On dessine une bande gris foncé/bleuté tout en haut
+        let gradRoof = wCtx.createLinearGradient(0,0,0,30);
+        gradRoof.addColorStop(0, '#2c3e50'); // Sombre
+        gradRoof.addColorStop(1, '#4a5c6e'); // Clair
+        wCtx.fillStyle = gradRoof;
+        wCtx.fillRect(0, 0, 64, 30);
+        wCtx.fillStyle = '#1a2530'; wCtx.fillRect(0, 30, 64, 5); // Corniche du toit
 
-        // Fenêtre (Grand rectangle sombre avec reflet)
-        wCtx.fillStyle = '#1a1a2e'; // Bleu nuit (vitre)
-        wCtx.fillRect(16, 10, texSize-32, texSize*0.5);
-        wCtx.strokeStyle = '#e0e0e0'; wCtx.lineWidth = 2; wCtx.strokeRect(16, 10, texSize-32, texSize*0.5); // Cadre blanc
-        
-        // Corniche en bas
-        wCtx.fillStyle = '#8a7f70'; wCtx.fillRect(0, texSize-10, texSize, 10);
+        // 3. Les Étages (Fenêtres et Balcons)
+        // On dessine 2 rangées de fenêtres
+        function drawWindowRow(y) {
+            // Fenêtre
+            wCtx.fillStyle = '#050510'; // Vitre sombre
+            wCtx.fillRect(10, y, 44, 40);
+            wCtx.strokeStyle = '#eee'; wCtx.lineWidth=2; wCtx.strokeRect(10, y, 44, 40); // Cadre
+            
+            // Balcon (Lignes noires)
+            wCtx.fillStyle = '#111';
+            wCtx.fillRect(6, y+25, 52, 2); // Barre haut
+            wCtx.fillRect(6, y+35, 52, 2); // Barre bas
+            for(let x=8; x<56; x+=6) wCtx.fillRect(x, y+25, 2, 12); // Barreaux
+        }
+
+        drawWindowRow(50);  // Etage haut
+        drawWindowRow(120); // Etage milieu
+
+        // 4. Rez-de-chaussée (Commerce/Porte)
+        wCtx.fillStyle = '#3e2723'; // Bois foncé
+        wCtx.fillRect(4, 200, 56, 56);
+        wCtx.fillStyle = '#1a1a1a'; wCtx.fillRect(0, 195, 64, 5); // Corniche magasin
 
         const wallTexture = new Image(); wallTexture.src = wallCanvas.toDataURL();
 
-        // --- JEU ---
+        // --- VARIABLES JEU ---
         const TILE_SIZE = 64; const FOV = Math.PI / 2.5; 
         let playerObj = { x: 0, y: 0, dir: 0 };
-        // VITESSE RÉDUITE ICI :
-        const MOVE_SPEED = 3.0; 
-        const ROT_SPEED = 0.04;
+        // VITESSE RALENTIE ICI (2.0 au lieu de 3.0)
+        const MOVE_SPEED = 2.0; 
+        const ROT_SPEED = 0.03;
         
-        let currentLevel = 0; let gameActive = false; let timer = 0; // Pour l'animation de marche
+        let currentLevel = 0; let gameActive = false; let timer = 0;
 
         const levels = [
             {
@@ -196,27 +214,22 @@
             }
         }
 
-        // --- ENTRÉES CLAVIER ---
         const keys = {};
         window.addEventListener('keydown', e => keys[e.code] = true);
         window.addEventListener('keyup', e => keys[e.code] = false);
 
-        // --- UPDATE ---
         function update() {
             if(!gameActive) return;
 
-            // Rotation douce
             if (keys['ArrowLeft']) playerObj.dir -= ROT_SPEED;
             if (keys['ArrowRight']) playerObj.dir += ROT_SPEED;
 
-            // Déplacement
             let step = 0;
             if (keys['ArrowUp']) step = MOVE_SPEED;
             if (keys['ArrowDown']) step = -MOVE_SPEED;
 
-            // Head Bobbing (Marche)
-            if(step !== 0) timer += 0.15;
-            else timer = 0;
+            // Bobbing (Mouvement tête plus lent)
+            if(step !== 0) timer += 0.1; else timer = 0;
 
             if (step !== 0) {
                 let nextX = playerObj.x + Math.cos(playerObj.dir) * step;
@@ -224,14 +237,12 @@
                 let gridX = Math.floor(nextX / TILE_SIZE);
                 let gridY = Math.floor(nextY / TILE_SIZE);
                 
-                // Collision
                 if (map[gridY] && map[gridY][gridX] !== 1) {
                     playerObj.x = nextX; playerObj.y = nextY;
                     if (map[gridY][gridX] === 9) loadLevel(currentLevel + 1);
                 }
             }
 
-            // Check Samuel
             items.forEach(item => {
                 if (Math.hypot(playerObj.x - item.x, playerObj.y - item.y) < 40 && item.type === 'samuel') {
                     gameActive = false;
@@ -241,25 +252,22 @@
             });
         }
 
-        // --- DESSIN (RAYCASTING) ---
         function draw() {
-            // Effacement
-            ctx.fillStyle = "#111"; ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.fillStyle = "#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
 
-            // Ciel (Dégradé Nuit)
+            // Ciel Paname
             let skyGrad = ctx.createLinearGradient(0,0,0,canvas.height/2);
-            skyGrad.addColorStop(0, "#050510"); skyGrad.addColorStop(1, "#2a1a0a"); // Halo orange ville
+            skyGrad.addColorStop(0, "#080815"); 
+            skyGrad.addColorStop(1, "#3a2510"); // Lueur urbaine
             ctx.fillStyle = skyGrad; ctx.fillRect(0,0,canvas.width,canvas.height/2);
 
-            // Sol (Reflet)
+            // Sol
             let floorGrad = ctx.createLinearGradient(0,canvas.height/2,0,canvas.height);
-            floorGrad.addColorStop(0, "#1a1005"); floorGrad.addColorStop(1, "#050505");
+            floorGrad.addColorStop(0, "#151005"); floorGrad.addColorStop(1, "#050505");
             ctx.fillStyle = floorGrad; ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
 
-            // Raycasting
-            const numRays = Math.floor(canvas.width / 2); // Optimisation
-            // Effet de marche (Bobbing)
-            const bobOffset = Math.sin(timer) * 10; 
+            const numRays = Math.floor(canvas.width / 2); 
+            const bobOffset = Math.sin(timer) * 8; 
 
             for (let i = 0; i < numRays; i++) {
                 let rayAngle = (playerObj.dir - FOV / 2.0) + (i / numRays) * FOV;
@@ -267,7 +275,7 @@
                 let eyeX = Math.cos(rayAngle), eyeY = Math.sin(rayAngle);
 
                 while (!hit && dist < 800) {
-                    dist += 1; // Pas de raymarching
+                    dist += 1;
                     let testX = Math.floor((playerObj.x + eyeX * dist) / TILE_SIZE);
                     let testY = Math.floor((playerObj.y + eyeY * dist) / TILE_SIZE);
                     if (testX < 0 || testX >= map[0].length || testY < 0 || testY >= map.length || map[testY][testX] === 1) hit = true;
@@ -276,34 +284,25 @@
                 let correctDist = dist * Math.cos(rayAngle - playerObj.dir);
                 let h = (TILE_SIZE * canvas.height) / (correctDist || 1);
                 let x = i * 2;
-                
-                // Centre vertical + Bobbing
                 let yPos = (canvas.height - h) / 2 + bobOffset;
 
-                // Affichage Texture
-                // On calcule le décalage texture (texX)
+                // Texture Mapping (Étirement sur la hauteur)
                 let wallX = 0;
-                let hitX = playerObj.x + eyeX * dist;
-                let hitY = playerObj.y + eyeY * dist;
+                let hitX = playerObj.x + eyeX * dist; let hitY = playerObj.y + eyeY * dist;
+                if (Math.abs(hitX % TILE_SIZE) < 1.5 || Math.abs(hitX % TILE_SIZE) > TILE_SIZE - 1.5) wallX = hitY % TILE_SIZE;
+                else wallX = hitX % TILE_SIZE;
                 
-                // Détection coté mur (Nord/Sud ou Est/Ouest) pour la texture
-                if (Math.abs(hitX % TILE_SIZE) < 1.5 || Math.abs(hitX % TILE_SIZE) > TILE_SIZE - 1.5) {
-                    wallX = hitY % TILE_SIZE;
-                } else {
-                    wallX = hitX % TILE_SIZE;
-                }
-                
-                let texX = Math.floor((wallX / TILE_SIZE) * texSize);
+                let texX = Math.floor((wallX / TILE_SIZE) * 64);
 
+                // On dessine toute la hauteur de la texture (0 à texSize)
                 ctx.drawImage(wallTexture, texX, 0, 1, texSize, x, yPos, 2, h);
 
-                // Ombre (Distance Fog) - Plus joli
+                // Ombre
                 let fog = Math.min(0.9, dist / 600);
-                ctx.fillStyle = `rgba(10, 5, 0, ${fog})`; // Ombre brune/noire
+                ctx.fillStyle = `rgba(15, 10, 5, ${fog})`;
                 ctx.fillRect(x, yPos, 2, h);
             }
 
-            // Sprites (Samuel)
             items.forEach(item => {
                 let dx = item.x - playerObj.x; let dy = item.y - playerObj.y;
                 let dist = Math.sqrt(dx*dx + dy*dy);
@@ -322,13 +321,11 @@
 
         function loop() { update(); draw(); requestAnimationFrame(loop); }
 
-        // Start
         document.getElementById('start-screen').addEventListener('click', () => {
             document.getElementById('start-screen').style.display = 'none';
             loadLevel(0);
             gameActive = true;
-            // Force Audio
-            if(player && player.unMute) { player.unMute(); player.setVolume(80); player.playVideo(); }
+            if(player && player.unMute) { player.unMute(); player.setVolume(100); player.playVideo(); }
             loop();
         });
 
