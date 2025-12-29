@@ -1,165 +1,33 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PARIS NOIR - L'Affaire Samuel</title>
-    <style>
-        body {
-            background-color: #050505;
-            margin: 0; padding: 0;
-            overflow: hidden;
-            font-family: 'Courier New', Courier, monospace; /* Police style rapport de police */
-            width: 100vw; height: 100vh;
-            user-select: none;
-        }
-        #game-container { position: relative; width: 100%; height: 100%; background: #000; }
-        canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated;}
-
-        /* AMBIANCE VISUELLE */
-        #flashlight {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, transparent 20%, rgba(0,0,0,0.95) 70%);
-            pointer-events: none; z-index: 4; mix-blend-mode: multiply;
-        }
-        .rain {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAH0lEQVQoU2nkCAMAAwkBmqMI4H8h/w+rhw0g32OYJQxwQDgfv99cAAAAAElFTkSuQmCC') repeat;
-            opacity: 0.15; pointer-events: none;
-            animation: rainAnim 0.4s linear infinite; z-index: 3;
-        }
-        @keyframes rainAnim { from { background-position: 0 0; } to { background-position: 10px 20px; } }
-
-        /* HUD & INTERFACE */
-        #ui-layer {
-            position: absolute; top: 20px; left: 20px; right: 20px; z-index: 10;
-            display: flex; justify-content: space-between; align-items: flex-start;
-            pointer-events: none;
-        }
-        
-        /* Radar style "Sonar" */
-        #radar-container {
-            position: relative;
-            width: 140px; height: 140px;
-        }
-        #radar {
-            background: rgba(0, 15, 0, 0.9);
-            border: 2px solid #3f3; border-radius: 50%;
-            box-shadow: 0 0 10px #3f3;
-        }
-
-        /* Dossier de mission */
-        #mission-panel {
-            background: rgba(20, 15, 10, 0.9); padding: 20px;
-            border: 1px solid #d4af37; border-top: 4px solid #d4af37;
-            color: #d8ccbc; width: 250px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.8);
-        }
-        .hud-title { color: #d4af37; font-weight: bold; font-size: 18px; margin-bottom: 10px; border-bottom: 1px solid #555; padding-bottom: 5px;}
-        .hud-text { font-size: 14px; line-height: 1.4; color: #aaa; }
-        .clue-counter { color: #ff5555; font-weight: bold; font-size: 20px; float: right; }
-
-        /* BOITE DE DIALOGUE (Nouveau) */
-        #dialog-box {
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            width: 60%; max-width: 800px;
-            background: rgba(0, 0, 0, 0.85);
-            border: 1px solid #666; border-left: 5px solid #d4af37;
-            padding: 20px;
-            color: #fff; font-size: 18px; line-height: 1.5;
-            display: none; z-index: 15;
-            box-shadow: 0 0 30px rgba(0,0,0,1);
-            animation: slideUp 0.3s ease-out;
-        }
-        @keyframes slideUp { from { bottom: -50px; opacity: 0; } to { bottom: 30px; opacity: 1; } }
-        #dialog-speaker { color: #d4af37; font-weight: bold; font-size: 14px; margin-bottom: 5px; text-transform: uppercase; }
-
-        /* ECRANS */
-        .screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 20; color: white; cursor: pointer; text-align: center;
-        }
-        #start-screen { background: linear-gradient(to bottom, #1a0505, #000); }
-        #win-screen { background: rgba(0,0,0,0.95); display: none; z-index: 30; }
-        
-        h1 { font-size: 80px; color: #d4af37; margin: 0; text-shadow: 0 0 20px rgba(212, 175, 55, 0.5); font-family: 'Times New Roman', serif; letter-spacing: 5px;}
-        h2 { font-size: 30px; color: #888; margin-top: 10px; font-weight: normal; font-style: italic; }
-        
-        .btn { 
-            border: 2px solid #d4af37; padding: 15px 50px; 
-            font-size: 20px; color: #d4af37; background: transparent;
-            margin-top: 50px; transition: 0.3s; cursor: pointer;
-            font-family: 'Courier New', monospace; font-weight: bold;
-        }
-        .btn:hover { background: #d4af37; color: #000; box-shadow: 0 0 20px #d4af37; }
-
-        #samuel-reveal { height: 50vh; margin-top: 20px; border: 5px solid #fff; box-shadow: 0 0 50px #fff; }
-    </style>
-</head>
-<body>
-
-    <div id="youtube-audio" style="position:absolute; top:-9999px;"></div>
-
-    <div id="game-container">
-        <div id="flashlight"></div>
-        <div class="rain"></div>
-        <canvas id="gameCanvas"></canvas>
-        
-        <div id="ui-layer">
-            <div id="mission-panel">
-                <div class="hud-title">DOSSIER <span id="zoneName">???</span></div>
-                <div class="hud-text">
-                    Lieu : Paris, Secteur Nord<br>
-                    Cible : Samuel V.<br>
-                    Statut : <span style="color:#f55">DISPARU</span>
-                </div>
-                <div style="margin-top: 15px; border-top: 1px dashed #555; padding-top: 10px;">
-                    PREUVES : <span id="score" class="clue-counter">0/3</span>
-                </div>
-            </div>
-            <div id="radar-container">
-                <canvas id="radar" width="140" height="140"></canvas>
-            </div>
-        </div>
-
-        <div id="dialog-box">
-            <div id="dialog-speaker">Inspecteur</div>
-            <div id="dialog-text">Texte ici...</div>
-        </div>
-
-        <div id="start-screen" class="screen">
-            <h1>PARIS NOIR</h1>
-            <h2>"Personne ne dort innocent."</h2>
-            <div class="btn">OUVRIR LE DOSSIER</div>
-            <div style="margin-top: 20px; font-size: 12px; color: #555;">[Flèches] Bouger - [Shift] Courir</div>
-        </div>
-
-        <div id="win-screen" class="screen">
-            <h1 style="color:#fff; font-size: 60px;">SAMUEL RETROUVÉ</h1>
-            <p style="color:#aaa; font-size: 20px; max-width: 600px; margin-top: 20px;">
-                "Il respirait à peine. Dans sa main crispée, une dernière adresse... L'enquête ne fait que commencer."
-            </p>
-            <img id="samuel-reveal" src="samuel.png" alt="Samuel">
-            <div class="btn" onclick="location.reload()">RETOURNER AU POSTE</div>
-        </div>
-    </div>
-
-    <script>
-        // --- 1. AUDIO (YOUTUBE API) ---
+<script>
+        // --- 1. AUDIO (Youtube API Gestion Dynamique) ---
         var player;
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('youtube-audio', {
-                height: '0', width: '0', videoId: 'bUKC5RAjUdg', // Ambiance Jazz Noir
+                height: '0', width: '0', 
+                videoId: 'bUKC5RAjUdg', // Musique par défaut (Marais)
                 playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': 'bUKC5RAjUdg' }
             });
         }
 
-        // --- 2. MOTEUR GRAPHIQUE ---
+        // Fonction pour changer la musique selon le niveau
+        function changeMusic(levelIndex) {
+            if (!player || !player.loadVideoById) return;
+            
+            if (levelIndex === 0) {
+                // Marais : Jazz Noir
+                player.loadVideoById({videoId: 'bUKC5RAjUdg'});
+            } else if (levelIndex === 1) {
+                // Pigalle : Accordéon Sombre (Rainy Paris Streets)
+                player.loadVideoById({videoId: 'vvHCLeS0bCY'});
+            }
+        }
+
+        // --- 2. CONFIG MOTEUR ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const radarCanvas = document.getElementById('radar');
@@ -169,53 +37,75 @@
         function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.addEventListener('resize', resize); resize();
 
-        // Assets
-        const samuelSprite = new Image(); samuelSprite.src = "samuel.png";
+        // --- 3. TEXTURES & ASSETS ---
+        const samuelSprite = new Image(); samuelSprite.src = "samuel.png"; 
         
-        // Sprite Preuve (Dossier jaune)
+        // Création texture "Indice" (Dossier Jaune)
         const clueCanvas = document.createElement('canvas'); clueCanvas.width=64; clueCanvas.height=64;
         const cCtx = clueCanvas.getContext('2d');
-        cCtx.fillStyle = '#d4af37'; cCtx.fillRect(15, 20, 34, 40); // Dossier
-        cCtx.fillStyle = '#fff'; cCtx.fillRect(18, 25, 28, 30); // Papier
-        cCtx.fillStyle = '#000'; cCtx.font="bold 20px Courier"; cCtx.fillText("TOP", 20, 45); cCtx.fillText("SEC", 20, 60);
+        cCtx.fillStyle = '#eebb00'; cCtx.fillRect(15, 20, 34, 40); 
+        cCtx.fillStyle = '#fff'; cCtx.fillRect(18, 25, 28, 5); 
+        cCtx.strokeStyle = '#000'; cCtx.lineWidth = 2; cCtx.strokeRect(15, 20, 34, 40);
         const clueSprite = new Image(); clueSprite.src = clueCanvas.toDataURL();
 
-        // TEXTURES (Style procédural)
-        const texSize = 512;
+        // Générateur de textures murales (Optimisé)
+        const texSize = 512; 
         function createTexture(style) {
             const c = document.createElement('canvas'); c.width = 64; c.height = texSize;
             const x = c.getContext('2d');
             if (style === 'haussmann') {
                 x.fillStyle = '#d8ccbc'; x.fillRect(0, 0, 64, texSize);
-                let grad = x.createLinearGradient(0,0,0,60); grad.addColorStop(0,'#1a1a2e'); grad.addColorStop(1,'#4a4a5e');
-                x.fillStyle = grad; x.fillRect(0,0,64,60); // Toit sombre
-                x.fillStyle = '#222'; x.fillRect(12, 90, 40, 60); x.strokeRect(12, 90, 40, 60); // Fenetre
-                x.fillStyle = '#222'; x.fillRect(12, 220, 40, 60); x.strokeRect(12, 220, 40, 60);
-                x.fillStyle = '#5d554a'; x.fillRect(0, 380, 64, 132); // Bas
+                let grad = x.createLinearGradient(0,0,0,60); grad.addColorStop(0,'#2c3e50'); grad.addColorStop(1,'#5d6d7e');
+                x.fillStyle = grad; x.fillRect(0,0,64,60); 
+                function drawWin(y) {
+                    x.fillStyle = '#1a1a1a'; x.fillRect(12, y, 40, 60); 
+                    x.strokeStyle = '#555'; x.strokeRect(12, y, 40, 60);
+                    x.fillStyle = '#222'; x.fillRect(6, y+50, 52, 3); 
+                }
+                drawWin(90); drawWin(220);
+                x.fillStyle = '#5d5550'; x.fillRect(0, 380, 64, 132); 
             } else if (style === 'pigalle') {
-                x.fillStyle = '#3a1010'; x.fillRect(0, 0, 64, texSize); // Brique sombre
-                x.fillStyle = 'rgba(0,0,0,0.3)'; for(let y=0; y<texSize; y+=32) x.fillRect(0, y, 64, 2);
-                x.shadowBlur = 15; x.shadowColor = '#ff0044'; x.fillStyle = '#ff0044'; 
-                x.fillRect(10, 150, 44, 8); // Neon Rouge
+                x.fillStyle = '#3a1515'; x.fillRect(0, 0, 64, texSize); 
+                x.fillStyle = '#200505';
+                for(let y=0; y<texSize; y+=32) {
+                    x.fillRect(0, y, 64, 2);
+                    let off = (y/32)%2===0?0:32; x.fillRect(off+30, y, 2, 32);
+                }
+                x.shadowBlur = 15; x.shadowColor = '#ff0033'; 
+                x.fillStyle = '#ff0033'; x.fillRect(10, 150, 44, 8); 
                 x.shadowBlur = 0;
-                x.fillStyle = '#111'; x.fillRect(0, 400, 64, 112);
+                x.fillStyle = 'rgba(0,0,0,0.7)'; x.fillRect(0, 400, 64, 112); 
             }
             const img = new Image(); img.src = c.toDataURL(); return img;
         }
         const TEX_HAUSSMANN = createTexture('haussmann');
         const TEX_PIGALLE = createTexture('pigalle');
 
-        // --- 3. LOGIQUE JEU & NARRATION ---
+        // --- 4. DATA NARRATIVE ---
+        const narrativeData = {
+            0: [ 
+                "Un carnet de notes. L'écriture de Samuel est tremblante : 'Ils me suivent...'",
+                "Une douille de 9mm. C'est récent. Il y a eu une altercation ici.",
+                "Le badge d'accès de Samuel. Il est taché de sang."
+            ],
+            1: [ 
+                "Une lettre de menace : 'Rends l'argent Samuel, ou on s'occupe de ta famille'.",
+                "Un téléphone jetable brisé. La dernière localisation GPS pointe vers cette ruelle.",
+                "Une mallette vide. Quelqu'un est arrivé avant moi."
+            ]
+        };
+
+        // --- 5. VARIABLES JEU ---
         const TILE_SIZE = 64; const FOV = Math.PI / 2.5; 
         let playerObj = { x: 0, y: 0, dir: 0 };
-        const WALK = 2.5; const RUN = 4.5; const ROT = 0.04;
+        const WALK = 2.0; const RUN = 4.0; const ROT = 0.035; 
         let currentLevel = 0; let gameActive = false; let timer = 0;
-        let cluesFound = 0; let currentTexture; let items = []; let map = [];
+        let cluesFound = 0; let currentTexture;
+        let dialogueTimer = null;
 
-        // Données des niveaux enrichies
         const levels = [
             {
-                name: "LE MARAIS",
+                name: "RUE DES ARCHIVES (23H00)",
                 tex: TEX_HAUSSMANN,
                 map: [
                     [1,1,1,1,1,1,1,1,1,1,1,1],
@@ -225,17 +115,10 @@
                     [1,0,1,0,1,1,1,1,0,0,0,1],
                     [1,0,5,0,0,0,0,1,1,1,9,1],
                     [1,1,1,1,1,1,1,1,1,1,1,1]
-                ], 
-                start: {x: 1.5, y: 1.5, dir: 0},
-                // TEXTES NARRATIFS POUR LES INDICES
-                clueTexts: [
-                    "Une carte SIM brisée. Samuel ne voulait pas être tracé.",
-                    "Un reçu de bar 'L'Enfer'. C'est daté d'hier soir.",
-                    "Des taches de sang frais... Il est blessé."
-                ]
+                ], start: {x: 1.5, y: 1.5, dir: 0}
             },
             {
-                name: "PIGALLE",
+                name: "PIGALLE (02H00)",
                 tex: TEX_PIGALLE,
                 map: [
                     [1,1,1,1,1,1,1,1,1,1],
@@ -245,71 +128,68 @@
                     [1,0,1,1,0,1,0,1,1,1],
                     [1,5,0,0,0,1,0,0,8,1], // 8 = Samuel
                     [1,1,1,1,1,1,1,1,1,1]
-                ], 
-                start: {x: 1.5, y: 1.5, dir: 0},
-                clueTexts: [
-                    "Son arme de service. Une balle a été tirée.",
-                    "Un téléphone. Un message non envoyé : 'C'est un piège'.",
-                    "Sa plaque de police. Il l'a jetée volontairement."
-                ]
+                ], start: {x: 1.5, y: 1.5, dir: 0}
             }
         ];
 
+        let map=[]; let items=[];
+
         function loadLevel(idx) {
-            if(idx>=levels.length) return;
-            currentLevel = idx; cluesFound = 0;
+            console.log("Chargement Niveau " + idx);
+            if(idx >= levels.length) return;
+            
+            currentLevel = idx; 
+            cluesFound = 0;
             const lvl = levels[idx];
             
+            // Mise à jour UI
             document.getElementById('zoneName').innerText = lvl.name;
-            document.getElementById('score').innerText = "0/3";
-            hideDialog(); // Reset dialogue
+            document.getElementById('score').innerText = "0";
+            hideDialogue();
             
-            currentTexture = lvl.tex; map = JSON.parse(JSON.stringify(lvl.map)); // Deep copy
+            // Chargement de la musique
+            changeMusic(idx);
+
+            // Chargement Map et Textures
+            currentTexture = lvl.tex; 
+            map = lvl.map;
+            
+            // Positionnement Joueur (Sécurisé)
             playerObj.x = lvl.start.x * TILE_SIZE;
             playerObj.y = lvl.start.y * TILE_SIZE;
             playerObj.dir = lvl.start.dir;
 
+            // Placement Objets
             items = [];
             let clueIndex = 0;
             for(let y=0; y<map.length; y++) for(let x=0; x<map[y].length; x++) {
                 if(map[y][x] === 5) { 
-                    // On attache le texte narratif à l'objet
-                    let text = lvl.clueTexts[clueIndex] || "Une preuve intéressante.";
-                    items.push({x: x*TILE_SIZE+32, y: y*TILE_SIZE+32, type: 'clue', active:true, msg: text}); 
-                    map[y][x]=0; clueIndex++;
+                    let txt = narrativeData[currentLevel] && narrativeData[currentLevel][clueIndex] 
+                              ? narrativeData[currentLevel][clueIndex] 
+                              : "Un indice important.";
+                    items.push({x: x*TILE_SIZE+32, y: y*TILE_SIZE+32, type: 'clue', active:true, text: txt}); 
+                    map[y][x]=0; 
+                    clueIndex++;
                 }
-                if(map[y][x] === 8) { items.push({x: x*TILE_SIZE+32, y: y*TILE_SIZE+32, type: 'samuel', active:true}); map[y][x]=0; }
+                if(map[y][x] === 8) { 
+                    items.push({x: x*TILE_SIZE+32, y: y*TILE_SIZE+32, type: 'samuel', active:true}); 
+                    map[y][x]=0; 
+                }
             }
         }
 
-        // --- GESTION INPUT ---
+        // --- INPUTS ---
         const keys = {};
         window.addEventListener('keydown', e => keys[e.code] = true);
         window.addEventListener('keyup', e => keys[e.code] = false);
 
-        // --- DIALOGUE SYSTEM ---
-        let dialogTimeout;
-        function showDialog(text, speaker = "Inspecteur") {
-            const box = document.getElementById('dialog-box');
-            document.getElementById('dialog-speaker').innerText = speaker;
-            document.getElementById('dialog-text').innerText = text;
-            box.style.display = 'block';
-            
-            // Auto hide après 5 secondes
-            clearTimeout(dialogTimeout);
-            dialogTimeout = setTimeout(hideDialog, 5000);
-        }
-        function hideDialog() {
-            document.getElementById('dialog-box').style.display = 'none';
-        }
-
-        // --- UPDATE LOOP ---
+        // --- UPDATE ---
         function update() {
             if(!gameActive) return;
 
-            // Mouvement
             if (keys['ArrowLeft']) playerObj.dir -= ROT;
             if (keys['ArrowRight']) playerObj.dir += ROT;
+            
             let speed = keys['ShiftLeft'] ? RUN : WALK;
             let step = 0;
             if (keys['ArrowUp']) step = speed;
@@ -320,72 +200,97 @@
             if (step !== 0) {
                 let nextX = playerObj.x + Math.cos(playerObj.dir) * step;
                 let nextY = playerObj.y + Math.sin(playerObj.dir) * step;
+                
+                // Vérification limites de la carte pour éviter le crash
                 let gX = Math.floor(nextX / TILE_SIZE);
                 let gY = Math.floor(nextY / TILE_SIZE);
                 
-                // Collisions Mur (1) et Porte (9)
-                if (map[gY] && map[gY][gX] !== 1) {
-                    // Vérif porte de sortie
+                if (map[gY] && map[gY][gX] !== undefined && map[gY][gX] !== 1) {
+                    playerObj.x = nextX; playerObj.y = nextY;
+                    
+                    // Fin du niveau (Porte rouge - 9)
                     if (map[gY][gX] === 9) {
                         if (cluesFound >= 3) {
-                            showDialog("La voie est libre. Je change de secteur.", "Système");
-                            setTimeout(() => loadLevel(currentLevel + 1), 1000);
+                            showDialogue("La porte s'ouvre. Je descends plus profond...", 3000);
+                            // Petit délai avant de changer de niveau pour laisser lire
+                            if(currentLevel < levels.length - 1) {
+                                setTimeout(() => loadLevel(currentLevel + 1), 2000);
+                                // On décale le joueur pour qu'il ne re-déclenche pas la porte immédiatement
+                                playerObj.x -= Math.cos(playerObj.dir)*20;
+                                playerObj.y -= Math.sin(playerObj.dir)*20;
+                            }
                         } else {
-                            // Collision simple
-                             showDialog("Je ne peux pas partir sans toutes les preuves.", "Inspecteur");
+                            playerObj.x -= Math.cos(playerObj.dir)*15; // Rebond
+                            playerObj.y -= Math.sin(playerObj.dir)*15;
+                            showDialogue("C'est fermé à clé. Je dois trouver toutes les preuves d'abord.", 3000);
                         }
-                    } else {
-                        // Mouvement valide
-                         playerObj.x = nextX; playerObj.y = nextY;
                     }
                 }
             }
 
-            // Interaction Objets
+            // Interaction objets
             items.forEach(item => {
                 if (!item.active) return;
                 if (Math.hypot(playerObj.x - item.x, playerObj.y - item.y) < 40) {
                     if (item.type === 'clue') {
                         item.active = false; cluesFound++;
-                        document.getElementById('score').innerText = cluesFound + "/3";
-                        showDialog(item.msg, "Indice trouvé"); // Affiche le texte unique
+                        document.getElementById('score').innerText = cluesFound;
+                        showDialogue(item.text, 5000); 
                     } else if (item.type === 'samuel') {
                         gameActive = false;
                         document.getElementById('win-screen').style.display = 'flex';
                         document.getElementById('ui-layer').style.display = 'none';
+                        document.getElementById('dialogue-box').style.display = 'none';
                     }
                 }
             });
         }
 
-        // --- RENDERING ---
+        // Gestion Dialogue
+        function showDialogue(txt, duration) {
+            const el = document.getElementById('dialogue-box');
+            el.innerText = txt; 
+            el.classList.add('active');
+            
+            if(dialogueTimer) clearTimeout(dialogueTimer);
+            if(duration) dialogueTimer = setTimeout(hideDialogue, duration);
+        }
+        function hideDialogue() {
+            document.getElementById('dialogue-box').classList.remove('active');
+        }
+
+        // --- DRAW ---
         function draw() {
-            // Ciel et Sol (Nuances plus sombres)
-            ctx.fillStyle = "#0a0a10"; ctx.fillRect(0,0,canvas.width,canvas.height/2);
+            // Ciel et Sol
+            ctx.fillStyle = "#0a0a0a"; ctx.fillRect(0,0,canvas.width,canvas.height/2);
             ctx.fillStyle = "#111"; ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
 
             const numRays = Math.ceil(canvas.width / 2); 
             const bob = Math.sin(timer) * 6;
 
-            // Raycasting
             for (let i = 0; i < numRays; i++) {
                 let angle = (playerObj.dir - FOV / 2.0) + (i / numRays) * FOV;
                 let eyeX = Math.cos(angle), eyeY = Math.sin(angle);
                 let dist = 0, hit = false;
                 
                 let rayX = playerObj.x, rayY = playerObj.y;
-                let wallType = 0;
+                let tx=0, ty=0;
 
                 while (!hit && dist < 1000) {
-                    dist += 2; rayX += eyeX * 2; rayY += eyeY * 2;
-                    let tx = Math.floor(rayX / TILE_SIZE); let ty = Math.floor(rayY / TILE_SIZE);
-                    if (tx < 0 || ty < 0 || tx >= map[0].length || ty >= map.length) { hit = true; }
-                    else if (map[ty][tx] === 1 || map[ty][tx] === 9) { hit = true; wallType = map[ty][tx]; }
+                    dist += 2;
+                    rayX += eyeX * 2; rayY += eyeY * 2;
+                    tx = Math.floor(rayX / TILE_SIZE); ty = Math.floor(rayY / TILE_SIZE);
+                    
+                    // Sécurité anti-crash si on regarde hors de la map
+                    if (ty < 0 || ty >= map.length || tx < 0 || tx >= map[ty].length || map[ty][tx] === 1) {
+                        hit = true;
+                    }
                 }
 
                 let correctedDist = dist * Math.cos(angle - playerObj.dir);
                 let h = (TILE_SIZE * canvas.height) / correctedDist;
-                let x = i * 2; let y = (canvas.height - h) / 2 + bob;
+                let x = i * 2;
+                let y = (canvas.height - h) / 2 + bob;
 
                 // Texture Mapping
                 let texX = 0;
@@ -393,18 +298,24 @@
                 if (Math.abs(hitXMod - TILE_SIZE) < 3 || hitXMod < 3) texX = hitYMod; else texX = hitXMod;
                 texX = Math.floor((texX/TILE_SIZE) * 64);
 
-                if (wallType === 9) { // Porte de sortie (Rouge)
-                    ctx.fillStyle = '#500'; ctx.fillRect(x,y,2,h);
-                } else if (currentTexture) {
+                if (currentTexture) {
+                    let brightness = Math.max(0, 1 - dist/600);
+                    ctx.globalAlpha = 1;
                     ctx.drawImage(currentTexture, texX, 0, 1, texSize, x, y, 2, h);
+                    ctx.fillStyle = `rgba(0,0,0,${1 - brightness})`;
+                    ctx.fillRect(x,y,2,h);
+                } else {
+                    ctx.fillStyle = '#444'; ctx.fillRect(x, y, 2, h); // Fallback sans texture
                 }
-
-                // Brouillard (Distance Fog) plus dense pour ambiance noir
-                let fog = Math.min(0.98, dist / 600);
-                ctx.fillStyle = `rgba(0,0,0,${fog})`; ctx.fillRect(x, y, 2, h);
             }
 
-            // Sprites (Items)
+            // Sprites
+            items.sort((a,b) => {
+                let da = Math.hypot(playerObj.x - a.x, playerObj.y - a.y);
+                let db = Math.hypot(playerObj.x - b.x, playerObj.y - b.y);
+                return db - da;
+            });
+
             items.forEach(item => {
                 if(!item.active) return;
                 let dx = item.x - playerObj.x; let dy = item.y - playerObj.y;
@@ -426,36 +337,20 @@
         }
 
         function drawRadar() {
-            radarCtx.clearRect(0,0,140,140);
-            const sc = 8; const cX = 70; const cY = 70;
+            radarCtx.clearRect(0,0,120,120);
+            const sc = 8; const cX = 60; const cY = 60; 
             
-            // Grille radar
-            radarCtx.strokeStyle = 'rgba(0, 255, 0, 0.2)'; radarCtx.lineWidth = 1;
-            radarCtx.beginPath(); radarCtx.arc(cX, cY, 30, 0, Math.PI*2); radarCtx.stroke();
-            radarCtx.beginPath(); radarCtx.arc(cX, cY, 60, 0, Math.PI*2); radarCtx.stroke();
-
-            // Blips
-            for(let y=0; y<map.length; y++) for(let x=0; x<map[y].length; x++) {
-                let dx = (x * TILE_SIZE - playerObj.x) / TILE_SIZE * sc;
-                let dy = (y * TILE_SIZE - playerObj.y) / TILE_SIZE * sc;
-                if (Math.abs(dx) < 65 && Math.abs(dy) < 65) {
-                    if(map[y][x] === 1) { radarCtx.fillStyle = 'rgba(50, 200, 50, 0.5)'; radarCtx.fillRect(cX+dx, cY+dy, sc, sc); }
-                    if(map[y][x] === 9) { radarCtx.fillStyle = '#f00'; radarCtx.fillRect(cX+dx, cY+dy, sc, sc); } // Sortie
-                }
-            }
-            items.forEach(i => {
-                if(i.active) {
-                    let dx = (i.x - playerObj.x) / TILE_SIZE * sc;
-                    let dy = (i.y - playerObj.y) / TILE_SIZE * sc;
-                    // Clignotement
-                    if (Date.now() % 1000 < 500) {
-                        radarCtx.fillStyle = i.type === 'clue' ? '#d4af37' : '#fff';
-                        radarCtx.beginPath(); radarCtx.arc(cX+dx+sc/2, cY+dy+sc/2, 4, 0, Math.PI*2); radarCtx.fill();
+            for(let y=0; y<map.length; y++) {
+                for(let x=0; x<map[y].length; x++) {
+                    let dx = (x * TILE_SIZE - playerObj.x) / TILE_SIZE * sc;
+                    let dy = (y * TILE_SIZE - playerObj.y) / TILE_SIZE * sc;
+                    if (Math.abs(dx) < 60 && Math.abs(dy) < 60) {
+                        if(map[y][x] === 1) { radarCtx.fillStyle = '#1a441a'; radarCtx.fillRect(cX+dx, cY+dy, sc, sc); } 
+                        if(map[y][x] === 9) { radarCtx.fillStyle = '#880000'; radarCtx.fillRect(cX+dx, cY+dy, sc, sc); } 
                     }
                 }
-            });
-            // Joueur
-            radarCtx.fillStyle = '#fff'; radarCtx.beginPath(); radarCtx.arc(cX, cY, 3, 0, Math.PI*2); radarCtx.fill();
+            }
+            radarCtx.fillStyle = 'white'; radarCtx.beginPath(); radarCtx.arc(cX, cY, 3, 0, Math.PI*2); radarCtx.fill();
         }
 
         function loop() { update(); draw(); requestAnimationFrame(loop); }
@@ -464,9 +359,10 @@
             document.getElementById('start-screen').style.display = 'none';
             loadLevel(0);
             gameActive = true;
-            if(player && player.unMute) { player.unMute(); player.setVolume(50); player.playVideo(); }
+            // Volume augmenté pour bien entendre l'ambiance
+            if(player && player.unMute) { player.unMute(); player.setVolume(100); player.playVideo(); }
             loop();
         });
+        
+        document.getElementById('win-screen').addEventListener('click', () => { location.reload(); });
     </script>
-</body>
-</html>
