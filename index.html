@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paris Investigation : Refonte Totale</title>
+    <title>Paris Investigation : Les Chipies à la rescousse</title>
     <style>
         /* --- CORE --- */
         body { background: #000; margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; user-select: none; }
@@ -80,12 +80,12 @@
         <div id="phone-frame">
             <div id="chat-header">
                 <div style="width:10px; height:10px; background:#0f0; border-radius:50%;"></div>
-                Samuel (Lycée)
+                Groupe "Les Chipies"
             </div>
             <div id="chat-content">
                 </div>
         </div>
-        <div id="start-btn">ALLER LE CHERCHER</div>
+        <div id="start-btn">Y ALLER</div>
     </div>
 
     <div id="game-container">
@@ -95,7 +95,7 @@
         <div id="hud">
             <div class="panel">
                 <div id="zoneName" style="font-weight:bold; color:#fff; margin-bottom:5px;">CHARGEMENT...</div>
-                <div style="font-size:12px; color:#aaa;">Paris, 18h30</div>
+                <div style="font-size:12px; color:#aaa;">Paris, Nuit</div>
             </div>
             <div class="panel">
                 <div style="color:#d4af37;">PREUVES : <span id="score" style="color:#fff;">0</span> / 3</div>
@@ -115,7 +115,7 @@
         // --- AUDIO ---
         var player; var tag = document.createElement('script'); tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0]; firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-        function onYouTubeIframeAPIReady() { player = new YT.Player('youtube-audio', { height: '0', width: '0', videoId: 'bUKC5RAjUdg', playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': 'bUKC5RAjUdg' } }); }
+        function onYouTubeIframeAPIReady() { player = new YT.Player('youtube-audio', { height: '0', width: '0', videoId: '0Z57bS8n_rY', playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': '0Z57bS8n_rY' } }); }
         function changeMusic(id) { if(player && player.loadVideoById) player.loadVideoById(id); }
 
         // --- GÉNÉRATEUR ASSETS PIXEL ART ---
@@ -123,22 +123,29 @@
         function createTexture(type) {
             const c = document.createElement('canvas'); c.width = texSize; c.height = texSize; const x = c.getContext('2d');
             
-            if(type === 'brick') { // Mur Brique Vosges
-                x.fillStyle = '#a44'; x.fillRect(0,0,texSize,texSize);
-                x.fillStyle = '#833'; for(let i=0; i<400; i++) x.fillRect(Math.random()*texSize, Math.random()*texSize, 2, 2); // Bruit
-                x.fillStyle = '#333'; // Joints
+            if(type === 'brick') { // Mur Extérieur Vosges
+                x.fillStyle = '#c44'; x.fillRect(0,0,texSize,texSize);
+                x.fillStyle = '#922'; for(let i=0; i<400; i++) x.fillRect(Math.random()*texSize, Math.random()*texSize, 2, 2);
+                x.fillStyle = '#333'; 
                 for(let y=0; y<texSize; y+=16) {
                     x.fillRect(0, y, texSize, 2);
                     let off = (y/16)%2===0?0:16;
                     for(let xx=off; xx<texSize; xx+=32) x.fillRect(xx, y, 2, 16);
                 }
-                x.fillStyle = '#111'; x.fillRect(0, 100, texSize, 28); // Plinthe
+                x.fillStyle = '#111'; x.fillRect(0, 110, texSize, 18); // Arcades base
             }
-            else if(type === 'hedge') { // Haie Parc
-                x.fillStyle = '#051505'; x.fillRect(0,0,texSize,texSize);
-                for(let i=0; i<800; i++) {
-                    x.fillStyle = Math.random()>0.5 ? '#1a3a0a' : '#2a5a1a';
+            else if(type === 'hedge') { // Haie Taillée
+                x.fillStyle = '#0a1a0a'; x.fillRect(0,0,texSize,texSize);
+                for(let i=0; i<1000; i++) {
+                    x.fillStyle = Math.random()>0.6 ? '#1a3a0a' : '#2a5a1a';
                     x.fillRect(Math.random()*texSize, Math.random()*texSize, 3, 3);
+                }
+            }
+            else if(type === 'grass') { // Herbe Parc
+                x.fillStyle = '#0e1e0e'; x.fillRect(0,0,texSize,texSize);
+                for(let i=0; i<600; i++) {
+                    x.fillStyle = Math.random()>0.7 ? '#1e3e1e' : '#2e5e2e';
+                    x.fillRect(Math.random()*texSize, Math.random()*texSize, 2, 2);
                 }
             }
             else if(type === 'pigalle') { // Mur Crade
@@ -162,6 +169,7 @@
         
         const TEX_BRICK = createTexture('brick');
         const TEX_HEDGE = createTexture('hedge');
+        const TEX_GRASS = createTexture('grass');
         const TEX_PIGALLE = createTexture('pigalle');
         const SPRITE_LAMP = createTexture('lamp');
         const SPRITE_CLUE = createTexture('clue');
@@ -169,12 +177,14 @@
 
         // --- SCÉNARIO MESSAGERIE ---
         const messages = [
-            { s: 'me', t: "T'es où Sam ? Ça fait 1h que j'attends devant le lycée." },
-            { s: 'him', t: "Ne viens pas." },
-            { s: 'him', t: "J'ai trouvé un truc aux Archives. Ils savent." },
-            { s: 'me', t: "De quoi tu parles ? Réponds !" },
-            { s: 'him', t: "📍 Position partagée : Place des Vosges." },
-            { s: 'him', t: "Si je réponds plus, cherche dans le parc." }
+            { s: 'other', n: 'Clara', t: "C'est long ce cours de com..." },
+            { s: 'other', n: 'Léa', t: "Grave. On sort quand ?" },
+            { s: 'him', n: 'Samuel', t: "AIDEZ-MOI" },
+            { s: 'him', n: 'Samuel', t: "Je suis suivi." },
+            { s: 'me', n: 'Moi', t: "Samuel ? Qu'est-ce qui se passe ?" },
+            { s: 'him', n: 'Samuel', t: "📍 Position partagée : Place des Vosges." },
+            { s: 'other', n: 'Clara', t: "OMG Sam, ça va ?!" },
+            { s: 'me', n: 'Moi', t: "J'y vais. J'arrive." }
         ];
         
         let msgIndex = 0;
@@ -186,10 +196,12 @@
             const m = messages[msgIndex];
             const div = document.createElement('div');
             div.className = `msg ${m.s === 'me' ? 'sent' : 'received'}`;
-            div.innerHTML = `${m.t}<div class="timestamp">18:${30+msgIndex}</div>`;
+            let content = m.n ? `<div style="font-weight:bold;margin-bottom:5px;">${m.n}</div>` : '';
+            content += m.t;
+            div.innerHTML = `${content}<div class="timestamp">18:${30+msgIndex}</div>`;
             document.getElementById('chat-content').appendChild(div);
             msgIndex++;
-            setTimeout(playIntro, 1200);
+            setTimeout(playIntro, 1000);
         }
         window.onload = playIntro;
 
@@ -216,20 +228,27 @@
         let keys = {};
 
         // Niveaux
-        // 1=Mur, 0=Vide, 2=Lampe, 5=Indice, 9=Sortie
+        // 1=Mur Extérieur, 0=Vide, 2=Lampe, 5=Indice, 9=Sortie, 3=Haie Parc, 4=Herbe
         const L1_VOSGES = [
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-            [1,0,0,0,0,0,0,1,0,0,0,0,0,0,1],
-            [1,0,2,0,0,2,0,0,0,2,0,0,2,0,1], // Lampadaires (2)
-            [1,0,0,1,1,1,0,5,0,1,1,1,0,0,1], // Parc central fermé
-            [1,0,0,1,0,0,0,0,0,0,0,1,0,0,1],
-            [1,0,0,1,0,0,2,0,2,0,0,1,0,0,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,0,2,0,0,2,0,5,0,2,0,0,2,0,1], // Indice
-            [1,0,0,1,1,1,0,0,0,1,1,1,0,0,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,0,0,2,0,5,0,2,0,0,0,2,0,9,1], // Sortie (9)
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
+            [1,0,2,0,0,2,0,1,0,2,0,0,2,0,0,1,0,0,2,0,0,2,0,1],
+            [1,0,0,3,3,3,3,1,0,0,4,4,4,4,0,1,0,0,3,3,3,3,0,1], // Entrée Parc Nord
+            [1,0,0,3,4,4,4,1,0,0,4,4,4,4,0,1,0,0,4,4,4,3,0,1],
+            [1,0,0,3,4,4,4,3,3,0,4,4,4,4,0,3,3,0,4,4,4,3,0,1],
+            [1,0,0,3,4,4,4,4,3,0,4,4,4,4,0,3,4,4,4,4,4,3,0,1],
+            [1,1,1,1,0,0,3,4,3,0,4,4,4,4,0,3,4,3,0,0,1,1,1,1], // Entrées Parc Est/Ouest
+            [1,0,0,0,0,0,3,4,3,0,4,5,4,5,0,3,4,3,0,0,0,0,0,1], // Indices Centre
+            [1,0,0,0,0,0,0,0,0,0,4,4,4,4,0,0,0,0,0,0,0,0,0,1], // Grande allée centrale
+            [1,0,0,0,0,0,3,4,3,0,4,4,5,4,0,3,4,3,0,0,0,0,0,1], // Indice Centre
+            [1,1,1,1,0,0,3,4,3,0,4,4,4,4,0,3,4,3,0,0,1,1,1,1],
+            [1,0,0,3,4,4,4,4,3,0,4,4,4,4,0,3,4,4,4,4,4,3,0,1],
+            [1,0,0,3,4,4,4,3,3,0,4,4,4,4,0,3,3,0,4,4,4,3,0,1],
+            [1,0,0,3,4,4,4,1,0,0,4,4,4,4,0,1,0,0,4,4,4,3,0,1],
+            [1,0,0,3,3,3,3,1,0,0,4,4,4,4,0,1,0,0,3,3,3,3,0,1], // Entrée Parc Sud
+            [1,0,0,2,0,0,2,0,1,0,2,0,0,2,0,0,1,0,0,2,0,0,2,0,1],
+            [1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,9,1], // Sortie (9)
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
         ];
 
         const L2_PIGALLE = [
@@ -247,7 +266,7 @@
         ];
 
         const NARRATIVE = [
-            ["Carte d'étudiant de Sam.", "Une page de cours de Philo déchirée.", "Son bonnet. Il gèle."],
+            ["Sa carte d'étudiant ESG.", "Une page de cours de Philo déchirée.", "Son bonnet. Il gèle."],
             ["Un couteau suisse. Pas le sien.", "Son sac à dos ouvert.", "Le dossier des Archives !"]
         ];
 
@@ -258,13 +277,13 @@
             
             // Configuration
             if(idx === 0) {
-                map = L1_VOSGES; texWall = TEX_HEDGE;
+                map = L1_VOSGES; texWall = TEX_BRICK; texFloor = TEX_GRASS;
                 posX = 1.5; posY = 1.5; dirX = 1; dirY = 0;
                 planeX = 0; planeY = 0.66;
                 document.getElementById('zoneName').innerText = "PLACE DES VOSGES";
-                changeMusic('bUKC5RAjUdg');
+                changeMusic('0Z57bS8n_rY');
             } else {
-                map = L2_PIGALLE; texWall = TEX_PIGALLE;
+                map = L2_PIGALLE; texWall = TEX_PIGALLE; texFloor = TEX_PIGALLE;
                 posX = 1.5; posY = 1.5; dirX = 0; dirY = 1; // Départ vers le sud
                 planeX = -0.66; planeY = 0;
                 document.getElementById('zoneName').innerText = "RUE PIGALLE";
@@ -331,12 +350,12 @@
                 let nextX = posX + dirX * moveSpeed * moveStep;
                 let nextY = posY + dirY * moveSpeed * moveStep;
 
-                // Collision X avec "Glissade"
-                if(map[Math.floor(nextX)][Math.floor(posY)] === 0 || map[Math.floor(nextX)][Math.floor(posY)] === 9) {
+                // Collision X avec "Glissade" (Murs 1 et 3)
+                if(map[Math.floor(nextX)][Math.floor(posY)] === 0 || map[Math.floor(nextX)][Math.floor(posY)] === 9 || map[Math.floor(nextX)][Math.floor(posY)] === 4) {
                     posX = nextX;
                 }
-                // Collision Y avec "Glissade"
-                if(map[Math.floor(posX)][Math.floor(nextY)] === 0 || map[Math.floor(posX)][Math.floor(nextY)] === 9) {
+                // Collision Y avec "Glissade" (Murs 1 et 3)
+                if(map[Math.floor(posX)][Math.floor(nextY)] === 0 || map[Math.floor(posX)][Math.floor(nextY)] === 9 || map[Math.floor(posX)][Math.floor(nextY)] === 4) {
                     posY = nextY;
                 }
 
@@ -398,7 +417,8 @@
                 while(hit === 0) {
                     if(sideDistX < sideDistY) { sideDistX += deltaDistX; mapX += stepX; side = 0; }
                     else { sideDistY += deltaDistY; mapY += stepY; side = 1; }
-                    if(map[mapX][mapY] > 0 && map[mapX][mapY] !== 9) hit = 1;
+                    // Murs physiques : 1 (Brique Ext) et 3 (Haie)
+                    if(map[mapX][mapY] === 1 || map[mapX][mapY] === 3) hit = 1;
                 }
 
                 if(side === 0) perpWallDist = (mapX - posX + (1 - stepX) / 2) / rayDirX;
@@ -424,7 +444,7 @@
                 ctx.globalAlpha = 1;
                 
                 // Choix texture
-                let tex = map[mapX][mapY] === 1 ? texWall : TEX_BRICK;
+                let tex = map[mapX][mapY] === 1 ? texWall : TEX_HEDGE;
                 ctx.drawImage(tex, texX, 0, 1, texSize, x, drawStart, 1, drawEnd - drawStart);
                 
                 // Ombre
