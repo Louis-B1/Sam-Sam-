@@ -22,6 +22,8 @@
             position: relative;
             box-shadow: 0 0 80px rgba(255, 69, 0, 0.3);
             border: 2px solid #333;
+            z-index: 10; /* Au dessus de la vidéo cachée */
+            background: black;
         }
         canvas { display: block; image-rendering: pixelated; }
         
@@ -33,9 +35,9 @@
             background: linear-gradient(90deg, rgba(0,0,0,0.8), transparent);
             border-left: 4px solid #ff4500;
             font-family: 'Courier New', Courier, monospace;
+            pointer-events: none;
         }
         .hud-line { margin-bottom: 5px; font-size: 18px; text-shadow: 1px 1px 0 #000; }
-        .gold { color: #ffd700; font-weight: bold; }
         
         /* Ecran de démarrage */
         #start-screen {
@@ -46,7 +48,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 10;
+            z-index: 20;
             cursor: pointer;
         }
         h1 { font-size: 50px; margin: 0; color: white; text-transform: uppercase; letter-spacing: 5px; }
@@ -60,7 +62,7 @@
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            z-index: 20;
+            z-index: 30;
         }
         #samuel-reveal {
             width: 200px; height: 200px;
@@ -68,9 +70,19 @@
             animation: bounce 1s infinite alternate;
         }
         @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-20px); } }
+
+        /* Vidéo YouTube Cachée (Audio) */
+        #youtube-audio {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+            visibility: hidden;
+        }
     </style>
 </head>
 <body>
+
+    <div id="youtube-audio"></div>
 
     <div id="game-container">
         <canvas id="gameCanvas" width="800" height="600"></canvas>
@@ -92,30 +104,58 @@
         </div>
     </div>
 
-    <audio id="bgMusic" loop>
-        <source src="musique.mp3" type="audio/mpeg">
-    </audio>
-
     <script>
-        // --- SETUP ---
+        // --- 1. CONFIGURATION AUDIO YOUTUBE ---
+        var player;
+        // On charge l'API YouTube
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('youtube-audio', {
+                height: '0',
+                width: '0',
+                videoId: 'bUKC5RAjUdg', // ID de la vidéo Booba - Paname
+                playerVars: {
+                    'autoplay': 0,
+                    'controls': 0,
+                    'loop': 1, // Préparation pour la boucle
+                    'playlist': 'bUKC5RAjUdg' // Nécessaire pour boucler
+                },
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            // Le lecteur est prêt, mais on attend le clic utilisateur pour lancer
+            console.log("Musique chargée et prête.");
+        }
+
+
+        // --- 2. CONFIGURATION JEU ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         ctx.imageSmoothingEnabled = false;
 
-        // Assets
-        const samuelSprite = new Image(); samuelSprite.src = "samuel.png";
+        // Image Samuel
+        const samuelSprite = new Image(); 
+        samuelSprite.src = "samuel.png";
         
-        // Texture Mur (Générée : Briques sombres)
+        // Texture Mur (Générée)
         const wallCanvas = document.createElement('canvas'); wallCanvas.width = 64; wallCanvas.height = 64;
         const wCtx = wallCanvas.getContext('2d');
-        wCtx.fillStyle = '#1a1a1a'; wCtx.fillRect(0,0,64,64); // Gris très sombre
-        wCtx.fillStyle = '#111'; wCtx.fillRect(2,2,60,28); wCtx.fillRect(2,34,60,28); // Joints
-        wCtx.fillStyle = '#220000'; wCtx.fillRect(10,10,20,10); // Tache sombre
+        wCtx.fillStyle = '#1a1a1a'; wCtx.fillRect(0,0,64,64); 
+        wCtx.fillStyle = '#111'; wCtx.fillRect(2,2,60,28); wCtx.fillRect(2,34,60,28); 
+        wCtx.fillStyle = '#220000'; wCtx.fillRect(10,10,20,10); 
         const wallTexture = new Image(); wallTexture.src = wallCanvas.toDataURL();
 
-        // Variables Jeu
+        // Variables Moteur
         const TILE_SIZE = 64; const FOV = Math.PI / 3; const RAYS = canvas.width / 2;
-        let player = { x: 0, y: 0, dir: 0, speed: 6 };
+        let playerObj = { x: 0, y: 0, dir: 0, speed: 6 };
         let currentLevel = 0;
         let gameActive = false;
         
@@ -129,7 +169,7 @@
                     [1,0,0,1,0,1,1,1,0,1],
                     [1,0,0,0,0,1,0,0,0,1],
                     [1,1,1,1,1,1,0,1,1,1],
-                    [1,0,0,0,0,0,0,0,9,1], // 9 = Sortie
+                    [1,0,0,0,0,0,0,0,9,1],
                     [1,1,1,1,1,1,1,1,1,1]
                 ],
                 start: {x: 1.5, y: 1.5, dir: 0}
@@ -142,7 +182,7 @@
                     [1,0,1,1,1,0,1,0,1,0,1],
                     [1,0,1,0,0,0,0,0,1,0,1],
                     [1,0,1,1,1,1,1,1,1,0,1],
-                    [1,0,0,0,0,9,0,0,0,0,1], // 9 = Sortie
+                    [1,0,0,0,0,9,0,0,0,0,1],
                     [1,1,1,1,1,1,1,1,1,1,1]
                 ],
                 start: {x: 1.5, y: 1.5, dir: 0}
@@ -165,7 +205,6 @@
         let map = [];
         let items = [];
 
-        // --- MOTEUR ---
         function loadLevel(idx) {
             if (idx >= levels.length) return;
             currentLevel = idx;
@@ -173,9 +212,9 @@
             document.getElementById('levelName').innerText = lvl.name;
             
             map = lvl.map;
-            player.x = lvl.start.x * TILE_SIZE;
-            player.y = lvl.start.y * TILE_SIZE;
-            player.dir = lvl.start.dir;
+            playerObj.x = lvl.start.x * TILE_SIZE;
+            playerObj.y = lvl.start.y * TILE_SIZE;
+            playerObj.dir = lvl.start.dir;
 
             items = [];
             for(let y=0; y<map.length; y++) {
@@ -188,52 +227,57 @@
             }
         }
 
+        // --- 3. DÉMARRAGE ---
         function start() {
+            // Lancer le jeu
             document.getElementById('start-screen').style.display = 'none';
-            document.getElementById('bgMusic').volume = 0.5;
-            document.getElementById('bgMusic').play();
             loadLevel(0);
             gameActive = true;
             loop();
+
+            // Lancer la musique YouTube
+            if (player && typeof player.playVideo === 'function') {
+                player.setVolume(50); // Volume à 50%
+                player.playVideo();
+            } else {
+                console.log("Le lecteur YouTube n'est pas encore prêt.");
+            }
         }
 
         document.getElementById('start-screen').addEventListener('click', start);
 
-        // Input
+        // --- 4. CONTRÔLES ---
         const keys = {};
         window.addEventListener('keydown', e => keys[e.code] = true);
         window.addEventListener('keyup', e => keys[e.code] = false);
 
         function update() {
             if(!gameActive) return;
+            
             // Rotation
-            if (keys['ArrowLeft']) player.dir -= 0.05;
-            if (keys['ArrowRight']) player.dir += 0.05;
+            if (keys['ArrowLeft']) playerObj.dir -= 0.05;
+            if (keys['ArrowRight']) playerObj.dir += 0.05;
+            
             // Mouvement
             let step = 0;
-            if (keys['ArrowUp']) step = player.speed;
-            if (keys['ArrowDown']) step = -player.speed;
+            if (keys['ArrowUp']) step = playerObj.speed;
+            if (keys['ArrowDown']) step = -playerObj.speed;
 
             if (step !== 0) {
-                let nextX = player.x + Math.cos(player.dir) * step;
-                let nextY = player.y + Math.sin(player.dir) * step;
+                let nextX = playerObj.x + Math.cos(playerObj.dir) * step;
+                let nextY = playerObj.y + Math.sin(playerObj.dir) * step;
                 let gridX = Math.floor(nextX / TILE_SIZE);
                 let gridY = Math.floor(nextY / TILE_SIZE);
 
-                // Collision Mur
                 if (map[gridY] && map[gridY][gridX] !== 1) {
-                    player.x = nextX; player.y = nextY;
-                    
-                    // Escalier (9)
-                    if (map[gridY][gridX] === 9) {
-                        loadLevel(currentLevel + 1);
-                    }
+                    playerObj.x = nextX; playerObj.y = nextY;
+                    if (map[gridY][gridX] === 9) loadLevel(currentLevel + 1);
                 }
             }
 
             // Détection Samuel
             items.forEach(item => {
-                let dist = Math.hypot(player.x - item.x, player.y - item.y);
+                let dist = Math.hypot(playerObj.x - item.x, playerObj.y - item.y);
                 if (dist < 40 && item.type === 'samuel') {
                     gameActive = false;
                     document.getElementById('win-screen').style.display = 'block';
@@ -243,46 +287,42 @@
         }
 
         function draw() {
-            // Ciel (Dégradé Pollution Parisienne)
+            // Ciel Paname
             let grad = ctx.createLinearGradient(0,0,0,canvas.height/2);
-            grad.addColorStop(0, "#2c1e1e"); // Rougeâtre sombre
-            grad.addColorStop(1, "#524040"); // Brume
+            grad.addColorStop(0, "#2c1e1e");
+            grad.addColorStop(1, "#524040");
             ctx.fillStyle = grad; ctx.fillRect(0,0,canvas.width,canvas.height/2);
-            
-            // Sol (Bitume)
             ctx.fillStyle = "#111"; ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
 
             // Raycasting
             for (let i = 0; i < RAYS; i++) {
-                let rayAngle = (player.dir - FOV / 2.0) + (i / RAYS) * FOV;
+                let rayAngle = (playerObj.dir - FOV / 2.0) + (i / RAYS) * FOV;
                 let dist = 0; let hit = false;
                 let eyeX = Math.cos(rayAngle), eyeY = Math.sin(rayAngle);
 
                 while (!hit && dist < 800) {
                     dist += 1;
-                    let testX = Math.floor((player.x + eyeX * dist) / TILE_SIZE);
-                    let testY = Math.floor((player.y + eyeY * dist) / TILE_SIZE);
+                    let testX = Math.floor((playerObj.x + eyeX * dist) / TILE_SIZE);
+                    let testY = Math.floor((playerObj.y + eyeY * dist) / TILE_SIZE);
                     if (testX < 0 || testX >= map[0].length || testY < 0 || testY >= map.length || map[testY][testX] === 1) {
                         hit = true;
                     }
                 }
                 
-                let correctDist = dist * Math.cos(rayAngle - player.dir);
+                let correctDist = dist * Math.cos(rayAngle - playerObj.dir);
                 let h = (TILE_SIZE * canvas.height) / (correctDist || 1);
                 let x = i * 2;
 
-                // Mur
                 ctx.drawImage(wallTexture, 0, 0, 64, 64, x, (canvas.height-h)/2, 2, h);
-                // Ombre distance
                 ctx.fillStyle = `rgba(0,0,0,${Math.min(0.9, dist/600)})`;
                 ctx.fillRect(x, (canvas.height-h)/2, 2, h);
             }
 
-            // Sprites (Samuel)
+            // Sprites
             items.forEach(item => {
-                let dx = item.x - player.x; let dy = item.y - player.y;
+                let dx = item.x - playerObj.x; let dy = item.y - playerObj.y;
                 let dist = Math.sqrt(dx*dx + dy*dy);
-                let angle = Math.atan2(dy, dx) - player.dir;
+                let angle = Math.atan2(dy, dx) - playerObj.dir;
                 while(angle < -Math.PI) angle += 2*Math.PI;
                 while(angle > Math.PI) angle -= 2*Math.PI;
 
