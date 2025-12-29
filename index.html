@@ -3,8 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lost in Paname - Retrouve Samuel</title>
+    <title>Lost in Paname v2 - Retrouve Samuel</title>
     <style>
+        :root {
+            --paris-orange: #ff7b00;
+            --paris-dark: #1a0f05;
+            --paris-gold: #ffd700;
+        }
         body {
             background-color: #000;
             margin: 0;
@@ -14,36 +19,40 @@
             align-items: center;
             height: 100vh;
             color: white;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             overflow: hidden;
             user-select: none;
         }
         #game-container {
             position: relative;
-            box-shadow: 0 0 80px rgba(255, 69, 0, 0.3);
-            border: 2px solid #333;
-            z-index: 10; /* Au dessus de la vidéo cachée */
+            /* Lueur orange style réverbère */
+            box-shadow: 0 0 100px rgba(255, 123, 0, 0.4);
+            border: 3px solid var(--paris-dark);
+            z-index: 10;
             background: black;
         }
         canvas { display: block; image-rendering: pixelated; }
         
-        /* Interface (HUD) */
+        /* Interface (HUD) plus stylée */
         #hud {
             position: absolute;
-            top: 10px; left: 10px;
-            padding: 15px;
-            background: linear-gradient(90deg, rgba(0,0,0,0.8), transparent);
-            border-left: 4px solid #ff4500;
-            font-family: 'Courier New', Courier, monospace;
+            top: 15px; left: 15px;
+            padding: 15px 20px;
+            background: linear-gradient(90deg, rgba(26, 15, 5, 0.9), transparent);
+            border-left: 5px solid var(--paris-orange);
+            font-family: 'Courier New', Courier, monospace; /* Garde un côté "dossier" */
             pointer-events: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .hud-line { margin-bottom: 5px; font-size: 18px; text-shadow: 1px 1px 0 #000; }
+        .hud-line { margin-bottom: 8px; font-size: 16px; text-shadow: 2px 2px 0 #000; }
+        #levelName, #objective { color: var(--paris-gold); font-weight: bold; }
         
-        /* Ecran de démarrage */
+        /* Ecran de démarrage style "Street" */
         #start-screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: linear-gradient(rgba(0,0,0,0.8), rgba(40,20,0,0.9));
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -51,10 +60,19 @@
             z-index: 20;
             cursor: pointer;
         }
-        h1 { font-size: 50px; margin: 0; color: white; text-transform: uppercase; letter-spacing: 5px; }
-        p { font-size: 20px; color: #aaa; }
-        .blink { animation: blinker 1s linear infinite; color: #ff4500; font-weight: bold; margin-top: 20px;}
-        @keyframes blinker { 50% { opacity: 0; } }
+        h1 { 
+            font-family: 'Impact', sans-serif; /* Police plus impactante */
+            font-size: 70px; margin: 0; color: var(--paris-gold); 
+            text-transform: uppercase; letter-spacing: 8px;
+            text-shadow: 0 0 20px var(--paris-orange);
+        }
+        p { font-size: 24px; color: #ccc; letter-spacing: 2px; margin-top: 10px;}
+        .blink { 
+            animation: blinker 1.5s ease-in-out infinite; 
+            color: var(--paris-orange); font-weight: bold; margin-top: 40px; font-size: 20px;
+            border: 2px solid var(--paris-orange); padding: 10px 20px;
+        }
+        @keyframes blinker { 50% { opacity: 0.3; } }
 
         /* Message de victoire */
         #win-screen {
@@ -64,20 +82,16 @@
             text-align: center;
             z-index: 30;
         }
+        #win-screen h1 { color: #50ff50; text-shadow: 0 0 30px green; font-size: 50px;}
         #samuel-reveal {
-            width: 200px; height: 200px;
+            width: 250px; height: 250px;
             object-fit: contain;
-            animation: bounce 1s infinite alternate;
+            animation: bounce 1s infinite alternate ease-in-out;
+            filter: drop-shadow(0 0 20px var(--paris-gold));
         }
-        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-20px); } }
-
-        /* Vidéo YouTube Cachée (Audio) */
-        #youtube-audio {
-            position: absolute;
-            top: -9999px;
-            left: -9999px;
-            visibility: hidden;
-        }
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-15px); } }
+        
+        #youtube-audio { position: absolute; top: -9999px; left: -9999px; visibility: hidden; }
     </style>
 </head>
 <body>
@@ -88,81 +102,70 @@
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         
         <div id="hud">
-            <div class="hud-line">Lieu : <span id="levelName" style="color:#ffae00">Ruelle Sombre</span></div>
-            <div class="hud-line">Objectif : <span id="objective">Trouve l'escalier</span></div>
+            <div class="hud-line">Arrondissement : <span id="levelName">Chargement...</span></div>
+            <div class="hud-line">Mission : <span id="objective">Trouve l'escalier</span></div>
         </div>
 
         <div id="start-screen">
-            <h1>PANAME</h1>
-            <p>Retrouve Samuel</p>
-            <div class="blink">CLIQUER POUR JOUER</div>
+            <h1>PANAME NIGHT</h1>
+            <p>Mission : Retrouve Samuel</p>
+            <div class="blink">CLIQUER POUR COMMENCER</div>
         </div>
 
         <div id="win-screen">
-            <h1 style="color:#0f0; text-shadow: 0 0 20px green;">SAMUEL RETROUVÉ !</h1>
+            <h1>SAMUEL RETROUVÉ !</h1>
             <img id="samuel-reveal" src="samuel.png">
         </div>
     </div>
 
     <script>
-        // --- 1. CONFIGURATION AUDIO YOUTUBE ---
+        // --- CONFIGURATION AUDIO YOUTUBE ---
         var player;
-        // On charge l'API YouTube
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('youtube-audio', {
-                height: '0',
-                width: '0',
-                videoId: 'bUKC5RAjUdg', // ID de la vidéo Booba - Paname
-                playerVars: {
-                    'autoplay': 0,
-                    'controls': 0,
-                    'loop': 1, // Préparation pour la boucle
-                    'playlist': 'bUKC5RAjUdg' // Nécessaire pour boucler
-                },
-                events: {
-                    'onReady': onPlayerReady
-                }
+                height: '0', width: '0', videoId: 'bUKC5RAjUdg',
+                playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': 'bUKC5RAjUdg' }
             });
         }
 
-        function onPlayerReady(event) {
-            // Le lecteur est prêt, mais on attend le clic utilisateur pour lancer
-            console.log("Musique chargée et prête.");
-        }
-
-
-        // --- 2. CONFIGURATION JEU ---
+        // --- CONFIGURATION JEU & NOUVEAU STYLE ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         ctx.imageSmoothingEnabled = false;
 
-        // Image Samuel
         const samuelSprite = new Image(); 
         samuelSprite.src = "samuel.png";
         
-        // Texture Mur (Générée)
+        // --- NOUVELLE TEXTURE MUR "PIERRE DE TAILLE PARIS" ---
         const wallCanvas = document.createElement('canvas'); wallCanvas.width = 64; wallCanvas.height = 64;
         const wCtx = wallCanvas.getContext('2d');
-        wCtx.fillStyle = '#1a1a1a'; wCtx.fillRect(0,0,64,64); 
-        wCtx.fillStyle = '#111'; wCtx.fillRect(2,2,60,28); wCtx.fillRect(2,34,60,28); 
-        wCtx.fillStyle = '#220000'; wCtx.fillRect(10,10,20,10); 
+        // Base : couleur pierre calcaire beige/grisâtre sale
+        wCtx.fillStyle = '#b3a896'; wCtx.fillRect(0,0,64,64); 
+        // Joints de pierre horizontaux (lignes foncées)
+        wCtx.fillStyle = '#7a7060'; 
+        wCtx.fillRect(0, 16, 64, 2); wCtx.fillRect(0, 32, 64, 2); wCtx.fillRect(0, 48, 64, 2);
+        // Joints verticaux décalés
+        wCtx.fillRect(16, 0, 2, 16); wCtx.fillRect(48, 0, 2, 16);
+        wCtx.fillRect(32, 16, 2, 16); 
+        wCtx.fillRect(16, 32, 2, 16); wCtx.fillRect(48, 32, 2, 16);
+        // Salissures urbaines (bruit en bas du mur)
+        wCtx.fillStyle = 'rgba(30, 20, 10, 0.3)'; wCtx.fillRect(0, 50, 64, 14);
+
         const wallTexture = new Image(); wallTexture.src = wallCanvas.toDataURL();
 
-        // Variables Moteur
         const TILE_SIZE = 64; const FOV = Math.PI / 3; const RAYS = canvas.width / 2;
         let playerObj = { x: 0, y: 0, dir: 0, speed: 6 };
         let currentLevel = 0;
         let gameActive = false;
         
-        // Niveaux (1=Mur, 0=Vide, 9=Escalier, 8=Samuel)
+        // Niveaux inchangés
         const levels = [
             {
-                name: "Ruelle 92i (RDC)",
+                name: "Ruelle du 18ème",
                 map: [
                     [1,1,1,1,1,1,1,1,1,1],
                     [1,0,0,1,0,0,0,0,0,1],
@@ -175,7 +178,7 @@
                 start: {x: 1.5, y: 1.5, dir: 0}
             },
             {
-                name: "Sous-sol Métro (Niv -1)",
+                name: "Passage Souterrain",
                 map: [
                     [1,1,1,1,1,1,1,1,1,1,1],
                     [1,0,0,0,0,0,1,0,0,0,1],
@@ -188,12 +191,12 @@
                 start: {x: 1.5, y: 1.5, dir: 0}
             },
             {
-                name: "Toits de Paris (Final)",
+                name: "Toits de Paname",
                 map: [
                     [1,1,1,1,1,1,1,1],
                     [1,0,0,0,0,0,0,1],
                     [1,0,1,1,0,1,0,1],
-                    [1,0,1,8,0,1,0,1], // 8 = SAMUEL
+                    [1,0,1,8,0,1,0,1],
                     [1,0,1,1,0,1,0,1],
                     [1,0,0,0,0,0,0,1],
                     [1,1,1,1,1,1,1,1]
@@ -202,83 +205,55 @@
             }
         ];
 
-        let map = [];
-        let items = [];
+        let map = []; let items = [];
 
         function loadLevel(idx) {
             if (idx >= levels.length) return;
             currentLevel = idx;
             const lvl = levels[idx];
             document.getElementById('levelName').innerText = lvl.name;
-            
             map = lvl.map;
             playerObj.x = lvl.start.x * TILE_SIZE;
             playerObj.y = lvl.start.y * TILE_SIZE;
             playerObj.dir = lvl.start.dir;
-
             items = [];
-            for(let y=0; y<map.length; y++) {
-                for(let x=0; x<map[y].length; x++) {
-                    if(map[y][x] === 8) {
-                        items.push({x: x*TILE_SIZE + TILE_SIZE/2, y: y*TILE_SIZE + TILE_SIZE/2, type: 'samuel'});
-                        map[y][x] = 0;
-                    }
-                }
+            for(let y=0; y<map.length; y++) for(let x=0; x<map[y].length; x++) {
+                if(map[y][x] === 8) { items.push({x: x*TILE_SIZE+TILE_SIZE/2, y: y*TILE_SIZE+TILE_SIZE/2, type: 'samuel'}); map[y][x] = 0; }
             }
         }
 
-        // --- 3. DÉMARRAGE ---
         function start() {
-            // Lancer le jeu
             document.getElementById('start-screen').style.display = 'none';
             loadLevel(0);
             gameActive = true;
             loop();
-
-            // Lancer la musique YouTube
-            if (player && typeof player.playVideo === 'function') {
-                player.setVolume(50); // Volume à 50%
-                player.playVideo();
-            } else {
-                console.log("Le lecteur YouTube n'est pas encore prêt.");
-            }
+            if (player && typeof player.playVideo === 'function') { player.setVolume(60); player.playVideo(); }
         }
-
         document.getElementById('start-screen').addEventListener('click', start);
 
-        // --- 4. CONTRÔLES ---
         const keys = {};
         window.addEventListener('keydown', e => keys[e.code] = true);
         window.addEventListener('keyup', e => keys[e.code] = false);
 
         function update() {
             if(!gameActive) return;
-            
-            // Rotation
             if (keys['ArrowLeft']) playerObj.dir -= 0.05;
             if (keys['ArrowRight']) playerObj.dir += 0.05;
-            
-            // Mouvement
             let step = 0;
             if (keys['ArrowUp']) step = playerObj.speed;
             if (keys['ArrowDown']) step = -playerObj.speed;
-
             if (step !== 0) {
                 let nextX = playerObj.x + Math.cos(playerObj.dir) * step;
                 let nextY = playerObj.y + Math.sin(playerObj.dir) * step;
                 let gridX = Math.floor(nextX / TILE_SIZE);
                 let gridY = Math.floor(nextY / TILE_SIZE);
-
                 if (map[gridY] && map[gridY][gridX] !== 1) {
                     playerObj.x = nextX; playerObj.y = nextY;
                     if (map[gridY][gridX] === 9) loadLevel(currentLevel + 1);
                 }
             }
-
-            // Détection Samuel
             items.forEach(item => {
-                let dist = Math.hypot(playerObj.x - item.x, playerObj.y - item.y);
-                if (dist < 40 && item.type === 'samuel') {
+                if (Math.hypot(playerObj.x - item.x, playerObj.y - item.y) < 40 && item.type === 'samuel') {
                     gameActive = false;
                     document.getElementById('win-screen').style.display = 'block';
                     document.getElementById('hud').style.display = 'none';
@@ -287,45 +262,50 @@
         }
 
         function draw() {
-            // Ciel Paname
-            let grad = ctx.createLinearGradient(0,0,0,canvas.height/2);
-            grad.addColorStop(0, "#2c1e1e");
-            grad.addColorStop(1, "#524040");
-            ctx.fillStyle = grad; ctx.fillRect(0,0,canvas.width,canvas.height/2);
-            ctx.fillStyle = "#111"; ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
+            // --- NOUVEAU CIEL ET SOL (Ambiance Paname Nuit) ---
+            // Ciel : Dégradé de la pollution lumineuse orange vers le bleu nuit profond
+            let skyGrad = ctx.createLinearGradient(0,0,0,canvas.height/2);
+            skyGrad.addColorStop(0, "#0a0a2a"); // Zénith sombre
+            skyGrad.addColorStop(0.6, "#3a2010"); // Couche intermédiaire
+            skyGrad.addColorStop(1, "#5a3010"); // Horizon orange pollué
+            ctx.fillStyle = skyGrad; ctx.fillRect(0,0,canvas.width,canvas.height/2);
+            
+            // Sol : Pavés mouillés sombres qui reflètent un peu la lumière
+            let floorGrad = ctx.createLinearGradient(0,canvas.height/2,0,canvas.height);
+            floorGrad.addColorStop(0, "#2a1a10"); // Loin (reflète l'horizon)
+            floorGrad.addColorStop(1, "#050505"); // Près (très sombre)
+            ctx.fillStyle = floorGrad; ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
 
-            // Raycasting
             for (let i = 0; i < RAYS; i++) {
                 let rayAngle = (playerObj.dir - FOV / 2.0) + (i / RAYS) * FOV;
                 let dist = 0; let hit = false;
                 let eyeX = Math.cos(rayAngle), eyeY = Math.sin(rayAngle);
-
                 while (!hit && dist < 800) {
                     dist += 1;
                     let testX = Math.floor((playerObj.x + eyeX * dist) / TILE_SIZE);
                     let testY = Math.floor((playerObj.y + eyeY * dist) / TILE_SIZE);
-                    if (testX < 0 || testX >= map[0].length || testY < 0 || testY >= map.length || map[testY][testX] === 1) {
-                        hit = true;
-                    }
+                    if (testX < 0 || testX >= map[0].length || testY < 0 || testY >= map.length || map[testY][testX] === 1) hit = true;
                 }
-                
                 let correctDist = dist * Math.cos(rayAngle - playerObj.dir);
                 let h = (TILE_SIZE * canvas.height) / (correctDist || 1);
                 let x = i * 2;
 
                 ctx.drawImage(wallTexture, 0, 0, 64, 64, x, (canvas.height-h)/2, 2, h);
-                ctx.fillStyle = `rgba(0,0,0,${Math.min(0.9, dist/600)})`;
+                
+                // --- NOUVELLE GESTION DE LA LUMIÈRE (Brouillard Orange) ---
+                // Au lieu d'assombrir vers le noir, on teinte vers un orange/marron très sombre
+                // pour simuler la lumière des réverbères au sodium lointains.
+                let fogAmount = Math.min(0.95, dist/550);
+                ctx.fillStyle = `rgba(40, 25, 10, ${fogAmount})`;
                 ctx.fillRect(x, (canvas.height-h)/2, 2, h);
             }
 
-            // Sprites
             items.forEach(item => {
                 let dx = item.x - playerObj.x; let dy = item.y - playerObj.y;
                 let dist = Math.sqrt(dx*dx + dy*dy);
                 let angle = Math.atan2(dy, dx) - playerObj.dir;
                 while(angle < -Math.PI) angle += 2*Math.PI;
                 while(angle > Math.PI) angle -= 2*Math.PI;
-
                 if(Math.abs(angle) < FOV/1.5 && dist > 15) {
                     let h = (TILE_SIZE * canvas.height) / dist;
                     let screenX = (0.5 * (angle/(FOV/2)) + 0.5) * canvas.width - h/2;
@@ -334,11 +314,7 @@
             });
         }
 
-        function loop() {
-            update();
-            draw();
-            requestAnimationFrame(loop);
-        }
+        function loop() { update(); draw(); requestAnimationFrame(loop); }
     </script>
 </body>
 </html>
