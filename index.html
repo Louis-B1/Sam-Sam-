@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paris Haussmann - V4</title>
+    <title>Paris Investigation - Haussmann Edition</title>
     <style>
         body {
             background-color: #000;
@@ -15,43 +15,45 @@
         #game-container {
             position: relative;
             width: 100%; height: 100%;
-            background: black;
+            background: #000;
         }
-        canvas { display: block; width: 100%; height: 100%; }
+        canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated;}
 
-        /* PLUIE */
+        /* PLUIE FINE ET DISCRÈTE */
         .rain {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAH0lEQVQoU2nkCAMAAwkBmqMI4H8h/w+rhw0g32OYJQxwQDgfv99cAAAAAElFTkSuQmCC') repeat;
-            opacity: 0.1; pointer-events: none;
-            animation: rainAnim 0.4s linear infinite; z-index: 5;
+            opacity: 0.08; pointer-events: none;
+            animation: rainAnim 0.6s linear infinite; z-index: 5;
         }
         @keyframes rainAnim { from { background-position: 0 0; } to { background-position: 5px 20px; } }
 
-        /* HUD */
+        /* HUD STYLISÉ */
         #hud {
             position: absolute; top: 20px; left: 20px;
-            color: #ffd700; text-shadow: 2px 2px 0 #000;
-            z-index: 10; font-size: 20px; pointer-events: none;
-            background: rgba(0,0,0,0.6); padding: 10px 20px; 
-            border-left: 4px solid #ffd700; border-radius: 4px;
+            color: #d4af37; text-shadow: 2px 2px 0 #000;
+            z-index: 10; font-size: 22px; pointer-events: none;
+            background: linear-gradient(90deg, rgba(0,0,0,0.8), transparent); 
+            padding: 15px 25px; border-left: 5px solid #d4af37;
+            font-family: 'Segoe UI', sans-serif; letter-spacing: 1px;
         }
+        #zoneName { font-weight: bold; text-transform: uppercase; font-size: 26px; }
 
         /* ECRAN TITRE */
         #start-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(0,0,0,0.9), #1a1005);
+            background: linear-gradient(rgba(10,10,15,0.95), #1a1005);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             z-index: 20; color: white; cursor: pointer;
         }
-        h1 { font-size: 80px; color: #ffd700; text-transform: uppercase; margin: 0; letter-spacing: 5px; text-shadow: 0 0 30px orange;}
-        p { font-size: 20px; color: #ccc; margin-top: 10px; }
+        h1 { font-size: 7vw; color: #d4af37; margin: 0; letter-spacing: 10px; text-shadow: 0 0 40px orange; font-family: 'Times New Roman', serif;}
+        p { font-size: 24px; color: #ccc; margin-top: 10px; font-style: italic; }
         .btn { 
-            border: 2px solid #ffd700; padding: 20px 50px; 
-            font-size: 30px; color: #ffd700; background: rgba(0,0,0,0.8);
-            margin-top: 40px; transition: 0.2s; text-transform: uppercase;
+            border: 1px solid #d4af37; padding: 20px 60px; 
+            font-size: 24px; color: #d4af37; background: rgba(0,0,0,0.6);
+            margin-top: 50px; transition: 0.3s; text-transform: uppercase; letter-spacing: 2px;
         }
-        .btn:hover { background: #ffd700; color: black; box-shadow: 0 0 20px #ffd700; }
+        .btn:hover { background: #d4af37; color: black; box-shadow: 0 0 30px #d4af37; }
 
         /* VICTOIRE */
         #win-screen {
@@ -59,8 +61,8 @@
             background: rgba(0,0,0,0.95); z-index: 30;
             flex-direction: column; justify-content: center; align-items: center;
         }
-        #samuel-reveal { height: 60vh; animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+        #samuel-reveal { height: 60vh; animation: pop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes pop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
@@ -72,24 +74,24 @@
         <canvas id="gameCanvas"></canvas>
         
         <div id="hud">
-            <div>QUARTIER : <span id="zoneName">Le Marais</span></div>
-            <div style="font-size:14px; color:#aaa; margin-top:5px;">Objectif : Trouve l'escalier</div>
+            <div><span id="zoneName">Le Marais</span></div>
+            <div style="font-size:16px; color:#bbb; margin-top:5px; font-style:italic;">Mission : Trouve l'escalier</div>
         </div>
 
         <div id="start-screen">
-            <h1>PANAME</h1>
+            <h1>PARIS</h1>
             <p>Retrouve Samuel</p>
             <div class="btn">CLIQUER POUR JOUER</div>
         </div>
 
         <div id="win-screen">
-            <h1 style="color:#0f0;">SAMUEL RETROUVÉ !</h1>
+            <h1 style="color:#50ff50; font-family:sans-serif; text-shadow:0 0 20px green;">SAMUEL RETROUVÉ !</h1>
             <img id="samuel-reveal" src="samuel.png">
         </div>
     </div>
 
     <script>
-        // --- AUDIO ---
+        // --- 1. AUDIO FIX (YouTube) ---
         var player;
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
@@ -103,7 +105,7 @@
             });
         }
 
-        // --- MOTEUR ---
+        // --- 2. CONFIGURATION ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         ctx.imageSmoothingEnabled = false;
@@ -114,63 +116,67 @@
 
         const samuelSprite = new Image(); samuelSprite.src = "samuel.png";
 
-        // --- GÉNÉRATEUR DE TEXTURE "IMMEUBLE COMPLET" ---
-        // On crée une texture plus haute (256px) pour dessiner des étages
+        // --- 3. GÉNÉRATEUR TEXTURE "HAUSSMANN ULTRA" ---
+        // Texture haute résolution (256x256) pour plus de détails
         const texSize = 256; 
         const wallCanvas = document.createElement('canvas'); wallCanvas.width = 64; wallCanvas.height = texSize;
         const wCtx = wallCanvas.getContext('2d');
 
-        // 1. Fond Pierre de Taille (Beige)
-        wCtx.fillStyle = '#cbbfa9'; wCtx.fillRect(0,0,64,texSize);
-        // Bruit (Salissures)
-        for(let i=0; i<800; i++) {
-            wCtx.fillStyle = Math.random()<0.5 ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)';
-            wCtx.fillRect(Math.random()*64, Math.random()*texSize, 2, 2);
+        // A. Façade Pierre (Beige)
+        wCtx.fillStyle = '#dcd0c0'; wCtx.fillRect(0, 40, 64, texSize); // On laisse 40px en haut pour le toit
+
+        // B. Le Toit en Zinc (Gris-Bleu) - Partie demandée
+        let gradZinc = wCtx.createLinearGradient(0,0,0,40);
+        gradZinc.addColorStop(0, '#2c3e50'); // Sombre en haut
+        gradZinc.addColorStop(1, '#5d6d7e'); // Clair en bas
+        wCtx.fillStyle = gradZinc; wCtx.fillRect(0, 0, 64, 40);
+        
+        // Lucarne (Fenêtre de toit)
+        wCtx.fillStyle = '#1a1a1a'; wCtx.fillRect(20, 10, 24, 20); // Trou fenêtre
+        wCtx.strokeStyle = '#5d6d7e'; wCtx.strokeRect(20, 10, 24, 20); // Cadre
+
+        // Corniche sous le toit
+        wCtx.fillStyle = '#8a7f70'; wCtx.fillRect(0, 40, 64, 8);
+
+        // C. Détails Façade (Salissures & Joints)
+        for(let i=0; i<600; i++) {
+            wCtx.fillStyle = Math.random()<0.5 ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.1)';
+            wCtx.fillRect(Math.random()*64, 48 + Math.random()*(texSize-48), 2, 2);
         }
 
-        // 2. Le "Toit" en Zinc (La partie haute entourée)
-        // On dessine une bande gris foncé/bleuté tout en haut
-        let gradRoof = wCtx.createLinearGradient(0,0,0,30);
-        gradRoof.addColorStop(0, '#2c3e50'); // Sombre
-        gradRoof.addColorStop(1, '#4a5c6e'); // Clair
-        wCtx.fillStyle = gradRoof;
-        wCtx.fillRect(0, 0, 64, 30);
-        wCtx.fillStyle = '#1a2530'; wCtx.fillRect(0, 30, 64, 5); // Corniche du toit
-
-        // 3. Les Étages (Fenêtres et Balcons)
-        // On dessine 2 rangées de fenêtres
-        function drawWindowRow(y) {
-            // Fenêtre
-            wCtx.fillStyle = '#050510'; // Vitre sombre
-            wCtx.fillRect(10, y, 44, 40);
-            wCtx.strokeStyle = '#eee'; wCtx.lineWidth=2; wCtx.strokeRect(10, y, 44, 40); // Cadre
-            
-            // Balcon (Lignes noires)
+        // D. Fenêtres et Balcons (2 étages visibles)
+        function drawFloor(y) {
+            // Grande porte-fenêtre sombre
+            wCtx.fillStyle = '#151520'; wCtx.fillRect(12, y, 40, 50);
+            // Reflet vitre
+            wCtx.fillStyle = 'rgba(255,255,255,0.1)'; wCtx.beginPath(); wCtx.moveTo(12, y+30); wCtx.lineTo(30, y); wCtx.lineTo(52, y); wCtx.fill();
+            // Garde-corps (Balcon) Fer Forgé
             wCtx.fillStyle = '#111';
-            wCtx.fillRect(6, y+25, 52, 2); // Barre haut
-            wCtx.fillRect(6, y+35, 52, 2); // Barre bas
-            for(let x=8; x<56; x+=6) wCtx.fillRect(x, y+25, 2, 12); // Barreaux
+            wCtx.fillRect(8, y+35, 48, 2); // Main courante
+            wCtx.fillRect(8, y+45, 48, 2); // Barre basse
+            for(let x=10; x<54; x+=5) wCtx.fillRect(x, y+35, 2, 12); // Barreaux
         }
 
-        drawWindowRow(50);  // Etage haut
-        drawWindowRow(120); // Etage milieu
-
-        // 4. Rez-de-chaussée (Commerce/Porte)
-        wCtx.fillStyle = '#3e2723'; // Bois foncé
-        wCtx.fillRect(4, 200, 56, 56);
-        wCtx.fillStyle = '#1a1a1a'; wCtx.fillRect(0, 195, 64, 5); // Corniche magasin
+        drawFloor(60);  // Etage 1
+        drawFloor(140); // Etage 2
+        
+        // Soubassement (Bas du mur)
+        wCtx.fillStyle = '#5d554a'; wCtx.fillRect(0, 230, 64, 26);
 
         const wallTexture = new Image(); wallTexture.src = wallCanvas.toDataURL();
 
-        // --- VARIABLES JEU ---
-        const TILE_SIZE = 64; const FOV = Math.PI / 2.5; 
+        // --- 4. MOTEUR DE JEU ---
+        const TILE_SIZE = 64; 
+        const FOV = Math.PI / 2.5; 
         let playerObj = { x: 0, y: 0, dir: 0 };
-        // VITESSE RALENTIE ICI (2.0 au lieu de 3.0)
-        const MOVE_SPEED = 2.0; 
+        
+        // VITESSE TRÈS RALENTIE (Promenade)
+        const MOVE_SPEED = 1.8; 
         const ROT_SPEED = 0.03;
         
         let currentLevel = 0; let gameActive = false; let timer = 0;
 
+        // CARTES CORRIGÉES (Plus d'espaces, moins de bugs)
         const levels = [
             {
                 name: "Le Marais",
@@ -188,13 +194,13 @@
                 name: "Pigalle",
                 map: [
                     [1,1,1,1,1,1,1,1],
-                    [1,0,0,0,0,0,0,1],
+                    [1,0,0,0,0,0,0,1], // Couloir large
                     [1,0,1,1,0,1,0,1],
                     [1,0,1,8,0,1,0,1], // 8 = Samuel
                     [1,0,1,1,0,1,0,1],
                     [1,0,0,0,0,0,0,1],
                     [1,1,1,1,1,1,1,1]
-                ], start: {x: 3.5, y: 5.5, dir: -Math.PI/2}
+                ], start: {x: 1.5, y: 1.5, dir: 0} // Départ déplacé pour éviter le mur en face
             }
         ];
 
@@ -214,22 +220,26 @@
             }
         }
 
+        // --- ENTRÉES ---
         const keys = {};
         window.addEventListener('keydown', e => keys[e.code] = true);
         window.addEventListener('keyup', e => keys[e.code] = false);
 
+        // --- UPDATE ---
         function update() {
             if(!gameActive) return;
 
+            // Rotation fluide
             if (keys['ArrowLeft']) playerObj.dir -= ROT_SPEED;
             if (keys['ArrowRight']) playerObj.dir += ROT_SPEED;
 
+            // Déplacement lent
             let step = 0;
             if (keys['ArrowUp']) step = MOVE_SPEED;
             if (keys['ArrowDown']) step = -MOVE_SPEED;
 
-            // Bobbing (Mouvement tête plus lent)
-            if(step !== 0) timer += 0.1; else timer = 0;
+            // Head Bobbing (Effet de marche)
+            if(step !== 0) timer += 0.12; else timer = 0;
 
             if (step !== 0) {
                 let nextX = playerObj.x + Math.cos(playerObj.dir) * step;
@@ -237,12 +247,18 @@
                 let gridX = Math.floor(nextX / TILE_SIZE);
                 let gridY = Math.floor(nextY / TILE_SIZE);
                 
+                // Collision
                 if (map[gridY] && map[gridY][gridX] !== 1) {
                     playerObj.x = nextX; playerObj.y = nextY;
-                    if (map[gridY][gridX] === 9) loadLevel(currentLevel + 1);
+                    // Sortie
+                    if (map[gridY][gridX] === 9) {
+                        loadLevel(currentLevel + 1);
+                        return; // IMPORTANT : Arrêter l'update ici pour éviter le bug
+                    }
                 }
             }
 
+            // Détection Samuel
             items.forEach(item => {
                 if (Math.hypot(playerObj.x - item.x, playerObj.y - item.y) < 40 && item.type === 'samuel') {
                     gameActive = false;
@@ -252,22 +268,21 @@
             });
         }
 
+        // --- DRAW ---
         function draw() {
-            ctx.fillStyle = "#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
-
-            // Ciel Paname
+            // Ciel Nuit Parisienne (Bleu Nuit vers Orange Ville)
             let skyGrad = ctx.createLinearGradient(0,0,0,canvas.height/2);
-            skyGrad.addColorStop(0, "#080815"); 
-            skyGrad.addColorStop(1, "#3a2510"); // Lueur urbaine
+            skyGrad.addColorStop(0, "#080812"); 
+            skyGrad.addColorStop(1, "#352515"); 
             ctx.fillStyle = skyGrad; ctx.fillRect(0,0,canvas.width,canvas.height/2);
 
-            // Sol
+            // Sol (Trottoir humide)
             let floorGrad = ctx.createLinearGradient(0,canvas.height/2,0,canvas.height);
-            floorGrad.addColorStop(0, "#151005"); floorGrad.addColorStop(1, "#050505");
+            floorGrad.addColorStop(0, "#181008"); floorGrad.addColorStop(1, "#050505");
             ctx.fillStyle = floorGrad; ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
 
             const numRays = Math.floor(canvas.width / 2); 
-            const bobOffset = Math.sin(timer) * 8; 
+            const bobOffset = Math.sin(timer) * 6; // Oscillation verticale
 
             for (let i = 0; i < numRays; i++) {
                 let rayAngle = (playerObj.dir - FOV / 2.0) + (i / numRays) * FOV;
@@ -286,7 +301,7 @@
                 let x = i * 2;
                 let yPos = (canvas.height - h) / 2 + bobOffset;
 
-                // Texture Mapping (Étirement sur la hauteur)
+                // Texture Mapping
                 let wallX = 0;
                 let hitX = playerObj.x + eyeX * dist; let hitY = playerObj.y + eyeY * dist;
                 if (Math.abs(hitX % TILE_SIZE) < 1.5 || Math.abs(hitX % TILE_SIZE) > TILE_SIZE - 1.5) wallX = hitY % TILE_SIZE;
@@ -294,15 +309,16 @@
                 
                 let texX = Math.floor((wallX / TILE_SIZE) * 64);
 
-                // On dessine toute la hauteur de la texture (0 à texSize)
+                // Dessin Texture Mur
                 ctx.drawImage(wallTexture, texX, 0, 1, texSize, x, yPos, 2, h);
 
-                // Ombre
-                let fog = Math.min(0.9, dist / 600);
-                ctx.fillStyle = `rgba(15, 10, 5, ${fog})`;
+                // Ombre Distance (Brouillard ville)
+                let fog = Math.min(0.9, dist / 700);
+                ctx.fillStyle = `rgba(15, 12, 10, ${fog})`;
                 ctx.fillRect(x, yPos, 2, h);
             }
 
+            // Sprites
             items.forEach(item => {
                 let dx = item.x - playerObj.x; let dy = item.y - playerObj.y;
                 let dist = Math.sqrt(dx*dx + dy*dy);
@@ -325,6 +341,7 @@
             document.getElementById('start-screen').style.display = 'none';
             loadLevel(0);
             gameActive = true;
+            // Force Audio ON
             if(player && player.unMute) { player.unMute(); player.setVolume(100); player.playVideo(); }
             loop();
         });
