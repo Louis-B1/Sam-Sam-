@@ -24,7 +24,6 @@
             background: #000; z-index: 300; display: flex; flex-direction: column; justify-content: center; align-items: center;
             animation: fadeOut 1.5s ease-in-out 3s forwards; pointer-events: none;
         }
-        /* TITRE AGRANDI */
         #title-main { font-size: 80px; font-weight: bold; text-shadow: 6px 6px 0 #d43737; }
         @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
 
@@ -59,7 +58,7 @@
         .ui-score { font-size: 20px; font-weight: bold;}
         #msg-popup { margin-top: 10px; color: #e74c3c; font-weight: bold; height: 20px; font-size: 14px; }
 
-        /* POPUP STANDARD (Noir) */
+        /* POPUP STANDARD (Objets normaux) */
         #main-popup {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: rgba(0,0,0,0.95); color: #fff; padding: 25px; border: 4px solid #f1c40f;
@@ -67,6 +66,7 @@
             border-radius: 10px; min-width: 300px;
         }
         #main-popup h3 { margin-top: 0; color: #f1c40f; }
+        #main-popup p { font-size: 16px; line-height: 1.4; color: #ddd; }
 
         /* POPUP SPÉCIAL LETTRE (Blanc Romantique) */
         #letter-popup {
@@ -124,6 +124,7 @@
         </div>
         
         <div id="main-popup"></div>
+        
         <div id="letter-popup">
             <h3>💌 Lettre d'Alexis 💌</h3>
             <p>"Mon Sam chéri, rejoins-moi vite. Le Kebab refroidit... Je t'attends. <3"</p>
@@ -213,6 +214,7 @@
 
         const ctx = document.getElementById('gameCanvas').getContext('2d');
 
+        // --- DESSIN ---
         function drawSprite(ctx, type, x, y) {
             const px = x * TILE; const py = y * TILE;
             
@@ -231,7 +233,6 @@
             else if (type === 'foodbag') {
                  ctx.fillStyle = "#8e44ad"; ctx.fillRect(px+10, py+15, 20, 20); ctx.fillStyle = "#2ecc71"; ctx.fillRect(px+12, py+10, 5, 5); ctx.fillStyle = "#e74c3c"; ctx.fillRect(px+20, py+10, 5, 5); ctx.strokeStyle = "#6c3483"; ctx.strokeRect(px+10, py+15, 20, 20);
             }
-            // LETTRE BLANCHE ROMANTIQUE
             else if (type === 'letter') {
                 ctx.fillStyle = "#fff"; ctx.fillRect(px+8, py+12, 24, 16); 
                 ctx.strokeStyle = "#e74c3c"; ctx.lineWidth = 1; ctx.strokeRect(px+8, py+12, 24, 16);
@@ -244,12 +245,11 @@
             else if (type === 'player') {
                 ctx.fillStyle = "#3498db"; ctx.fillRect(px+10, py+12, 20, 16); ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(px+20, py+14, 9, 0, Math.PI*2); ctx.fill();
             }
-            // FLEURS AMÉLIORÉES (Tige + Pétales)
             else if (type === 'flower') {
-                ctx.fillStyle = "#2ecc71"; ctx.fillRect(px+18, py+20, 4, 10); // Tige
-                ctx.fillStyle = (x+y)%2===0 ? "#e74c3c" : "#fff"; // Pétales rouges ou blancs
+                ctx.fillStyle = "#2ecc71"; ctx.fillRect(px+19, py+22, 2, 8); // Tige
+                ctx.fillStyle = (x+y)%2===0 ? "#e74c3c" : "#fff"; 
                 ctx.beginPath(); ctx.arc(px+20, py+20, 6, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(px+20, py+20, 2, 0, Math.PI*2); ctx.fill(); // Cœur jaune
+                ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(px+20, py+20, 2, 0, Math.PI*2); ctx.fill();
             }
             else if (type === 'bench') {
                  ctx.fillStyle = "#8B4513"; ctx.fillRect(px+5, py+10, 30, 10); ctx.fillStyle = "#A0522D"; ctx.fillRect(px+5, py+12, 30, 2); ctx.fillRect(px+5, py+16, 30, 2);
@@ -343,11 +343,19 @@
                 document.getElementById('score').innerText = score;
                 const item = items[idx];
                 
+                // GESTION DES POPUPS AVEC DESCRIPTIONS SPÉCIFIQUES
                 if(item.type === 'letter') {
                     showLoveLetter();
                 } else {
-                    let popupHtml = `<h3>${item.name}</h3><p>Indice trouvé !</p>`;
-                    showPopup(popupHtml, 3500); // 3.5s pour les autres
+                    let desc = "Indice trouvé !";
+                    if(item.type === 'card') desc = "La carte de Sam ! Il l'a encore paumée...";
+                    if(item.type === 'kebab') desc = "Le dîner de Sam. Il y a un mot d'Alexis dessus.";
+                    if(item.type === 'cap') desc = "Il ne sort jamais sans.";
+                    if(item.type === 'key') desc = "Pourquoi il a les clés d'Angèle ? Bizarre...";
+                    if(item.type === 'foodbag') desc = "Il a fait des courses avant de s'endormir.";
+
+                    let popupHtml = `<h3>${item.name}</h3><p>${desc}</p>`;
+                    showPopup(popupHtml, 3500); 
                 }
                 
                 items.splice(idx, 1);
@@ -405,7 +413,6 @@
                     else { 
                         ctx.fillStyle = conf.colorGround; ctx.fillRect(px,py,TILE,TILE); 
                         if(currentLevel === 1) {
-                            // FLEURS AMÉLIORÉES
                             if((x+y)%5 === 0 && x>2 && x<17 && y>2 && y<17 && t===0) drawSprite(ctx, 'flower', x, y);
                             if((x === 3 || x === 16) && y%4 === 0 && y>2 && y<17) drawSprite(ctx, 'bench', x, y);
                         }
