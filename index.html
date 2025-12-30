@@ -18,14 +18,14 @@
             background-size: 100% 4px;
         }
 
-        /* --- TITLE (Agrandissement) --- */
+        /* --- TITLE --- */
         #title-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 300; display: flex; flex-direction: column; justify-content: center; align-items: center;
             animation: fadeOut 1.5s ease-in-out 3s forwards; pointer-events: none;
         }
-        /* Taille de la police augmentée */
-        #title-main { font-size: 80px; font-weight: bold; text-shadow: 5px 5px 0 #d43737; }
+        /* TITRE AGRANDI */
+        #title-main { font-size: 80px; font-weight: bold; text-shadow: 6px 6px 0 #d43737; }
         @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
 
         /* --- PHONE --- */
@@ -59,6 +59,7 @@
         .ui-score { font-size: 20px; font-weight: bold;}
         #msg-popup { margin-top: 10px; color: #e74c3c; font-weight: bold; height: 20px; font-size: 14px; }
 
+        /* POPUP STANDARD (Noir) */
         #main-popup {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: rgba(0,0,0,0.95); color: #fff; padding: 25px; border: 4px solid #f1c40f;
@@ -66,7 +67,16 @@
             border-radius: 10px; min-width: 300px;
         }
         #main-popup h3 { margin-top: 0; color: #f1c40f; }
-        #main-popup p { font-size: 16px; line-height: 1.4; }
+
+        /* POPUP SPÉCIAL LETTRE (Blanc Romantique) */
+        #letter-popup {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #fff; color: #000; padding: 30px; border: 6px double #e74c3c;
+            z-index: 101; display: none; text-align: center; box-shadow: 0 0 50px #e74c3c;
+            border-radius: 5px; font-family: 'Courier New', cursive; min-width: 350px;
+        }
+        #letter-popup h3 { margin-top: 0; color: #e74c3c; font-size: 24px; text-decoration: underline; }
+        #letter-popup p { font-size: 18px; font-weight: bold; font-style: italic; }
 
         /* --- FIN --- */
         #end-screen {
@@ -74,25 +84,20 @@
             background: rgba(5,5,5,0.98); z-index: 400; display: none;
             flex-direction: column; justify-content: center; align-items: center; text-align: center;
         }
-
+        #samuel-img { 
+            width: 250px; height: 250px; object-fit: cover; border: 5px solid #27ae60; margin: 20px; background: #222; 
+            animation: pulseSam 2s infinite ease-in-out;
+        }
         @keyframes pulseSam {
             0% { transform: scale(1); box-shadow: 0 0 20px #27ae60; }
             50% { transform: scale(1.05); box-shadow: 0 0 40px #2ecc71; }
             100% { transform: scale(1); box-shadow: 0 0 20px #27ae60; }
         }
-        #samuel-img { 
-            width: 250px; height: 250px; object-fit: cover; border: 5px solid #27ae60; margin: 20px; background: #222; 
-            animation: pulseSam 2s infinite ease-in-out;
-        }
-
-        @keyframes slideUpBox {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
         .end-text-box {
             background:#222; padding:20px; border-radius:10px; max-width:600px; font-size:18px; line-height:1.5;
             animation: slideUpBox 0.8s ease-out 0.3s backwards;
         }
+        @keyframes slideUpBox { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -119,6 +124,11 @@
         </div>
         
         <div id="main-popup"></div>
+        <div id="letter-popup">
+            <h3>💌 Lettre d'Alexis 💌</h3>
+            <p>"Mon Sam chéri, rejoins-moi vite. Le Kebab refroidit... Je t'attends. <3"</p>
+        </div>
+
         <canvas id="gameCanvas" width="800" height="800"></canvas>
     </div>
 
@@ -153,7 +163,6 @@
         }
 
         // --- DONNEES ---
-        // Nouveaux messages du chat
         const chatMessages = [
             { s: 'Mathis', t: "Il est passé où Samuel ?" },
             { s: 'Samuel', t: "Oh les gars ! C’est Chaud là !" },
@@ -204,7 +213,6 @@
 
         const ctx = document.getElementById('gameCanvas').getContext('2d');
 
-        // --- DESSIN DES SPRITES ---
         function drawSprite(ctx, type, x, y) {
             const px = x * TILE; const py = y * TILE;
             
@@ -223,20 +231,11 @@
             else if (type === 'foodbag') {
                  ctx.fillStyle = "#8e44ad"; ctx.fillRect(px+10, py+15, 20, 20); ctx.fillStyle = "#2ecc71"; ctx.fillRect(px+12, py+10, 5, 5); ctx.fillStyle = "#e74c3c"; ctx.fillRect(px+20, py+10, 5, 5); ctx.strokeStyle = "#6c3483"; ctx.strokeRect(px+10, py+15, 20, 20);
             }
-            // REFAITE : LETTRE ROMANTIQUE BLANCHE AVEC SCEAU ROUGE
+            // LETTRE BLANCHE ROMANTIQUE
             else if (type === 'letter') {
-                // Enveloppe blanche plus grande
-                ctx.fillStyle = "#fff"; ctx.fillRect(px+5, py+10, 30, 20);
-                ctx.strokeStyle = "#ccc"; ctx.lineWidth = 2; ctx.strokeRect(px+5, py+10, 30, 20);
-                // Sceau coeur rouge plus gros et centré
-                ctx.fillStyle = "#e74c3c"; 
-                ctx.beginPath(); 
-                ctx.moveTo(px+20, py+22); 
-                ctx.bezierCurveTo(px+20, py+17, px+15, py+17, px+15, py+22);
-                ctx.bezierCurveTo(px+15, py+27, px+20, py+27, px+20, py+32);
-                ctx.bezierCurveTo(px+20, py+27, px+25, py+27, px+25, py+22);
-                ctx.bezierCurveTo(px+25, py+17, px+20, py+17, px+20, py+22);
-                ctx.fill();
+                ctx.fillStyle = "#fff"; ctx.fillRect(px+8, py+12, 24, 16); 
+                ctx.strokeStyle = "#e74c3c"; ctx.lineWidth = 1; ctx.strokeRect(px+8, py+12, 24, 16);
+                ctx.fillStyle = "#e74c3c"; ctx.beginPath(); ctx.moveTo(px+15, py+20); ctx.lineTo(px+20, py+25); ctx.lineTo(px+25, py+20); ctx.fill();
             }
             else if (type === 'pigeon') {
                 let bounce = Math.sin(animTimer) * 3;
@@ -245,14 +244,12 @@
             else if (type === 'player') {
                 ctx.fillStyle = "#3498db"; ctx.fillRect(px+10, py+12, 20, 16); ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(px+20, py+14, 9, 0, Math.PI*2); ctx.fill();
             }
-            // REFAITE : FLEURS AMÉLIORÉES
+            // FLEURS AMÉLIORÉES (Tige + Pétales)
             else if (type === 'flower') {
-                // Tige verte
-                ctx.fillStyle = "#2ecc71"; ctx.fillRect(px+19, py+22, 2, 8);
-                // Fleur plus détaillée (centre jaune, pétales rouges ou blancs)
-                ctx.fillStyle = (x+y)%2===0 ? "#e74c3c" : "#fff"; 
-                ctx.fillRect(px+15, py+15, 10, 10); // Pétales
-                ctx.fillStyle = "#f1c40f"; ctx.fillRect(px+18, py+18, 4, 4); // Centre jaune
+                ctx.fillStyle = "#2ecc71"; ctx.fillRect(px+18, py+20, 4, 10); // Tige
+                ctx.fillStyle = (x+y)%2===0 ? "#e74c3c" : "#fff"; // Pétales rouges ou blancs
+                ctx.beginPath(); ctx.arc(px+20, py+20, 6, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(px+20, py+20, 2, 0, Math.PI*2); ctx.fill(); // Cœur jaune
             }
             else if (type === 'bench') {
                  ctx.fillStyle = "#8B4513"; ctx.fillRect(px+5, py+10, 30, 10); ctx.fillStyle = "#A0522D"; ctx.fillRect(px+5, py+12, 30, 2); ctx.fillRect(px+5, py+16, 30, 2);
@@ -319,12 +316,19 @@
             });
         }
 
+        // GESTION POPUPS
         let popupTimeout;
         function showPopup(html, duration = 3000) {
             const popup = document.getElementById('main-popup');
             popup.innerHTML = html; popup.style.display = 'block';
             clearTimeout(popupTimeout);
             popupTimeout = setTimeout(() => { popup.style.display = 'none'; }, duration);
+        }
+
+        function showLoveLetter() {
+            const popup = document.getElementById('letter-popup');
+            popup.style.display = 'block';
+            setTimeout(() => { popup.style.display = 'none'; }, 5000);
         }
 
         function movePlayer(dx, dy) {
@@ -339,32 +343,20 @@
                 document.getElementById('score').innerText = score;
                 const item = items[idx];
                 
-                let popupHtml = `<h3>${item.name}</h3><p>Indice trouvé !</p>`;
-                let duration = 3000;
-
                 if(item.type === 'letter') {
-                    popupHtml = `<h3>💌 Lettre d'Alexis 💌</h3><p>"Mon Sam chéri, rejoins-moi vite. Le Kebab refroidit... Je t'attends. <3"</p>`;
-                    duration = 5000; 
-                } else if (item.type === 'card') {
-                    popupHtml = `<h3>💳 Carte Bancaire 💳</h3><p>La carte de Sam ! Il l'a encore paumée...</p>`;
-                } else if (item.type === 'kebab') {
-                    popupHtml = `<h3>🌯 Kebab Sauce Blanche 🌯</h3><p>Le dîner de Sam. Il y a un mot d'Alexis dessus.</p>`;
-                } else if (item.type === 'cap') {
-                    popupHtml = `<h3>🧢 Casquette Mbappé 🧢</h3><p>Il ne sort jamais sans.</p>`;
-                } else if (item.type === 'key') {
-                    popupHtml = `<h3>🔑 Clé d'Angèle 🔑</h3><p>Pourquoi il a les clés d'Angèle ? Bizarre...</p>`;
-                } else if (item.type === 'foodbag') {
-                    popupHtml = `<h3>🛍️ Sac de nourriture 🛍️</h3><p>Il a fait des courses avant de s'endormir.</p>`;
+                    showLoveLetter();
+                } else {
+                    let popupHtml = `<h3>${item.name}</h3><p>Indice trouvé !</p>`;
+                    showPopup(popupHtml, 3500); // 3.5s pour les autres
                 }
-
-                showPopup(popupHtml, duration);
+                
                 items.splice(idx, 1);
 
                 if(score === 3) {
                     setTimeout(() => {
                          const exitName = levels[currentLevel].exitName;
-                         showPopup(`<h3>✅ MISSION ACCOMPLIE ✅</h3><p>Tu as tous les indices ! Fonce vers : <b>${exitName}</b> !</p>`, 4000);
-                    }, duration + 500);
+                         showPopup(`<h3>✅ MISSION ACCOMPLIE ✅</h3><p>Fonce vers : <b>${exitName}</b> !</p>`, 4000);
+                    }, 4000);
                 }
             }
 
@@ -413,6 +405,7 @@
                     else { 
                         ctx.fillStyle = conf.colorGround; ctx.fillRect(px,py,TILE,TILE); 
                         if(currentLevel === 1) {
+                            // FLEURS AMÉLIORÉES
                             if((x+y)%5 === 0 && x>2 && x<17 && y>2 && y<17 && t===0) drawSprite(ctx, 'flower', x, y);
                             if((x === 3 || x === 16) && y%4 === 0 && y>2 && y<17) drawSprite(ctx, 'bench', x, y);
                         }
