@@ -3,417 +3,415 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission: Les Chipies</title>
+    <title>Mission: Retrouver Samuel (ESG Edition)</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
-
         body { 
-            background-color: #050505; 
+            background-color: #1a1a1a; 
             margin: 0; 
             overflow: hidden; 
-            font-family: 'VT323', monospace; 
+            font-family: 'Courier New', monospace; 
             color: white; 
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            user-select: none;
         }
 
-        /* --- TÉLÉPHONE (INTRO) --- */
+        /* --- ECRAN TITRE (Intro) --- */
+        #title-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 200; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            animation: fadeOut 2s ease-in-out 3s forwards; pointer-events: none;
+        }
+        #title-text {
+            font-size: 60px; color: #fff; letter-spacing: 10px; text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(255,255,255,0.5); margin-bottom: 10px;
+        }
+        #subtitle { font-size: 20px; color: #d43737; letter-spacing: 5px; }
+
+        @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+
+        /* --- UI DU TÉLÉPHONE --- */
         #phone-container {
-            position: absolute; width: 360px; height: 720px;
-            background: #000; border: 12px solid #1a1a1a; border-radius: 40px;
+            position: absolute; width: 350px; height: 700px;
+            background: #000; border: 8px solid #333; border-radius: 30px;
             display: flex; flex-direction: column; overflow: hidden;
-            z-index: 100; box-shadow: 0 0 80px rgba(0,0,0,0.8);
+            z-index: 100; box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            opacity: 0; animation: fadeIn Phone 1s ease-out 3.5s forwards;
         }
+        @keyframes fadeInPhone { to { opacity: 1; } }
+
         #chat-header {
-            background: #202020; padding: 25px; text-align: center; border-bottom: 2px solid #333;
-            font-size: 24px; color: #fff; letter-spacing: 1px; font-weight: bold;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
+            background: #222; padding: 15px; text-align: center; border-bottom: 1px solid #444;
+            font-weight: bold; color: #fff;
         }
-        /* Indicateur vert en ligne */
-        .online-dot { width:12px; height:12px; background:#2ecc71; border-radius:50%; box-shadow: 0 0 5px #2ecc71; }
-
         #chat-body {
-            flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 15px;
-            background: #111; overflow-y: auto; scroll-behavior: smooth;
+            flex: 1; padding: 15px; display: flex; flex-direction: column; gap: 10px;
+            background: #111; overflow-y: auto;
         }
-        
         .msg {
-            max-width: 80%; padding: 15px; border-radius: 8px; font-size: 20px; line-height: 1.1;
-            box-shadow: 3px 3px 0px #000; animation: pop 0.3s ease-out;
+            max-width: 80%; padding: 10px; border-radius: 15px; font-size: 14px;
+            animation: pop 0.3s ease-out;
         }
-        @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+        .left { background: #333; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .right { background: #007aff; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .name { font-size: 10px; color: #aaa; margin-bottom: 3px; }
         
-        .left { background: #333; align-self: flex-start; color: #eee; border-top-left-radius: 0; }
-        .right { background: #007aff; align-self: flex-end; color: white; border-top-right-radius: 0; }
-        .name { font-size: 14px; color: #aaa; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
-
         #btn-start {
-            padding: 30px; background: #2ecc71; color: #004400; text-align: center; 
-            cursor: pointer; font-size: 28px; text-transform: uppercase; font-weight: bold;
-            border-top: 4px solid #27ae60; display: none; /* Caché au début */
+            padding: 20px; background: #28a745; color: white; text-align: center; 
+            cursor: pointer; font-weight: bold; text-transform: uppercase;
+            transition: background 0.2s; display: none;
         }
-        #btn-start:hover { background: #27ae60; color: white; }
+        #btn-start:hover { background: #218838; }
 
-        /* --- JEU (POKÉMON STYLE) --- */
+        /* --- UI JEU --- */
         #game-ui {
             position: absolute; top: 20px; left: 20px; z-index: 10; display: none;
-            background: rgba(255, 255, 255, 0.9); padding: 10px 20px; border: 4px solid #333; border-radius: 4px;
-            box-shadow: 5px 5px 0px rgba(0,0,0,0.5); color: black;
+            background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px; border: 2px solid #555;
         }
-        .hud-text { margin: 0; font-size: 28px; font-weight: bold; }
-        
-        canvas { 
-            border: 8px solid #ddd; border-radius: 4px;
-            box-shadow: 0 0 100px rgba(0,0,0,1); 
-            image-rendering: pixelated; 
-            display: none;
-        }
+        .hud-text { margin: 5px 0; font-size: 16px; }
+        .item-list { color: #ffd700; font-size: 14px; margin-top: 5px; }
 
-        /* Scanlines Retro */
-        .scanlines {
-            position: fixed; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
-            background-size: 100% 4px;
+        canvas { 
+            box-shadow: 0 0 30px rgba(0,0,0,0.5); 
+            image-rendering: pixelated; 
+            display: none; /* Caché au début */
         }
 
         #end-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); z-index: 200; display: none;
-            flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white;
+            flex-direction: column; justify-content: center; align-items: center; text-align: center;
         }
+        
+        @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
     </style>
 </head>
 <body>
 
-    <div class="scanlines"></div>
-    
-    <div id="youtube-audio" style="position:absolute; top:-9999px;"></div>
+    <div id="title-screen">
+        <div id="title-text">PARIS</div>
+        <div id="subtitle" style="color:#d43737">BY NIGHT</div>
+        <div style="margin-top:20px; font-size:14px; color:#666;">ESG EDITION</div>
+    </div>
 
     <div id="phone-container">
-        <div id="chat-header">
-            <div class="online-dot"></div>&nbsp;
-            Les Chipies (4)
-        </div>
+        <div id="chat-header">Groupe: PROJET DE GROUPE (4)</div>
         <div id="chat-body">
             </div>
-        <div id="btn-start">ALLER CHERCHER SAM</div>
+        <div id="btn-start">ALLER CHERCHER SAMUEL</div>
     </div>
 
     <div id="game-ui">
-        <div class="hud-text" id="zone-name">PLACE DES VOSGES</div>
-        <div style="font-size:20px; color:#555;">OBJETS: <span id="score" style="color:#d32f2f; font-weight:bold;">0</span>/3</div>
-        <div id="message-area" style="margin-top:5px; color:#007aff; font-size: 22px; min-height:25px;"></div>
+        <div class="hud-text" style="color:#4db8ff; font-weight:bold;" id="zone-name">PLACE DES VOSGES</div>
+        <div class="hud-text">Objets trouvés: <span id="score">0</span>/3</div>
+        <div class="hud-text" style="font-size:12px; color:#aaa;">[FLÈCHES] Bouger</div>
+        <div id="message-area" style="margin-top:10px; color:#ff5555; font-weight:bold; min-height:20px;"></div>
     </div>
 
     <canvas id="gameCanvas" width="800" height="600"></canvas>
 
     <div id="end-screen">
-        <h1 style="color: #2ecc71; font-size: 60px; margin-bottom: 20px;">SAMUEL RETROUVÉ !</h1>
-        <div style="background: #fff; color:black; padding: 30px; border-radius:10px; border: 5px solid #aaa; max-width: 600px;">
-            <p style="font-size: 30px; line-height: 1.2;">
-                "Wesh l'équipe... J'ai plus de batterie.<br>
-                Je dormais dans un kebab rue de Douai.<br>
-                C'était pas la Police, c'était le camion poubelle qui faisait trop de bruit."
-            </p>
-        </div>
+        <h1 style="color: #28a745; font-size: 40px;">SAMUEL RETROUVÉ !</h1>
+        <p style="font-size: 20px; max-width: 600px; line-height: 1.5;">
+            "Wesh les gars, désolé j'avais plus de batterie et je me suis endormi dans le Kebab.<br>
+            C'est pas la police, c'est juste le vigile du Monoprix qui m'a regardé bizarre."
+        </p>
         <br>
-        <button onclick="location.reload()" style="padding:15px 30px; font-size:24px; cursor:pointer; font-family:'VT323'; background:#d32f2f; color:white; border:none;">RETOURNER EN COURS</button>
+        <button onclick="location.reload()" style="padding:15px 30px; font-size:20px; cursor:pointer;">RETOURNER EN COURS</button>
     </div>
 
     <script>
-        // --- 1. CONFIGURATION ---
-        const TILE = 50; 
-        let patterns = {};
-        
-        // --- 2. LOGIQUE DU CHAT (Simple et Robuste) ---
+        // --- 1. SYSTÈME AUDIO ---
+        const AudioSys = {
+            ctx: null,
+            init: function() { 
+                try {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)(); 
+                } catch(e) { console.log("Audio not supported"); }
+            },
+            beep: function(freq, type) {
+                if(!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type || 'sine';
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.15);
+            },
+            playMusic: function(mood) {
+                if(!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = mood === 'pigalle' ? 'sawtooth' : 'triangle';
+                osc.frequency.setValueAtTime(mood === 'pigalle' ? 50 : 100, this.ctx.currentTime);
+                gain.gain.value = 0.02; // Très bas
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start();
+            }
+        };
+
+        // --- 2. SCÉNARIO (HUMOUR ESG) ---
         const messages = [
-            { s: 'Matthieu', t: "Il est où Samuel ? Le prof va faire l'appel." },
-            { s: 'Samuel', t: "LES CHIPIES C'EST CHAUD." },
-            { s: 'Samuel', t: "La police me coursent." },
-            { s: 'Moi', t: "Mdr arrête tes mythos Sam, t'as encore bu ?" },
-            { s: 'Samuel', t: "Jure que non ! J'étais Place des Vosges, y'a eu une descente." },
-            { s: 'Julie', t: "Pff... Il a surement perdu sa carte étudiante et il ose pas venir." },
-            { s: 'Samuel', t: "J'ai paumé mes affaires en courant vers Pigalle." },
-            { s: 'Samuel', t: "Venez me chercher je suis perdu." },
-            { s: 'Moi', t: "Ok j'arrive. Bouge pas (pour une fois)." }
+            { sender: 'Matthieu', text: "Il est où Samuel ? Le prof va faire l'appel." },
+            { sender: 'Samuel', text: "LES GARS C'EST CHAUD." },
+            { sender: 'Samuel', text: "La police me coursent." },
+            { sender: 'Moi', text: "Mdr arrête tes mythos Sam, t'as encore bu ?" },
+            { sender: 'Samuel', text: "Jure que non ! J'étais Place des Vosges, y'a eu une descente." },
+            { sender: 'Julie', text: "Pff... Il a surement perdu sa carte étudiante et il ose pas venir." },
+            { sender: 'Samuel', text: "J'ai paumé mes affaires en courant vers Pigalle." },
+            { sender: 'Samuel', text: "Venez me chercher je suis perdu." },
+            { sender: 'Moi', text: "Ok j'arrive. Bouge pas (pour une fois)." }
         ];
 
-        let msgIdx = 0;
-        function playChat() {
-            if (msgIdx >= messages.length) {
-                document.getElementById('btn-start').style.display = 'block';
-                return;
-            }
-            const m = messages[msgIdx];
-            const div = document.createElement('div');
-            div.className = `msg ${m.s === 'Moi' ? 'right' : 'left'}`;
-            div.innerHTML = `<div class="name">${m.s}</div>${m.t}`;
-            const chatBody = document.getElementById('chat-body');
-            chatBody.appendChild(div);
-            chatBody.scrollTop = chatBody.scrollHeight;
-            
-            msgIdx++;
-            setTimeout(playChat, 1200); // Vitesse du chat
-        }
-
-        // Lancement immédiat au chargement de la page
-        document.addEventListener("DOMContentLoaded", function() {
-            setTimeout(playChat, 500);
-        });
-
-        // --- 3. AUDIO (API YOUTUBE) ---
-        var player;
-        var tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        var firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('youtube-audio', {
-                height: '0', width: '0', 
-                videoId: 'tE7Qy9i2Qhs', // Jazz Parisien Chill
-                playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': 'tE7Qy9i2Qhs' }
-            });
-        }
-
-        // --- 4. TEXTURES PIXEL ART ---
-        function createPattern(type) {
-            const c = document.createElement('canvas'); c.width = TILE; c.height = TILE;
-            const ctx = c.getContext('2d');
-
-            if(type === 'grass_vosges') {
-                ctx.fillStyle = '#6ab04c'; ctx.fillRect(0,0,TILE,TILE);
-                ctx.fillStyle = '#badc58'; 
-                ctx.fillRect(5,5,4,4); ctx.fillRect(25,35,4,4); ctx.fillRect(40,10,4,4);
-                ctx.fillStyle = '#488235'; 
-                ctx.fillRect(0,0,2,TILE); ctx.fillRect(0,0,TILE,2); 
-            }
-            else if(type === 'brick_vosges') {
-                ctx.fillStyle = '#eb4d4b'; ctx.fillRect(0,0,TILE,TILE);
-                ctx.fillStyle = '#c0392b'; 
-                for(let y=0; y<TILE; y+=12.5) {
-                    ctx.fillRect(0, y, TILE, 2);
-                    let off = (y/12.5)%2===0?0:25; ctx.fillRect(off, y, 2, 12.5);
-                }
-                ctx.fillStyle = '#f1f2f6'; ctx.fillRect(0,0,10,TILE);
-                ctx.strokeStyle = '#bdc3c7'; ctx.strokeRect(0,0,10,TILE);
-            }
-            else if(type === 'path') {
-                ctx.fillStyle = '#f7f1e3'; ctx.fillRect(0,0,TILE,TILE);
-                ctx.fillStyle = '#d1ccc0';
-                for(let i=0; i<15; i++) ctx.fillRect(Math.random()*TILE, Math.random()*TILE, 3, 3);
-            }
-            else if(type === 'cobble_pigalle') {
-                ctx.fillStyle = '#2c3e50'; ctx.fillRect(0,0,TILE,TILE);
-                ctx.strokeStyle = '#34495e'; ctx.lineWidth = 2;
-                for(let y=0; y<TILE; y+=12.5) for(let x=0; x<TILE; x+=12.5) ctx.strokeRect(x,y,12.5,12.5);
-            }
-            else if(type === 'wall_pigalle') {
-                ctx.fillStyle = '#1e272e'; ctx.fillRect(0,0,TILE,TILE);
-                ctx.fillStyle = '#000'; ctx.fillRect(10,10,30,30); 
-                ctx.fillStyle = '#333'; ctx.fillRect(24,10,2,30); ctx.fillRect(10,24,30,2); 
-            }
-            else if(type === 'neon_sex') {
-                ctx.fillStyle = '#1e272e'; ctx.fillRect(0,0,TILE,TILE);
-                ctx.fillStyle = '#ff00a0'; ctx.shadowBlur = 15; ctx.shadowColor = '#ff00a0';
-                ctx.font = "14px monospace"; ctx.fillText("CLUB", 8, 30); ctx.shadowBlur = 0;
-            }
-            else if(type === 'fountain') {
-                ctx.fillStyle = '#3498db'; ctx.fillRect(0,0,TILE,TILE);
-                ctx.fillStyle = '#ecf0f1'; ctx.globalAlpha=0.3;
-                ctx.beginPath(); ctx.arc(TILE/2, TILE/2, 15, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
-            }
-            return ctx.createPattern(c, 'repeat');
-        }
-
-        function initPatterns() {
-            patterns.grass = createPattern('grass_vosges');
-            patterns.brick = createPattern('brick_vosges');
-            patterns.path = createPattern('path');
-            patterns.cobble = createPattern('cobble_pigalle');
-            patterns.wall = createPattern('wall_pigalle');
-            patterns.neon = createPattern('neon_sex');
-            patterns.water = createPattern('fountain');
-        }
-
-        // --- 5. DATA JEU ---
-        const map1 = [
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-            [1,0,0,0,0,0,0,2,0,0,0,0,0,0,0,1],
-            [1,0,2,2,2,2,0,2,0,2,2,2,2,0,0,1],
-            [1,0,2,2,2,2,0,0,0,2,2,2,2,0,0,1],
-            [1,0,2,2,4,4,0,0,0,4,4,2,2,0,0,1],
-            [1,0,2,2,4,4,0,0,0,4,4,2,2,0,0,1],
-            [1,0,2,2,2,2,0,0,0,2,2,2,2,0,0,1],
-            [1,0,2,2,2,2,0,0,0,2,2,2,2,0,0,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,0,2,2,2,2,0,0,0,2,2,2,2,0,0,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,9,1],
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ];
-        
-        const map2 = [
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,1,5,1,1,0,1,1,5,1,0,1,5,1,1,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,1,1,0,0,1,1,1,1,0,0,1,1,1,1,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,0,0,1,1,1,0,0,0,1,1,1,0,0,0,1],
-            [1,0,0,0,0,0,0,8,0,0,0,0,0,0,0,1],
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ];
-
-        const items1 = [{x: 8, y: 5, label: "Carte Étudiante"}, {x: 3, y: 3, label: "Vape"}, {x: 12, y: 8, label: "Chargeur"}];
-        const items2 = [{x: 2, y: 8, label: "Kebab Froid"}, {x: 12, y: 5, label: "Ticket Métro"}, {x: 6, y: 2, label: "Flyer BDE"}];
-
-        // --- 6. MOTEUR JEU ---
+        // --- 3. JEU (MOTEUR 2D) ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        let player = {x: 1, y: 1};
+        const TILE = 40; 
+        
+        let player = { x: 2, y: 2, color: '#fff' };
+        let levelIndex = 0;
+        let itemsFound = 0;
+        let gameActive = false;
         let currentMap = [];
         let items = [];
-        let level = 1;
-        let score = 0;
-        let gameActive = false;
+        let exit = {};
 
-        function startGame() {
-            document.getElementById('phone-container').style.display = 'none';
-            document.getElementById('game-ui').style.display = 'block';
-            document.getElementById('gameCanvas').style.display = 'block';
-            gameActive = true;
-            
-            // On lance la musique ICI seulement (User Interaction)
-            if(player && player.playVideo) {
-                player.unMute();
-                player.setVolume(50);
-                player.playVideo();
-            }
+        const THEMES = {
+            vosges: { bg: '#2d6a4f', wall: '#b22222', ground: '#40916c', text: 'PLACE DES VOSGES' }, 
+            pigalle: { bg: '#1a1a1a', wall: '#ff0055', ground: '#333333', text: 'PIGALLE (LA NUIT)' } 
+        };
+        let currentTheme = THEMES.vosges;
 
-            initPatterns();
-            loadLevel(1);
-            loop();
-        }
+        // MAPS
+        const map1 = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,1,1,1,1,1,0,1,0,1,1,1,1,1,0,1,1,0,1],
+            [1,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,1,0,0,1],
+            [1,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1],
+            [1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,0,1,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,1,0,1,0,1,1,1,0,1,1,1,0,1,0,1,0,0,1],
+            [1,0,1,0,1,0,0,0,0,0,0,0,0,0,1,0,1,0,0,1],
+            [1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,0,1,1,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1]
+        ];
 
-        function loadLevel(lvl) {
-            level = lvl;
-            score = 0;
+        const map2 = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1],
+            [1,0,1,1,1,1,1,1,1,1,1,0,1,0,1,1,1,1,0,1],
+            [1,0,1,0,0,0,0,0,0,0,1,0,1,0,1,0,0,0,0,1],
+            [1,0,1,0,1,1,1,1,1,0,1,0,0,0,1,0,1,1,0,1],
+            [1,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,1],
+            [1,0,1,1,1,0,1,1,1,0,1,1,1,1,1,0,1,1,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,1,1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1],
+            [1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,1,1,1,0,1,0,1,1,1,1,1,1,1,0,1,1,0,1],
+            [1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,3,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ];
+
+        const level1Items = [
+            {x: 5, y: 4, label: "Carte Étudiante Perdue"},
+            {x: 15, y: 2, label: "Kebab Sauce Algérienne"},
+            {x: 10, y: 8, label: "Paquet de clopes vide"}
+        ];
+        
+        const level2Items = [
+            {x: 1, y: 11, label: "Ticket de métro"},
+            {x: 17, y: 3, label: "Flyer soirée BDE"},
+            {x: 8, y: 5, label: "Chaussure de Samuel"}
+        ];
+
+        // --- LOGIQUE JEU ---
+
+        function initLevel(lvl) {
+            levelIndex = lvl;
+            itemsFound = 0;
             document.getElementById('score').innerText = "0";
             
-            if(lvl === 1) {
+            if (lvl === 0) {
                 currentMap = map1;
-                items = JSON.parse(JSON.stringify(items1));
-                player = {x: 2, y: 2};
-                document.getElementById('zone-name').innerText = "PLACE DES VOSGES";
+                items = JSON.parse(JSON.stringify(level1Items)); 
+                currentTheme = THEMES.vosges;
+                player.x = 2; player.y = 2;
+                exit = {x: 18, y: 13, type: 'exit'}; 
             } else {
                 currentMap = map2;
-                items = JSON.parse(JSON.stringify(items2));
-                player = {x: 2, y: 2};
-                document.getElementById('zone-name').innerText = "PIGALLE (NUIT)";
+                items = JSON.parse(JSON.stringify(level2Items));
+                currentTheme = THEMES.pigalle;
+                player.x = 2; player.y = 1; 
+                exit = {x: 18, y: 11, type: 'samuel'}; 
             }
+
+            document.getElementById('zone-name').innerText = currentTheme.text;
+            AudioSys.playMusic(lvl === 0 ? 'vosges' : 'pigalle');
+            draw();
         }
 
         function move(dx, dy) {
-            if(!gameActive) return;
-            const nx = player.x + dx;
-            const ny = player.y + dy;
+            const newX = player.x + dx;
+            const newY = player.y + dy;
 
-            const cell = currentMap[ny][nx];
-            if(cell === 1 || cell === 4 || cell === 5) return; // Murs
+            if (currentMap[newY][newX] === 1) return; 
 
-            player.x = nx; player.y = ny;
+            player.x = newX;
+            player.y = newY;
+            AudioSys.beep(100, 'triangle'); 
 
-            const itemIdx = items.findIndex(i => i.x === nx && i.y === ny);
-            if(itemIdx !== -1) {
-                score++;
-                document.getElementById('score').innerText = score;
-                showMessage(`Trouvé: ${items[itemIdx].label} !`);
-                items.splice(itemIdx, 1);
+            checkEvents();
+            draw();
+        }
+
+        function checkEvents() {
+            const itemIndex = items.findIndex(i => i.x === player.x && i.y === player.y);
+            if (itemIndex !== -1) {
+                itemsFound++;
+                document.getElementById('score').innerText = itemsFound;
+                showMessage("Trouvé : " + items[itemIndex].label);
+                AudioSys.beep(600, 'sine'); 
+                items.splice(itemIndex, 1);
             }
 
-            if(cell === 9) {
-                if(score >= 3) loadLevel(2);
-                else showMessage("Il te manque des objets !");
-            }
-            if(cell === 8) {
-                if(score >= 3) {
-                    gameActive = false;
-                    document.getElementById('gameCanvas').style.display = 'none';
-                    document.getElementById('game-ui').style.display = 'none';
-                    document.getElementById('end-screen').style.display = 'flex';
-                } else showMessage("C'est Sam ! Mais il faut ses affaires.");
+            if (player.x === exit.x && player.y === exit.y) {
+                if (itemsFound < 3) {
+                    showMessage("Il te manque des indices ! (" + itemsFound + "/3)");
+                    player.x -= 1; 
+                } else {
+                    if (exit.type === 'exit') {
+                        initLevel(1); 
+                    } else {
+                        winGame();
+                    }
+                }
             }
         }
 
         function showMessage(txt) {
             const el = document.getElementById('message-area');
             el.innerText = txt;
-            setTimeout(() => el.innerText = "", 2000);
+            setTimeout(() => el.innerText = "", 3000);
         }
 
-        function loop() {
-            if(!gameActive) return;
-            ctx.clearRect(0,0,canvas.width, canvas.height);
-            
-            for(let y=0; y<currentMap.length; y++) {
-                for(let x=0; x<currentMap[y].length; x++) {
-                    const c = currentMap[y][x];
-                    const px = x*TILE; const py = y*TILE;
-                    
-                    if(level === 1) {
-                        if(c === 0) ctx.fillStyle = patterns.path;
-                        else ctx.fillStyle = patterns.grass;
-                    } else {
-                        ctx.fillStyle = patterns.cobble;
-                    }
-                    if(c !== 4) ctx.fillRect(px, py, TILE, TILE); 
+        function winGame() {
+            gameActive = false;
+            document.getElementById('gameCanvas').style.display = 'none';
+            document.getElementById('game-ui').style.display = 'none';
+            document.getElementById('end-screen').style.display = 'flex';
+        }
 
-                    if(c === 1) { ctx.fillStyle = level===1 ? patterns.brick : patterns.wall; ctx.fillRect(px,py,TILE,TILE); }
-                    if(c === 4) { ctx.fillStyle = patterns.water; ctx.fillRect(px,py,TILE,TILE); }
-                    if(c === 5) { ctx.fillStyle = patterns.neon; ctx.fillRect(px,py,TILE,TILE); }
+        // --- RENDU GRAPHIQUE ---
+        function draw() {
+            ctx.fillStyle = currentTheme.bg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (let y = 0; y < currentMap.length; y++) {
+                for (let x = 0; x < currentMap[y].length; x++) {
+                    const cell = currentMap[y][x];
+                    const posX = x * TILE;
+                    const posY = y * TILE;
+
+                    if (cell === 1) {
+                        ctx.fillStyle = currentTheme.wall;
+                        ctx.fillRect(posX, posY, TILE, TILE);
+                        ctx.strokeStyle = "rgba(0,0,0,0.3)";
+                        ctx.strokeRect(posX, posY, TILE, TILE);
+                    } else {
+                        ctx.fillStyle = currentTheme.ground;
+                        ctx.fillRect(posX, posY, TILE, TILE);
+                    }
                 }
             }
 
-            items.forEach(i => {
-                const cx = i.x*TILE + TILE/2; const cy = i.y*TILE + TILE/2;
-                ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = "#e74c3c"; ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI, true); ctx.fill();
-                ctx.fillStyle = "#333"; ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI*2); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(cx-12, cy); ctx.lineTo(cx+12, cy); ctx.stroke();
+            items.forEach(item => {
+                ctx.fillStyle = "#FFD700"; 
+                ctx.beginPath();
+                ctx.arc(item.x * TILE + TILE/2, item.y * TILE + TILE/2, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = "black";
+                ctx.font = "bold 12px Arial";
+                ctx.fillText("?", item.x * TILE + 15, item.y * TILE + 24);
             });
 
-            const px = player.x*TILE; const py = player.y*TILE;
-            ctx.fillStyle = "#3498db"; ctx.fillRect(px+10, py+15, 30, 30);
-            ctx.fillStyle = "#f1c40f"; ctx.fillRect(px+12, py+5, 26, 20);
-            ctx.fillStyle = "#2c3e50"; ctx.fillRect(px+12, py, 26, 8);
-            
-            if(level === 1) {
-                ctx.fillStyle = "#2ecc71"; ctx.font="20px VT323"; 
-                ctx.fillText("MÉTRO", 14*TILE, 10*TILE+30);
+            const exX = exit.x * TILE; 
+            const exY = exit.y * TILE;
+            if (exit.type === 'exit') {
+                ctx.fillStyle = "#00ff00"; 
+                ctx.fillRect(exX, exY, TILE, TILE);
+                ctx.fillStyle = "black"; ctx.fillText("GO", exX+10, exY+25);
             } else {
-                const sx = 7*TILE; const sy = 10*TILE;
-                ctx.fillStyle = "#e74c3c"; ctx.fillRect(sx+10, sy+15, 30, 30);
-                ctx.fillStyle = "#f1c40f"; ctx.fillRect(sx+12, sy+5, 26, 20);
-                ctx.fillStyle = "#000"; ctx.fillText("SAM", sx+10, sy-5);
+                ctx.fillStyle = "#00ffff"; 
+                ctx.beginPath();
+                ctx.arc(exX + TILE/2, exY + TILE/2, 15, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = "black"; ctx.fillText("SAM", exX+8, exY+25);
             }
 
-            requestAnimationFrame(loop);
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(player.x * TILE + 5, player.y * TILE + 5, TILE - 10, TILE - 10);
+            ctx.fillStyle = "black";
+            ctx.fillRect(player.x * TILE + 10, player.y * TILE + 10, 5, 5);
+            ctx.fillRect(player.x * TILE + 25, player.y * TILE + 10, 5, 5);
         }
 
-        window.addEventListener('keydown', e => {
-            if(e.key === "ArrowUp") move(0,-1);
-            if(e.key === "ArrowDown") move(0,1);
-            if(e.key === "ArrowLeft") move(-1,0);
-            if(e.key === "ArrowRight") move(1,0);
+        window.addEventListener('keydown', (e) => {
+            if (!gameActive) return;
+            switch(e.key) {
+                case "ArrowUp": move(0, -1); break;
+                case "ArrowDown": move(0, 1); break;
+                case "ArrowLeft": move(-1, 0); break;
+                case "ArrowRight": move(1, 0); break;
+            }
         });
 
-        document.getElementById('btn-start').addEventListener('click', startGame);
+        // --- GESTION INTRO (Corrigée pour éviter le blocage Audio) ---
+        let msgIdx = 0;
+        const chatBody = document.getElementById('chat-body');
+        
+        function playChat() {
+            // On attend 4 secondes pour laisser l'intro passer
+            
+            if (msgIdx >= messages.length) {
+                document.getElementById('btn-start').style.display = 'block';
+                return;
+            }
+            const m = messages[msgIdx];
+            const div = document.createElement('div');
+            div.className = `msg ${m.sender === 'Moi' ? 'right' : 'left'}`;
+            div.innerHTML = `<div class="name">${m.sender}</div>${m.text}`;
+            chatBody.appendChild(div);
+            chatBody.scrollTop = chatBody.scrollHeight;
+            
+            // IMPORTANT : J'ai retiré le "beep" audio ici car les navigateurs
+            // bloquent le son s'il n'y a pas eu de clic avant. C'est ce qui faisait planter le script.
+            
+            msgIdx++;
+            setTimeout(playChat, 1500);
+        }
+
+        window.onload = () => {
+            // On lance le chat après l'intro (4s)
+            document.getElementById('phone-container').style.opacity = '1'; // Force opacity just in case animation fails
+            setTimeout(playChat, 4000);
+        };
+
+        document.getElementById('btn-start').addEventListener('click', () => {
+            document.getElementById('phone-container').style.display = 'none';
+            document.getElementById('gameCanvas').style.display = 'block';
+            document.getElementById('game-ui').style.display = 'block';
+            
+            gameActive = true;
+            AudioSys.init(); // On active le son uniquement maintenant (sur le clic)
+            initLevel(0);
+        });
 
     </script>
 </body>
