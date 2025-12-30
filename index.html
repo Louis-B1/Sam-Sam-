@@ -58,7 +58,6 @@
         .ui-score { font-size: 20px; font-weight: bold;}
         #msg-popup { margin-top: 10px; color: #e74c3c; font-weight: bold; height: 20px; font-size: 14px; }
 
-        /* NOUVEAU POPUP GÉNÉRIQUE POUR LES ITEMS */
         #main-popup {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: rgba(0,0,0,0.95); color: #fff; padding: 25px; border: 4px solid #f1c40f;
@@ -68,13 +67,33 @@
         #main-popup h3 { margin-top: 0; color: #f1c40f; }
         #main-popup p { font-size: 16px; line-height: 1.4; }
 
-        /* --- FIN --- */
+        /* --- FIN (ANIMATIONS AJOUTÉES) --- */
         #end-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(5,5,5,0.98); z-index: 400; display: none;
             flex-direction: column; justify-content: center; align-items: center; text-align: center;
         }
-        #samuel-img { width: 250px; height: 250px; object-fit: cover; border: 5px solid #27ae60; margin: 20px; background: #222; }
+
+        /* Animation pulsation image */
+        @keyframes pulseSam {
+            0% { transform: scale(1); box-shadow: 0 0 20px #27ae60; }
+            50% { transform: scale(1.05); box-shadow: 0 0 40px #2ecc71; }
+            100% { transform: scale(1); box-shadow: 0 0 20px #27ae60; }
+        }
+        #samuel-img { 
+            width: 250px; height: 250px; object-fit: cover; border: 5px solid #27ae60; margin: 20px; background: #222; 
+            animation: pulseSam 2s infinite ease-in-out; /* Animation active */
+        }
+
+        /* Animation apparition texte */
+        @keyframes slideUpBox {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .end-text-box {
+            background:#222; padding:20px; border-radius:10px; max-width:600px; font-size:18px; line-height:1.5;
+            animation: slideUpBox 0.8s ease-out 0.3s backwards; /* Animation active avec délai */
+        }
     </style>
 </head>
 <body>
@@ -101,14 +120,13 @@
         </div>
         
         <div id="main-popup"></div>
-
         <canvas id="gameCanvas" width="800" height="800"></canvas>
     </div>
 
     <div id="end-screen">
-        <h1 style="color:#27ae60;">SAMUEL RETROUVÉ !</h1>
+        <h1 style="color:#27ae60; text-shadow: 0 0 10px #27ae60;">SAMUEL RETROUVÉ !</h1>
         <img id="samuel-img" src="samuel.jpg" alt="Samuel" onerror="this.style.display='none';">
-        <div style="background:#222; padding:20px; border-radius:10px; max-width:600px; font-size:18px; line-height:1.5;">
+        <div class="end-text-box"> 
             "Wesh l'équipe... J'ai plus de batterie.<br>
             Je dormais sur un banc.<br>
             C'était pas la police, juste des pigeons qui m'attaquaient.<br>
@@ -166,8 +184,9 @@
                 name: "PIGALLE (LA NUIT)",
                 colorWall: "#2c2c2c", colorGround: "#1a1a1a", colorPath: "#333",
                 items: [
-                    {x: 3, y: 3, type: "key", name: "Clé d'Angèle"},
-                    {x: 16, y: 3, type: "letter", name: "Lettre d'amour d'Alexis"},
+                    // POSITIONS ECHANGÉES ICI
+                    {x: 3, y: 3, type: "letter", name: "Lettre d'amour d'Alexis"},
+                    {x: 16, y: 3, type: "key", name: "Clé d'Angèle"},
                     {x: 16, y: 16, type: "foodbag", name: "Sac de nourriture"}
                 ],
                 enemies: [{x: 5, y: 5, dx: 1}, {x: 15, y: 15, dx: -1}, {x: 5, y: 15, dx: 1}, {x: 10, y: 10, dx: 1}],
@@ -205,17 +224,21 @@
             else if (type === 'foodbag') {
                  ctx.fillStyle = "#8e44ad"; ctx.fillRect(px+10, py+15, 20, 20); ctx.fillStyle = "#2ecc71"; ctx.fillRect(px+12, py+10, 5, 5); ctx.fillStyle = "#e74c3c"; ctx.fillRect(px+20, py+10, 5, 5); ctx.strokeStyle = "#6c3483"; ctx.strokeRect(px+10, py+15, 20, 20);
             }
+            // RETOUR AU STYLE ROMANTIQUE POUR LA LETTRE
             else if (type === 'letter') {
-                ctx.fillStyle = "#fff"; ctx.fillRect(px+8, py+12, 24, 16); ctx.strokeStyle = "#ccc"; ctx.strokeRect(px+8, py+12, 24, 16); ctx.fillStyle = "#e74c3c"; ctx.beginPath(); ctx.moveTo(px+15, py+20); ctx.lineTo(px+20, py+25); ctx.lineTo(px+25, py+20); ctx.fill();
+                // Enveloppe blanche
+                ctx.fillStyle = "#fff"; ctx.fillRect(px+8, py+12, 24, 16);
+                ctx.strokeStyle = "#ccc"; ctx.strokeRect(px+8, py+12, 24, 16);
+                // Sceau coeur rouge
+                ctx.fillStyle = "#e74c3c"; ctx.beginPath(); ctx.moveTo(px+15, py+20); ctx.lineTo(px+20, py+25); ctx.lineTo(px+25, py+20); ctx.fill();
             }
             else if (type === 'pigeon') {
                 let bounce = Math.sin(animTimer) * 3;
-                ctx.fillStyle = "#7f8c8d"; ctx.beginPath(); ctx.arc(px+20, py+20+bounce, 10, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = "#bdc3c7"; ctx.beginPath(); ctx.arc(px+20, py+20+bounce, 6, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = "#f39c12"; ctx.beginPath(); ctx.moveTo(px+28, py+18+bounce); ctx.lineTo(px+34, py+22+bounce); ctx.lineTo(px+28, py+24+bounce); ctx.fill(); ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(px+24, py+16+bounce, 3, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = "#7f8c8d"; ctx.beginPath(); ctx.arc(px+20, py+20+bounce, 10, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = "#bdc3c7"; ctx.beginPath(); ctx.arc(px+20, py+20+bounce, 6, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = "#f39c12"; ctx.beginPath(); ctx.moveTo(px+28, py+18+bounce); ctx.lineTo(px+34, py+22+bounce); ctx.lineTo(px+28, py+24+bounce); ctx.fill(); ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(px+24, py+16+bounce, 3, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = "black"; ctx.beginPath(); ctx.arc(px+25, py+16+bounce, 1, 0, Math.PI*2); ctx.fill();
             }
             else if (type === 'player') {
                 ctx.fillStyle = "#3498db"; ctx.fillRect(px+10, py+12, 20, 16); ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(px+20, py+14, 9, 0, Math.PI*2); ctx.fill();
             }
-            // NOUVEAUX DÉTAILS VOSGES
             else if (type === 'flower') {
                 ctx.fillStyle = (x+y)%2===0 ? "#e74c3c" : "#fff"; ctx.fillRect(px+15, py+15, 6, 6); ctx.fillStyle = "#27ae60"; ctx.fillRect(px+17, py+21, 2, 8);
             }
@@ -284,7 +307,6 @@
             });
         }
 
-        // GESTION DES POPUPS
         let popupTimeout;
         function showPopup(html, duration = 3000) {
             const popup = document.getElementById('main-popup');
@@ -305,13 +327,12 @@
                 document.getElementById('score').innerText = score;
                 const item = items[idx];
                 
-                // CONTENU DES POPUPS SELON L'OBJET
                 let popupHtml = `<h3>${item.name}</h3><p>Indice trouvé !</p>`;
                 let duration = 3000;
 
                 if(item.type === 'letter') {
                     popupHtml = `<h3>💌 Lettre d'Alexis 💌</h3><p>"Mon Sam chéri, rejoins-moi vite. Le Kebab refroidit... Je t'attends. <3"</p>`;
-                    duration = 5000; // 5 secondes pour la lettre
+                    duration = 5000; 
                 } else if (item.type === 'card') {
                     popupHtml = `<h3>💳 Carte Bancaire 💳</h3><p>La carte de Sam ! Il l'a encore paumée...</p>`;
                 } else if (item.type === 'kebab') {
@@ -327,7 +348,6 @@
                 showPopup(popupHtml, duration);
                 items.splice(idx, 1);
 
-                // SI TOUT EST TROUVÉ : MESSAGE D'OBJECTIF
                 if(score === 3) {
                     setTimeout(() => {
                          const exitName = levels[currentLevel].exitName;
@@ -381,7 +401,6 @@
                     }
                     else { 
                         ctx.fillStyle = conf.colorGround; ctx.fillRect(px,py,TILE,TILE); 
-                        // DÉTAILS VOSGES : FLEURS ET BANCS PIXEL ART
                         if(currentLevel === 1) {
                             if((x+y)%5 === 0 && x>2 && x<17 && y>2 && y<17 && t===0) drawSprite(ctx, 'flower', x, y);
                             if((x === 3 || x === 16) && y%4 === 0 && y>2 && y<17) drawSprite(ctx, 'bench', x, y);
