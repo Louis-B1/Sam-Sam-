@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission: Samuel à Paris (Final Cut)</title>
+    <title>Mission: Samuel à Paris (Final Edition)</title>
     <style>
         /* --- STYLE RETRO --- */
         body { 
@@ -58,7 +58,7 @@
         .ui-score { font-size: 20px; font-weight: bold;}
         #msg-popup { margin-top: 10px; color: #e74c3c; font-weight: bold; height: 20px; font-size: 14px; }
 
-        /* POPUP STANDARD (Objets normaux) */
+        /* --- POPUPS --- */
         #main-popup {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: rgba(0,0,0,0.95); color: #fff; padding: 25px; border: 4px solid #f1c40f;
@@ -68,7 +68,6 @@
         #main-popup h3 { margin-top: 0; color: #f1c40f; }
         #main-popup p { font-size: 16px; line-height: 1.4; color: #ddd; }
 
-        /* POPUP SPÉCIAL LETTRE (Blanc Romantique) */
         #letter-popup {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: #fff; color: #000; padding: 30px; border: 6px double #e74c3c;
@@ -77,6 +76,19 @@
         }
         #letter-popup h3 { margin-top: 0; color: #e74c3c; font-size: 24px; text-decoration: underline; }
         #letter-popup p { font-size: 18px; font-weight: bold; font-style: italic; }
+
+        /* --- CINÉMATIQUE MÉTRO --- */
+        #cinematic-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 500; display: none; /* Caché par défaut */
+            color: #fff; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .metro-lights {
+            width: 100%; height: 20px;
+            background: repeating-linear-gradient(90deg, #000, #000 50px, #fff 50px, #fff 55px);
+            animation: moveLights 0.5s linear infinite; margin: 20px 0;
+        }
+        @keyframes moveLights { from { background-position: 0 0; } to { background-position: 110px 0; } }
 
         /* --- FIN --- */
         #end-screen {
@@ -105,6 +117,12 @@
     <div class="scanlines"></div>
     <div id="youtube-audio" style="position:absolute; top:-9999px;"></div>
 
+    <div id="cinematic-overlay">
+        <div class="metro-lights"></div>
+        <h2 style="letter-spacing: 5px;">DIRECTION : PIGALLE...</h2>
+        <div class="metro-lights"></div>
+    </div>
+
     <div id="title-screen">
         <div id="title-main">PARIS</div>
         <div style="font-size: 40px; color: #d43737; letter-spacing: 7px; margin-top: 10px;">BY NIGHT</div>
@@ -124,7 +142,6 @@
         </div>
         
         <div id="main-popup"></div>
-        
         <div id="letter-popup">
             <h3>💌 Lettre d'Alexis 💌</h3>
             <p>"Mon Sam chéri, rejoins-moi vite. Le Kebab refroidit... Je t'attends. <3"</p>
@@ -188,7 +205,7 @@
                 ],
                 enemies: [{x: 8, y: 8, dx: 1}, {x: 12, y: 12, dx: -1}], 
                 start: {x: 10, y: 18},
-                exit: {x: 10, y: 0}, exitName: "MÉTRO"
+                exit: {x: 10, y: 0}, exitName: "MÉTRO" // Sortie en haut
             },
             2: {
                 name: "PIGALLE (LA NUIT)",
@@ -214,7 +231,7 @@
 
         const ctx = document.getElementById('gameCanvas').getContext('2d');
 
-        // --- DESSIN ---
+        // --- DESSIN DES SPRITES ---
         function drawSprite(ctx, type, x, y) {
             const px = x * TILE; const py = y * TILE;
             
@@ -234,9 +251,7 @@
                  ctx.fillStyle = "#8e44ad"; ctx.fillRect(px+10, py+15, 20, 20); ctx.fillStyle = "#2ecc71"; ctx.fillRect(px+12, py+10, 5, 5); ctx.fillStyle = "#e74c3c"; ctx.fillRect(px+20, py+10, 5, 5); ctx.strokeStyle = "#6c3483"; ctx.strokeRect(px+10, py+15, 20, 20);
             }
             else if (type === 'letter') {
-                ctx.fillStyle = "#fff"; ctx.fillRect(px+8, py+12, 24, 16); 
-                ctx.strokeStyle = "#e74c3c"; ctx.lineWidth = 1; ctx.strokeRect(px+8, py+12, 24, 16);
-                ctx.fillStyle = "#e74c3c"; ctx.beginPath(); ctx.moveTo(px+15, py+20); ctx.lineTo(px+20, py+25); ctx.lineTo(px+25, py+20); ctx.fill();
+                ctx.fillStyle = "#fff"; ctx.fillRect(px+8, py+12, 24, 16); ctx.strokeStyle = "#e74c3c"; ctx.lineWidth = 1; ctx.strokeRect(px+8, py+12, 24, 16); ctx.fillStyle = "#e74c3c"; ctx.beginPath(); ctx.moveTo(px+15, py+20); ctx.lineTo(px+20, py+25); ctx.lineTo(px+25, py+20); ctx.fill();
             }
             else if (type === 'pigeon') {
                 let bounce = Math.sin(animTimer) * 3;
@@ -247,12 +262,17 @@
             }
             else if (type === 'flower') {
                 ctx.fillStyle = "#2ecc71"; ctx.fillRect(px+19, py+22, 2, 8); // Tige
-                ctx.fillStyle = (x+y)%2===0 ? "#e74c3c" : "#fff"; 
-                ctx.beginPath(); ctx.arc(px+20, py+20, 6, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(px+20, py+20, 2, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = (x+y)%2===0 ? "#e74c3c" : "#fff"; ctx.beginPath(); ctx.arc(px+20, py+20, 6, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(px+20, py+20, 2, 0, Math.PI*2); ctx.fill();
             }
             else if (type === 'bench') {
                  ctx.fillStyle = "#8B4513"; ctx.fillRect(px+5, py+10, 30, 10); ctx.fillStyle = "#A0522D"; ctx.fillRect(px+5, py+12, 30, 2); ctx.fillRect(px+5, py+16, 30, 2);
+            }
+            // NOUVEAU SPRITE : BOUCHE DE MÉTRO
+            else if (type === 'metroExit') {
+                 ctx.fillStyle = "#111"; ctx.fillRect(px, py+10, TILE, TILE-10); // Trou
+                 ctx.fillStyle = "#555"; for(let i=1; i<4; i++) ctx.fillRect(px, py+10 + i*8, TILE, 2); // Marches
+                 ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(px+TILE/2, py, 15, Math.PI, 0); ctx.fill(); // Panneau Jaune
+                 ctx.fillStyle = "#2980b9"; ctx.font="bold 16px Arial"; ctx.fillText("M", px+13, py-2); // M Bleu
             }
         }
 
@@ -265,6 +285,7 @@
                 for(let x=0; x<GRID_SIZE; x++) {
                     let type = 0; 
                     if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) type = 1; 
+                    // On ouvre le mur pour le métro au niveau 1
                     if (lvlIdx === 1 && x === 10 && y === 0) type = 2; 
                     else if (x===2 || x===GRID_SIZE-3 || y===2 || y===GRID_SIZE-3) type = 2;
                     else if (x===GRID_SIZE/2 || y===GRID_SIZE/2) type = 2;
@@ -316,7 +337,6 @@
             });
         }
 
-        // GESTION POPUPS
         let popupTimeout;
         function showPopup(html, duration = 3000) {
             const popup = document.getElementById('main-popup');
@@ -331,10 +351,23 @@
             setTimeout(() => { popup.style.display = 'none'; }, 5000);
         }
 
+        // --- NOUVELLE FONCTION CINÉMATIQUE ---
+        function playMetroCinematic(onComplete) {
+            gameActive = false;
+            document.getElementById('cinematic-overlay').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('cinematic-overlay').style.display = 'none';
+                onComplete();
+                gameActive = true;
+            }, 3000); // 3 secondes de cinématique
+        }
+
         function movePlayer(dx, dy) {
             if(!gameActive) return;
             let nx = playerPos.x + dx; let ny = playerPos.y + dy;
-            if(map[ny][nx] === 1) return;
+            // On ne bloque pas si c'est la sortie métro (10,0) au niveau 1
+            if(map[ny][nx] === 1 && !(currentLevel===1 && nx===10 && ny===0)) return;
+            
             playerPos.x = nx; playerPos.y = ny;
 
             let idx = items.findIndex(i => i.x === nx && i.y === ny);
@@ -343,7 +376,6 @@
                 document.getElementById('score').innerText = score;
                 const item = items[idx];
                 
-                // GESTION DES POPUPS AVEC DESCRIPTIONS SPÉCIFIQUES
                 if(item.type === 'letter') {
                     showLoveLetter();
                 } else {
@@ -353,11 +385,9 @@
                     if(item.type === 'cap') desc = "Il ne sort jamais sans.";
                     if(item.type === 'key') desc = "Pourquoi il a les clés d'Angèle ? Bizarre...";
                     if(item.type === 'foodbag') desc = "Il a fait des courses avant de s'endormir.";
-
                     let popupHtml = `<h3>${item.name}</h3><p>${desc}</p>`;
                     showPopup(popupHtml, 3500); 
                 }
-                
                 items.splice(idx, 1);
 
                 if(score === 3) {
@@ -371,7 +401,12 @@
             const exit = levels[currentLevel].exit;
             if(nx === exit.x && ny === exit.y) {
                 if(score >= 3) {
-                    if(currentLevel === 1) loadLevel(2); else endGame(); 
+                    if(currentLevel === 1) {
+                        // LANCE LA CINÉMATIQUE
+                        playMetroCinematic(() => { loadLevel(2); });
+                    } else {
+                        endGame(); 
+                    }
                 } else {
                     showMsg("Il te manque des objets !");
                     playerPos.y += (currentLevel===1 ? 1 : -1); 
@@ -413,7 +448,8 @@
                     else { 
                         ctx.fillStyle = conf.colorGround; ctx.fillRect(px,py,TILE,TILE); 
                         if(currentLevel === 1) {
-                            if((x+y)%5 === 0 && x>2 && x<17 && y>2 && y<17 && t===0) drawSprite(ctx, 'flower', x, y);
+                            // MOINS DE FLEURS : Modulo plus grand (9) et plus espacées
+                            if((x+y)%9 === 0 && x%3 !== 0 && x>2 && x<17 && y>2 && y<17 && t===0) drawSprite(ctx, 'flower', x, y);
                             if((x === 3 || x === 16) && y%4 === 0 && y>2 && y<17) drawSprite(ctx, 'bench', x, y);
                         }
                     }
@@ -426,7 +462,8 @@
 
             const ex = levels[currentLevel].exit;
             if(currentLevel === 1) {
-                ctx.fillStyle = "#f39c12"; ctx.font="14px Arial"; ctx.fillText(conf.exitName, ex.x*TILE, ex.y*TILE+20);
+                // DESSIN DU SPRITE MÉTRO AU LIEU DU TEXTE
+                drawSprite(ctx, 'metroExit', ex.x, ex.y);
             } else {
                 ctx.fillStyle = "#e74c3c"; ctx.fillRect(ex.x*TILE+10, ex.y*TILE+10, 20, 20); ctx.fillStyle="white"; ctx.fillText("SAM", ex.x*TILE+8, ex.y*TILE+24);
             }
