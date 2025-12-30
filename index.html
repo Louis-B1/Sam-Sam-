@@ -3,35 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission: Samuel à Paris (Deluxe Edition)</title>
+    <title>Mission: Samuel à Paris (Final Cut)</title>
     <style>
         /* --- STYLE RETRO --- */
         body { 
-            background-color: #050505; 
-            margin: 0; overflow: hidden; 
-            font-family: 'Courier New', monospace; 
-            color: white; 
+            background-color: #050505; margin: 0; overflow: hidden; 
+            font-family: 'Courier New', monospace; color: white; 
             display: flex; justify-content: center; align-items: center; height: 100vh;
             user-select: none;
         }
-
         .scanlines {
             position: fixed; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
             background-size: 100% 4px;
         }
 
-        /* --- ECRAN TITRE --- */
+        /* --- TITLE --- */
         #title-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 300; 
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: #000; z-index: 300; display: flex; flex-direction: column; justify-content: center; align-items: center;
             animation: fadeOut 1.5s ease-in-out 3s forwards; pointer-events: none;
         }
-        #title-main { font-size: 60px; color: #fff; letter-spacing: 10px; font-weight: bold; text-shadow: 4px 4px 0 #d43737; }
+        #title-main { font-size: 60px; font-weight: bold; text-shadow: 4px 4px 0 #d43737; }
         @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
 
-        /* --- TÉLÉPHONE --- */
+        /* --- PHONE --- */
         #phone-container {
             position: absolute; width: 360px; height: 720px;
             background: #111; border: 12px solid #222; border-radius: 40px;
@@ -40,36 +36,37 @@
             opacity: 0; animation: fadeIn 1s ease-out 3.5s forwards;
         }
         @keyframes fadeIn { to { opacity: 1; } }
-        #chat-header { background: #202020; padding: 20px; text-align: center; border-bottom: 1px solid #333; color: #fff; font-weight: bold; }
+        #chat-header { background: #202020; padding: 20px; text-align: center; border-bottom: 1px solid #333; font-weight: bold; }
         #chat-body { flex: 1; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: #000; overflow-y: auto; }
         .msg { max-width: 80%; padding: 12px; border-radius: 18px; font-size: 13px; animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .left { background: #333; align-self: flex-start; color: #ddd; }
-        .right { background: #007aff; align-self: flex-end; color: white; }
+        .right { background: #007aff; align-self: flex-end; }
         .sender { font-size: 10px; color: #888; margin-bottom: 4px; display: block; font-weight: bold; text-transform: uppercase; }
-        #btn-start { padding: 25px; background: #27ae60; color: white; text-align: center; cursor: pointer; font-weight: bold; font-size: 18px; display: none; border-top: 2px solid #2ecc71; }
+        #btn-start { padding: 25px; background: #27ae60; text-align: center; cursor: pointer; font-weight: bold; font-size: 18px; display: none; border-top: 2px solid #2ecc71; }
 
         /* --- JEU --- */
         #game-container { position: relative; display: none; }
         canvas { background: #111; border: 8px solid #444; box-shadow: 0 0 60px rgba(0,0,0,1); image-rendering: pixelated; }
         
-        /* UI DÉPLACÉE EN BAS À GAUCHE */
         #game-ui {
             position: absolute; bottom: 20px; left: 20px;
             background: rgba(0, 0, 0, 0.9); padding: 15px; border-radius: 8px; border: 2px solid #fff;
-            color: white; min-width: 250px; z-index: 10;
+            min-width: 250px; z-index: 10;
         }
         .ui-level { color: #f1c40f; font-weight: bold; font-size: 14px; margin-bottom: 5px; text-transform: uppercase; }
         .ui-score { font-size: 20px; font-weight: bold;}
         #msg-popup { margin-top: 10px; color: #e74c3c; font-weight: bold; height: 20px; font-size: 14px; }
 
-        /* POPUP LETTRE D'AMOUR */
-        #letter-popup {
+        /* NOUVEAU POPUP GÉNÉRIQUE POUR LES ITEMS */
+        #main-popup {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #fff; color: #000; padding: 30px; border: 4px solid #e74c3c;
-            z-index: 100; display: none; text-align: center; box-shadow: 0 0 50px #e74c3c;
-            font-family: 'Courier New', cursive;
+            background: rgba(0,0,0,0.95); color: #fff; padding: 25px; border: 4px solid #f1c40f;
+            z-index: 100; display: none; text-align: center; box-shadow: 0 0 30px #f1c40f;
+            border-radius: 10px; min-width: 300px;
         }
+        #main-popup h3 { margin-top: 0; color: #f1c40f; }
+        #main-popup p { font-size: 16px; line-height: 1.4; }
 
         /* --- FIN --- */
         #end-screen {
@@ -103,10 +100,7 @@
             <div id="msg-popup"></div>
         </div>
         
-        <div id="letter-popup">
-            <h3 style="color:#e74c3c; margin-top:0;">💌 Lettre d'Alexis 💌</h3>
-            <p style="font-size: 18px; font-weight:bold;">"Mon Sam chéri, rejoins-moi vite. Le Kebab refroidit... Je t'attends. <3"</p>
-        </div>
+        <div id="main-popup"></div>
 
         <canvas id="gameCanvas" width="800" height="800"></canvas>
     </div>
@@ -158,7 +152,6 @@
         const levels = {
             1: {
                 name: "PLACE DES VOSGES",
-                // Couleurs de base (améliorées par les détails)
                 colorWall: "#a52a2a", colorGround: "#27ae60", colorPath: "#ecf0f1",
                 items: [
                     {x: 4, y: 4, type: "card", name: "Carte Bancaire"},
@@ -167,11 +160,10 @@
                 ],
                 enemies: [{x: 8, y: 8, dx: 1}, {x: 12, y: 12, dx: -1}], 
                 start: {x: 10, y: 18},
-                exit: {x: 10, y: 0}
+                exit: {x: 10, y: 0}, exitName: "MÉTRO"
             },
             2: {
                 name: "PIGALLE (LA NUIT)",
-                // Couleurs sombres pour la nuit
                 colorWall: "#2c2c2c", colorGround: "#1a1a1a", colorPath: "#333",
                 items: [
                     {x: 3, y: 3, type: "key", name: "Clé d'Angèle"},
@@ -180,7 +172,7 @@
                 ],
                 enemies: [{x: 5, y: 5, dx: 1}, {x: 15, y: 15, dx: -1}, {x: 5, y: 15, dx: 1}, {x: 10, y: 10, dx: 1}],
                 start: {x: 10, y: 18},
-                exit: {x: 10, y: 9}
+                exit: {x: 10, y: 9}, exitName: "SAMUEL"
             }
         };
 
@@ -199,49 +191,36 @@
             const px = x * TILE; const py = y * TILE;
             
             if (type === 'card') {
-                ctx.fillStyle = "#2980b9"; ctx.fillRect(px+8, py+10, 24, 16); 
-                ctx.fillStyle = "#f1c40f"; ctx.fillRect(px+10, py+14, 6, 5); 
-                ctx.fillStyle = "#000"; ctx.fillRect(px+8, py+12, 24, 2); 
+                ctx.fillStyle = "#2980b9"; ctx.fillRect(px+8, py+10, 24, 16); ctx.fillStyle = "#f1c40f"; ctx.fillRect(px+10, py+14, 6, 5); ctx.fillStyle = "#000"; ctx.fillRect(px+8, py+12, 24, 2); 
             } 
             else if (type === 'kebab') {
-                ctx.fillStyle = "#e67e22"; ctx.beginPath(); ctx.ellipse(px+20, py+20, 10, 14, 0.2, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = "#ecf0f1"; ctx.fillRect(px+16, py+10, 8, 10); 
-                ctx.fillStyle = "#c0392b"; ctx.fillRect(px+18, py+20, 4, 4);
+                ctx.fillStyle = "#e67e22"; ctx.beginPath(); ctx.ellipse(px+20, py+20, 10, 14, 0.2, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = "#ecf0f1"; ctx.fillRect(px+16, py+10, 8, 10); ctx.fillStyle = "#c0392b"; ctx.fillRect(px+18, py+20, 4, 4);
             }
             else if (type === 'cap') {
-                ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(px+20, py+18, 10, 0, Math.PI, true); ctx.fill();
-                ctx.fillStyle = "#e74c3c"; ctx.fillRect(px+18, py+18, 15, 4);
-                ctx.fillStyle = "#fff"; ctx.font="8px Arial"; ctx.fillText("PSG", px+14, py+16);
+                ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(px+20, py+18, 10, 0, Math.PI, true); ctx.fill(); ctx.fillStyle = "#e74c3c"; ctx.fillRect(px+18, py+18, 15, 4); ctx.fillStyle = "#fff"; ctx.font="8px Arial"; ctx.fillText("PSG", px+14, py+16);
             }
-            // NOUVEAUX ITEMS PIGALLE
             else if (type === 'key') {
-                ctx.fillStyle = "#f1c40f"; // Or
-                ctx.fillRect(px+15, py+10, 10, 10); // Tête
-                ctx.fillRect(px+18, py+20, 4, 15); // Tige
-                ctx.fillRect(px+22, py+30, 6, 4); // Dents
+                ctx.fillStyle = "#f1c40f"; ctx.fillRect(px+15, py+10, 10, 10); ctx.fillRect(px+18, py+20, 4, 15); ctx.fillRect(px+22, py+30, 6, 4);
             }
             else if (type === 'foodbag') {
-                 ctx.fillStyle = "#8e44ad"; ctx.fillRect(px+10, py+15, 20, 20); // Sac
-                 ctx.fillStyle = "#2ecc71"; ctx.fillRect(px+12, py+10, 5, 5); // Salade qui dépasse
-                 ctx.fillStyle = "#e74c3c"; ctx.fillRect(px+20, py+10, 5, 5); // Tomate qui dépasse
-                 ctx.strokeStyle = "#6c3483"; ctx.strokeRect(px+10, py+15, 20, 20);
+                 ctx.fillStyle = "#8e44ad"; ctx.fillRect(px+10, py+15, 20, 20); ctx.fillStyle = "#2ecc71"; ctx.fillRect(px+12, py+10, 5, 5); ctx.fillStyle = "#e74c3c"; ctx.fillRect(px+20, py+10, 5, 5); ctx.strokeStyle = "#6c3483"; ctx.strokeRect(px+10, py+15, 20, 20);
             }
             else if (type === 'letter') {
-                ctx.fillStyle = "#fff"; ctx.fillRect(px+8, py+12, 24, 16); // Enveloppe
-                ctx.strokeStyle = "#ccc"; ctx.strokeRect(px+8, py+12, 24, 16);
-                ctx.fillStyle = "#e74c3c"; ctx.beginPath(); ctx.moveTo(px+15, py+20); ctx.lineTo(px+20, py+25); ctx.lineTo(px+25, py+20); ctx.fill(); // Coeur/Sceau
+                ctx.fillStyle = "#fff"; ctx.fillRect(px+8, py+12, 24, 16); ctx.strokeStyle = "#ccc"; ctx.strokeRect(px+8, py+12, 24, 16); ctx.fillStyle = "#e74c3c"; ctx.beginPath(); ctx.moveTo(px+15, py+20); ctx.lineTo(px+20, py+25); ctx.lineTo(px+25, py+20); ctx.fill();
             }
-            // ÉLÉMENTS MOUVANTS
             else if (type === 'pigeon') {
                 let bounce = Math.sin(animTimer) * 3;
-                ctx.fillStyle = "#7f8c8d"; ctx.beginPath(); ctx.arc(px+20, py+20+bounce, 10, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = "#bdc3c7"; ctx.beginPath(); ctx.arc(px+20, py+20+bounce, 6, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = "#f39c12"; ctx.beginPath(); ctx.moveTo(px+28, py+18+bounce); ctx.lineTo(px+34, py+22+bounce); ctx.lineTo(px+28, py+24+bounce); ctx.fill();
-                ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(px+24, py+16+bounce, 3, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = "#7f8c8d"; ctx.beginPath(); ctx.arc(px+20, py+20+bounce, 10, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = "#bdc3c7"; ctx.beginPath(); ctx.arc(px+20, py+20+bounce, 6, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = "#f39c12"; ctx.beginPath(); ctx.moveTo(px+28, py+18+bounce); ctx.lineTo(px+34, py+22+bounce); ctx.lineTo(px+28, py+24+bounce); ctx.fill(); ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(px+24, py+16+bounce, 3, 0, Math.PI*2); ctx.fill();
             }
             else if (type === 'player') {
-                ctx.fillStyle = "#3498db"; ctx.fillRect(px+10, py+12, 20, 16); 
-                ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(px+20, py+14, 9, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = "#3498db"; ctx.fillRect(px+10, py+12, 20, 16); ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(px+20, py+14, 9, 0, Math.PI*2); ctx.fill();
+            }
+            // NOUVEAUX DÉTAILS VOSGES
+            else if (type === 'flower') {
+                ctx.fillStyle = (x+y)%2===0 ? "#e74c3c" : "#fff"; ctx.fillRect(px+15, py+15, 6, 6); ctx.fillStyle = "#27ae60"; ctx.fillRect(px+17, py+21, 2, 8);
+            }
+            else if (type === 'bench') {
+                 ctx.fillStyle = "#8B4513"; ctx.fillRect(px+5, py+10, 30, 10); ctx.fillStyle = "#A0522D"; ctx.fillRect(px+5, py+12, 30, 2); ctx.fillRect(px+5, py+16, 30, 2);
             }
         }
 
@@ -305,11 +284,13 @@
             });
         }
 
-        // FONCTION SPÉCIALE POUR LA LETTRE
-        function showLoveLetter() {
-            const popup = document.getElementById('letter-popup');
-            popup.style.display = 'block';
-            setTimeout(() => { popup.style.display = 'none'; }, 4000); // 4 secondes
+        // GESTION DES POPUPS
+        let popupTimeout;
+        function showPopup(html, duration = 3000) {
+            const popup = document.getElementById('main-popup');
+            popup.innerHTML = html; popup.style.display = 'block';
+            clearTimeout(popupTimeout);
+            popupTimeout = setTimeout(() => { popup.style.display = 'none'; }, duration);
         }
 
         function movePlayer(dx, dy) {
@@ -322,12 +303,37 @@
             if(idx !== -1) {
                 score++;
                 document.getElementById('score').innerText = score;
-                showMsg(`Trouvé : ${items[idx].name}`);
+                const item = items[idx];
                 
-                // SI C'EST LA LETTRE, ON AFFICHE LE POPUP
-                if(items[idx].type === 'letter') showLoveLetter();
-                
+                // CONTENU DES POPUPS SELON L'OBJET
+                let popupHtml = `<h3>${item.name}</h3><p>Indice trouvé !</p>`;
+                let duration = 3000;
+
+                if(item.type === 'letter') {
+                    popupHtml = `<h3>💌 Lettre d'Alexis 💌</h3><p>"Mon Sam chéri, rejoins-moi vite. Le Kebab refroidit... Je t'attends. <3"</p>`;
+                    duration = 5000; // 5 secondes pour la lettre
+                } else if (item.type === 'card') {
+                    popupHtml = `<h3>💳 Carte Bancaire 💳</h3><p>La carte de Sam ! Il l'a encore paumée...</p>`;
+                } else if (item.type === 'kebab') {
+                    popupHtml = `<h3>🌯 Kebab Sauce Blanche 🌯</h3><p>Le dîner de Sam. Il y a un mot d'Alexis dessus.</p>`;
+                } else if (item.type === 'cap') {
+                    popupHtml = `<h3>🧢 Casquette Mbappé 🧢</h3><p>Il ne sort jamais sans.</p>`;
+                } else if (item.type === 'key') {
+                    popupHtml = `<h3>🔑 Clé d'Angèle 🔑</h3><p>Pourquoi il a les clés d'Angèle ? Bizarre...</p>`;
+                } else if (item.type === 'foodbag') {
+                    popupHtml = `<h3>🛍️ Sac de nourriture 🛍️</h3><p>Il a fait des courses avant de s'endormir.</p>`;
+                }
+
+                showPopup(popupHtml, duration);
                 items.splice(idx, 1);
+
+                // SI TOUT EST TROUVÉ : MESSAGE D'OBJECTIF
+                if(score === 3) {
+                    setTimeout(() => {
+                         const exitName = levels[currentLevel].exitName;
+                         showPopup(`<h3>✅ MISSION ACCOMPLIE ✅</h3><p>Tu as tous les indices ! Fonce vers : <b>${exitName}</b> !</p>`, 4000);
+                    }, duration + 500);
+                }
             }
 
             const exit = levels[currentLevel].exit;
@@ -362,28 +368,23 @@
                     if (t===1) { 
                         ctx.fillStyle = conf.colorWall; ctx.fillRect(px,py,TILE,TILE); 
                         ctx.strokeStyle = currentLevel === 1 ? "rgba(0,0,0,0.2)" : "#111"; ctx.strokeRect(px,py,TILE,TILE);
-                        
-                        // DÉTAILS NIVEAU 2 : NÉONS SUR LES MURS
                         if(currentLevel === 2 && (x%3===0 || y%3===0)) {
-                             ctx.fillStyle = (x+y)%2===0 ? "#ff00cc" : "#00ccff"; // Rose ou Bleu
-                             // Clignotement
+                             ctx.fillStyle = (x+y)%2===0 ? "#ff00cc" : "#00ccff"; 
                              if(Math.sin(animTimer*2) > 0) ctx.fillRect(px+5, py+5, TILE-10, TILE-10);
                         }
                     }
                     else if (t===2) { 
                         ctx.fillStyle = conf.colorPath; ctx.fillRect(px,py,TILE,TILE); 
-                        // DÉTAILS NIVEAU 2 : LAMPADAIRES SUR LES CHEMINS
                         if(currentLevel === 2 && (x===5 || x===15) && (y===5 || y===15)) {
-                             ctx.fillStyle = "rgba(255, 255, 0, 0.2)"; // Lumière jaune
-                             ctx.beginPath(); ctx.arc(px+TILE/2, py+TILE/2, TILE/1.5, 0, Math.PI*2); ctx.fill();
+                             ctx.fillStyle = "rgba(255, 255, 0, 0.2)"; ctx.beginPath(); ctx.arc(px+TILE/2, py+TILE/2, TILE/1.5, 0, Math.PI*2); ctx.fill();
                         }
                     }
                     else { 
                         ctx.fillStyle = conf.colorGround; ctx.fillRect(px,py,TILE,TILE); 
-                        // DÉTAILS NIVEAU 1 : FLEURS ET BANCS
+                        // DÉTAILS VOSGES : FLEURS ET BANCS PIXEL ART
                         if(currentLevel === 1) {
-                            if((x+y)%7 === 0) { ctx.fillStyle = "white"; ctx.fillRect(px+10, py+10, 4, 4); } // Fleur blanche
-                            if((x+y)%11 === 0 && x>2 && x<18) { ctx.fillStyle = "#8e44ad"; ctx.fillRect(px+5, py+15, 30, 8); } // Banc
+                            if((x+y)%5 === 0 && x>2 && x<17 && y>2 && y<17 && t===0) drawSprite(ctx, 'flower', x, y);
+                            if((x === 3 || x === 16) && y%4 === 0 && y>2 && y<17) drawSprite(ctx, 'bench', x, y);
                         }
                     }
                 }
@@ -395,7 +396,7 @@
 
             const ex = levels[currentLevel].exit;
             if(currentLevel === 1) {
-                ctx.fillStyle = "#f39c12"; ctx.font="14px Arial"; ctx.fillText("MÉTRO", ex.x*TILE, ex.y*TILE+20);
+                ctx.fillStyle = "#f39c12"; ctx.font="14px Arial"; ctx.fillText(conf.exitName, ex.x*TILE, ex.y*TILE+20);
             } else {
                 ctx.fillStyle = "#e74c3c"; ctx.fillRect(ex.x*TILE+10, ex.y*TILE+10, 20, 20); ctx.fillStyle="white"; ctx.fillText("SAM", ex.x*TILE+8, ex.y*TILE+24);
             }
