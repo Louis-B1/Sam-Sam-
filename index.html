@@ -78,16 +78,12 @@
 
         #flashlight {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            /* LUMINOSITÉ AMÉLIORÉE ICI (35% transparent au lieu de 20%, et noir moins opaque 0.92) */
-            background: radial-gradient(circle at center, transparent 35%, rgba(0,0,0,0.92) 75%);
+            /* Lampe torche plus réaliste */
+            background: radial-gradient(circle at center, transparent 25%, rgba(0,0,0,0.98) 70%);
             pointer-events: none; z-index: 4; mix-blend-mode: multiply;
+            transition: transform 0.1s ease-out; /* Pour l'effet de mouvement */
         }
-        .rain {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAH0lEQVQoU2nkCAMAAwkBmqMI4H8h/w+rhw0g32OYJQxwQDgfv99cAAAAAElFTkSuQmCC') repeat;
-            opacity: 0.15; pointer-events: none; animation: rainAnim 0.4s linear infinite; z-index: 3;
-        }
-
+        
         #win-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); display: none;
@@ -96,7 +92,6 @@
         }
         #samuel-reveal { height: 50vh; animation: pop 0.5s ease-out; border: 4px solid white; }
 
-        @keyframes rainAnim { from { background-position: 0 0; } to { background-position: 10px 20px; } }
         @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
         @keyframes fadeIn { to { opacity: 1; } }
         @keyframes popIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -108,7 +103,7 @@
     <div id="title-screen">
         <div id="title-text">PARIS</div>
         <div id="title-text" style="color:#d43737">BY NIGHT</div>
-        <div id="subtitle">AFFAIRE "CORROMPUS"</div>
+        <div id="subtitle">CHAPITRE 1</div>
     </div>
 
     <div id="youtube-audio" style="position:absolute; top:-9999px;"></div>
@@ -117,23 +112,22 @@
         <div id="phone-frame">
             <div id="chat-header">
                 <div style="width:30px;height:30px;background:#555;border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:10px;">👥</div>
-                Groupe: PROJET BAC (4)
+                Les Chipies (4)
             </div>
             <div id="chat-content"></div>
         </div>
-        <div id="start-btn">RETROUVER SAMUEL</div>
+        <div id="start-btn">SAUVER SAMUEL</div>
     </div>
 
     <div id="game-container">
         <div id="flashlight"></div>
-        <div class="rain"></div>
         <canvas id="gameCanvas"></canvas>
         
         <div id="ui-layer">
             <canvas id="radar" width="140" height="140"></canvas>
             <div id="mission-panel">
                 <div id="zoneName" style="font-size: 20px; color: #d4af37; font-weight: bold; margin-bottom: 5px;">CHARGEMENT...</div>
-                <div>PREUVES DOSSIER : <span id="score" style="color:#5f5; font-weight:bold;">0</span> / 3</div>
+                <div>PREUVES BAC : <span id="score" style="color:#5f5; font-weight:bold;">0</span> / 3</div>
                 <div style="font-size: 12px; color: #aaa; margin-top: 8px;">[FLÈCHES] Bouger - [SHIFT] Courir</div>
             </div>
         </div>
@@ -141,15 +135,50 @@
         <div id="alert-msg"></div>
 
         <div id="win-screen">
-            <h1 style="color:#d4af37;">SAMUEL SÉCURISÉ.</h1>
-            <h2 style="color:white; font-size:14px; letter-spacing:2px; margin-bottom:20px;">LES PREUVES SONT SAUVÉES.</h2>
+            <h1 style="color:#d4af37;">SAMUEL RETROUVÉ.</h1>
+            <p>Il va bien. Vous avez les fiches de révision.</p>
             <img id="samuel-reveal" src="samuel.png" alt="Samuel">
             <p>(Cliquer pour recommencer)</p>
         </div>
     </div>
 
     <script>
-        // --- 1. AUDIO (ACCORDEON PARISIEN) ---
+        // --- 0. SYSTÈME AUDIO (SFX + Musique) ---
+        let audioCtx;
+        function initAudio() {
+            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        // Générateur de Bruit Blanc (Pas) et Sine (Items)
+        function playSfx(type) {
+            if(!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'step') {
+                // Simulation bruit de pas (bruit blanc filtré très court)
+                // Simplifié par une onde basse fréquence très courte pour éviter la complexité du buffer noise
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(50, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            } 
+            else if (type === 'collect') {
+                // High Pitch Ding
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+            }
+        }
+
+        // YouTube Background Music (Dark Ambient Suspense)
         var player;
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
@@ -157,83 +186,70 @@
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('youtube-audio', {
-                height: '0', width: '0', videoId: '3j8CysMvbTk', // French Accordion Classic
-                playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': '3j8CysMvbTk' }
+                height: '0', width: '0', videoId: 'tZ50Cq9_H7c', // Dark Ambient Suspense
+                playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': 'tZ50Cq9_H7c' }
             });
         }
 
-        // --- 2. TEXTURES & ASSETS ---
+        // --- 1. ASSETS ---
         const texSize = 128; 
 
         function createTexture(style) {
             const c = document.createElement('canvas'); c.width = 64; c.height = texSize;
             const x = c.getContext('2d');
 
-            if (style === 'vosges_wall') { // Brique Rouge Nuit
-                x.fillStyle = '#622'; x.fillRect(0,0,64,texSize);
-                x.fillStyle = '#411'; for(let i=0; i<200; i++) x.fillRect(Math.random()*64, Math.random()*texSize, 2, 2);
-                x.fillStyle = '#111'; 
+            if (style === 'vosges_wall') { 
+                x.fillStyle = '#422'; x.fillRect(0,0,64,texSize);
+                x.fillStyle = '#000'; 
+                for(let i=0; i<50; i++) x.fillRect(Math.random()*64, Math.random()*texSize, 4, 4); // Noise
+                // Lignes briques
                 for(let y=0; y<texSize; y+=32) {
-                    x.fillRect(0, y, 64, 3);
-                    let off = (y/32)%2===0?0:32; x.fillRect(off, y, 3, 32);
+                     x.fillRect(0, y, 64, 2);
+                     let off = (y/32)%2===0?0:32; x.fillRect(off, y, 2, 32);
                 }
-                x.fillStyle = '#000'; x.fillRect(0, 400, 64, 112); // Base sombre
             } 
-            else if (style === 'vosges_hedge') { // Haie Sombre
-                x.fillStyle = '#051005'; x.fillRect(0,0,64,texSize);
-                for(let i=0; i<400; i++) {
-                    x.fillStyle = Math.random()>0.5 ? '#112211' : '#0a1a0a'; // Très sombre
-                    let s = Math.random()*4+1; x.fillRect(Math.random()*64, Math.random()*texSize, s, s);
-                }
-            }
-            else if (style === 'pigalle') { // Mur Béton Sale + Neon
-                x.fillStyle = '#202025'; x.fillRect(0, 0, 64, texSize);
-                x.fillStyle = '#000'; for(let i=0; i<30; i++) x.fillRect(0, Math.random()*texSize, 64, 1);
-                // Effet néon rose reflet
-                x.fillStyle = 'rgba(255, 0, 100, 0.1)'; x.fillRect(10, 20, 40, 60);
+            else if (style === 'pigalle') { 
+                x.fillStyle = '#111'; x.fillRect(0, 0, 64, texSize); // Béton sombre
+                x.fillStyle = '#222'; for(let i=0; i<100; i++) x.fillRect(Math.random()*64, Math.random()*texSize, 1, 1);
+                x.fillStyle = '#300'; x.fillRect(10, 50, 40, 50); // Graffiti sombre
             }
             const img = new Image(); img.src = c.toDataURL(); return img;
         }
 
         const TEX_VOSGES_WALL = createTexture('vosges_wall');
-        const TEX_VOSGES_HEDGE = createTexture('vosges_hedge');
         const TEX_PIGALLE = createTexture('pigalle');
         
-        // Sprite Samuel (Placeholder si image manquante)
         const samuelSprite = new Image(); samuelSprite.src = "samuel.png";
         
-        // Sprite DOSSIER PREUVE (Jaune/Noir "CONFIDENTIEL")
+        // Sprite INDICE (Feuille blanche A4)
         const clueCanvas = document.createElement('canvas'); clueCanvas.width=64; clueCanvas.height=64;
         const cCtx = clueCanvas.getContext('2d');
-        cCtx.fillStyle = '#d4af37'; cCtx.fillRect(10, 20, 44, 28); // Dossier Jaune
-        cCtx.fillStyle = '#000'; cCtx.font = "10px Arial"; cCtx.fillText("CONF", 15, 38);
-        cCtx.strokeStyle = '#fff'; cCtx.lineWidth = 2; cCtx.strokeRect(10, 20, 44, 28);
+        cCtx.fillStyle = '#eee'; cCtx.fillRect(15, 15, 34, 44); // Feuille
+        cCtx.fillStyle = '#333'; 
+        cCtx.fillRect(18, 20, 20, 2); cCtx.fillRect(18, 25, 25, 2); cCtx.fillRect(18, 30, 22, 2); // Texte
         const clueSprite = new Image(); clueSprite.src = clueCanvas.toDataURL();
 
-        // --- 3. SCÉNARIO REVISITÉ (PLUS PRENANT) ---
+        // --- 2. SCÉNARIO (RETOUR AU BAC) ---
         const messages = [
-            { s: 'other', n: 'Lily', t: "Sam ? T'es où ? Le prof t'attend." },
-            { s: 'him', n: 'Samuel', t: "Je ne reviens pas." },
-            { s: 'him', n: 'Samuel', t: "C'est fini pour moi." },
-            { s: 'other', n: 'Mathis', t: "Arrête tes conneries, t'es où ?" },
-            { s: 'him', n: 'Samuel', t: "J'ai vu le commissaire." },
-            { s: 'him', n: 'Samuel', t: "Il a pris l'argent. J'ai tout filmé." },
-            { s: 'me', n: 'Moi', t: "Quoi ?? T'as des preuves ?" },
-            { s: 'him', n: 'Samuel', t: "Ils m'ont vu. Ils me traquent." },
-            { s: 'him', n: 'Samuel', t: "Je suis caché Place des Vosges. Mais ils arrivent." },
-            { s: 'him', n: 'Samuel', t: "Si je ne réponds plus... cherchez les dossiers." },
-            { s: 'me', n: 'Moi', t: "Bouge pas. J'arrive." }
+            { s: 'other', n: 'Lily', t: "Sam, t'es où ? Le contrôle commence dans 1h !" },
+            { s: 'other', n: 'Mathis', t: "Il a ses fiches ?" },
+            { s: 'him', n: 'Samuel', t: "JE SUIS SUIVI." },
+            { s: 'me', n: 'Moi', t: "Quoi ? Par qui ?" },
+            { s: 'him', n: 'Samuel', t: "La BAC. La police." },
+            { s: 'him', n: 'Samuel', t: "Ils pensent que je deale. J'ai couru." },
+            { s: 'me', n: 'Moi', t: "Putain Sam..." },
+            { s: 'him', n: 'Samuel', t: "Je me suis paumé vers Pigalle après les Vosges." },
+            { s: 'him', n: 'Samuel', t: "J'ai fait tomber mes fiches de révision en courant." },
+            { s: 'him', n: 'Samuel', t: "Sans elles, j'ai pas mon BAC." },
+            { s: 'me', n: 'Moi', t: "Cache-toi. Je viens récupérer tes fiches." }
         ];
 
         let msgIdx = 0;
         function playChat() {
             if(msgIdx === 0) {
-                setTimeout(() => {
-                     const m = messages[0]; addMsg(m); msgIdx++; playChat();
-                }, 4000);
+                setTimeout(() => { const m = messages[0]; addMsg(m); msgIdx++; playChat(); }, 3500);
                 return;
             }
-
             if(msgIdx >= messages.length) {
                 document.getElementById('start-btn').style.display = 'block';
                 return;
@@ -241,7 +257,7 @@
             const m = messages[msgIdx];
             addMsg(m);
             msgIdx++;
-            setTimeout(playChat, 1500); // Rythme un peu plus lent pour lire
+            setTimeout(playChat, 1200);
         }
         
         function addMsg(m) {
@@ -257,16 +273,17 @@
         window.onload = playChat;
 
         document.getElementById('start-btn').addEventListener('click', () => {
+            initAudio(); // Activer l'audio context au clic
             document.getElementById('phone-screen').style.display = 'none';
             document.getElementById('ui-layer').style.display = 'flex';
             
             gameActive = true;
             loadLevel(0);
-            if(player && player.unMute) { player.unMute(); player.setVolume(100); player.playVideo(); }
+            if(player && player.unMute) { player.unMute(); player.setVolume(70); player.playVideo(); }
             loop();
         });
 
-        // --- 4. MOTEUR JEU ---
+        // --- 3. MOTEUR JEU ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const radarCanvas = document.getElementById('radar');
@@ -276,85 +293,74 @@
         function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.addEventListener('resize', resize); resize();
 
-        const TILE_SIZE = 64; const FOV = Math.PI / 2.5; 
+        const TILE_SIZE = 64; const FOV = Math.PI / 2.2; 
         let playerObj = { x: 0, y: 0, dir: 0 };
-        const WALK = 2.8; const RUN = 5.0; const ROT = 0.045; // Vitesse ajustée
+        const WALK = 3.0; const RUN = 5.5; const ROT = 0.05;
         let currentLevel = 0; let gameActive = false; let timer = 0;
         let cluesFound = 0; let currentTexture;
         let keys = {}; 
 
-        // TEXTES D'AMBIANCE (PLUS DRAMATIQUES)
         const narrative = [
-            ["Clé USB cryptée.", "Photo floue du transfert d'argent.", "Le téléphone brisé de Samuel."],
-            ["Badge de police ensanglanté.", "Rapport falsifié.", "L'ENREGISTREMENT COMPLET !"]
+            ["Fiche d'Histoire-Géo (Guerre Froide).", "Fiche de Philo (La Liberté).", "La carte d'identité de Samuel."],
+            ["Convocation au BAC froissée.", "Le stylo porte-bonheur de Sam.", "LE CLASSEUR DE RÉVISION !"]
         ];
 
-        // 1 = Mur Brique, 2 = Haie, 5 = Indice, 9 = Sortie, 8 = Samuel
         const levels = [
             {
-                name: "PLACE DES VOSGES",
+                name: "PARC - VOSGES",
                 tex: TEX_VOSGES_WALL,
-                tex2: TEX_VOSGES_HEDGE,
+                tex2: TEX_VOSGES_WALL,
                 map: [
                     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
                     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                    [1,0,1,1,1,0,0,1,1,0,0,1,1,1,0,1],
+                    [1,0,1,0,5,0,0,0,0,0,0,5,0,1,0,1], 
+                    [1,0,1,0,0,0,1,1,0,0,0,0,0,1,0,1],
+                    [1,0,0,0,0,0,1,1,0,0,0,0,0,0,0,1],
                     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-                    [1,0,2,2,2,0,0,2,2,0,0,2,2,2,0,1],
-                    [1,0,2,0,5,0,0,0,0,0,0,5,0,2,0,1], 
-                    [1,0,2,0,0,0,2,2,0,0,0,0,0,2,0,1],
-                    [1,0,0,0,0,0,2,2,0,0,0,0,0,0,0,1],
-                    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-                    [1,0,0,0,0,0,2,2,0,0,0,0,0,0,0,1],
-                    [1,0,2,0,5,0,0,0,0,0,0,0,0,2,0,1], 
-                    [1,0,2,2,2,0,0,2,2,0,0,2,2,2,0,1],
-                    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-                    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,9,1], // Sortie Sud-Est
+                    [1,0,0,0,0,0,1,1,0,0,0,0,0,0,0,1],
+                    [1,0,1,0,5,0,0,0,0,0,0,0,0,1,0,1], 
+                    [1,0,1,1,1,0,0,1,1,0,0,1,1,1,0,1],
+                    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,9,1],
                     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
                 ], start: {x: 1.5, y: 1.5, dir: 0}
             },
             {
-                name: "PIGALLE - PLANQUE",
+                name: "PIGALLE - RUELLES",
                 tex: TEX_PIGALLE,
                 tex2: TEX_PIGALLE,
-                // CARTE CORRIGÉE ET ÉLARGIE POUR ÉVITER LE BUG DE COLLISION
+                // MAP CORRIGÉE : SPAWN LARGE (3x3 vide autour du start)
                 map: [
-                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                    [1,0,0,0,1,0,0,5,0,0,1,0,0,0,1], // Ligne large
-                    [1,0,0,0,1,0,1,1,1,0,1,0,0,0,1], // Spawn en 2.5, 2.5
-                    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1], // Grand couloir central
-                    [1,1,1,0,1,1,1,0,1,1,1,0,1,1,1],
-                    [1,5,0,0,0,0,0,0,0,0,0,0,0,5,1], // Indices latéraux
-                    [1,1,1,0,1,1,1,0,1,1,1,0,1,1,1],
-                    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
-                    [1,0,0,0,1,0,1,0,1,0,1,0,0,0,1],
-                    [1,0,0,0,1,0,1,8,1,0,1,0,0,0,1], // Samuel au fond (8)
-                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-                ], start: {x: 2.5, y: 2.5, dir: 1.5} // Départ sécurisé au centre d'une zone libre
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,0,0,0,1,0,0,0,0,0,0,0,0,1], // Spawn Area Safe
+                    [1,0,0,0,1,0,1,1,1,1,1,0,0,1], 
+                    [1,0,0,0,0,0,0,0,0,0,0,0,0,1], 
+                    [1,1,1,0,1,1,1,0,1,1,1,0,1,1],
+                    [1,5,0,0,0,5,0,0,0,0,0,0,0,1], // Indices
+                    [1,1,1,0,1,1,1,0,1,1,1,0,0,1],
+                    [1,0,0,0,0,0,0,0,0,0,0,0,0,1], 
+                    [1,0,1,0,1,1,1,1,1,0,1,0,0,1],
+                    [1,0,1,0,0,0,8,0,0,0,1,0,0,1], // 8 = Samuel
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+                ], start: {x: 2, y: 2, dir: 1.5} // Départ en (2,2) qui est vide (0)
             }
         ];
 
         let map=[]; let items=[];
-
-        // --- CORRECTION INPUT ---
-        function resetKeys() {
-            // Vide les touches pressées pour éviter que le perso avance tout seul au chargement
-            keys = {};
-        }
 
         function loadLevel(idx) {
             if(idx>=levels.length) return;
             currentLevel = idx; cluesFound = 0;
             const lvl = levels[idx];
             
-            // APPEL FIX BUG
-            resetKeys();
+            // IMPORTANT : Réinitialise les touches pour éviter de foncer dans un mur au chargement
+            keys = {};
 
             document.getElementById('zoneName').innerText = lvl.name;
             document.getElementById('score').innerText = "0";
             
             currentTexture = lvl.tex;
             map = lvl.map;
-            // Placement Sûr
             playerObj.x = lvl.start.x * TILE_SIZE;
             playerObj.y = lvl.start.y * TILE_SIZE;
             playerObj.dir = lvl.start.dir;
@@ -363,20 +369,46 @@
             let cCount = 0;
             for(let y=0; y<map.length; y++) for(let x=0; x<map[y].length; x++) {
                 if(map[y][x] === 5) { 
-                    let txt = narrative[currentLevel][cCount] || "Preuve trouvée.";
+                    let txt = narrative[currentLevel][cCount] || "Fiche de révision.";
                     items.push({x: x*TILE_SIZE+32, y: y*TILE_SIZE+32, type: 'clue', active:true, txt: txt}); 
-                    map[y][x]=0; 
-                    cCount++;
+                    map[y][x]=0; cCount++;
                 }
-                if(map[y][x] === 8) { items.push({x: x*TILE_SIZE+32, y: y*TILE_SIZE+32, type: 'samuel', active:true}); map[y][x]=0; }
+                if(map[y][x] === 8) { 
+                    items.push({x: x*TILE_SIZE+32, y: y*TILE_SIZE+32, type: 'samuel', active:true}); map[y][x]=0; 
+                }
             }
         }
 
-        // --- INPUTS ---
         window.addEventListener('keydown', e => keys[e.code] = true);
         window.addEventListener('keyup', e => keys[e.code] = false);
 
-        // --- UPDATE ---
+        // --- SYSTEME DE MOUVEMENT (GLISSADE SUR MUR) ---
+        function checkCollision(newX, newY) {
+            // Hitbox un peu plus petite que la tile (pour glisser dans les portes)
+            const margin = 15; 
+            
+            // On vérifie les 4 coins du joueur
+            const testPoints = [
+                {x: newX - margin, y: newY - margin},
+                {x: newX + margin, y: newY - margin},
+                {x: newX + margin, y: newY + margin},
+                {x: newX - margin, y: newY + margin}
+            ];
+
+            for (let p of testPoints) {
+                let gx = Math.floor(p.x / TILE_SIZE);
+                let gy = Math.floor(p.y / TILE_SIZE);
+                // Si hors map ou mur
+                if (gy < 0 || gy >= map.length || gx < 0 || gx >= map[0].length) return true;
+                if (map[gy][gx] === 1 || map[gy][gx] === 2) return true;
+                if (map[gy][gx] === 9 && cluesFound < 3) {
+                    showAlert("IL FAUT TOUTES LES FICHES !");
+                    return true;
+                }
+            }
+            return false;
+        }
+
         function update() {
             if(!gameActive) return;
 
@@ -384,40 +416,53 @@
             if (keys['ArrowRight']) playerObj.dir += ROT;
             
             let speed = keys['ShiftLeft'] ? RUN : WALK;
-            let step = 0;
-            if (keys['ArrowUp']) step = speed;
-            if (keys['ArrowDown']) step = -speed;
+            let moveStep = 0;
+            if (keys['ArrowUp']) moveStep = speed;
+            if (keys['ArrowDown']) moveStep = -speed;
             
-            if(step !== 0) timer += speed*0.1; else timer = 0;
-
-            if (step !== 0) {
-                let nextX = playerObj.x + Math.cos(playerObj.dir) * step;
-                let nextY = playerObj.y + Math.sin(playerObj.dir) * step;
-                let gX = Math.floor(nextX / TILE_SIZE);
-                let gY = Math.floor(nextY / TILE_SIZE);
+            // AUDIO PAS & EFFET LAMPE
+            if(moveStep !== 0) {
+                timer += speed*0.15; // Vitesse d'animation plus rapide
                 
-                // Collision
-                if (map[gY] && map[gY][gX] !== 1 && map[gY][gX] !== 2) {
-                    playerObj.x = nextX; playerObj.y = nextY;
-                    if (map[gY][gX] === 9) {
-                        if (cluesFound >= 3) {
-                            // Changement de niveau
-                            loadLevel(currentLevel + 1);
-                        } else {
-                            // Rebondit un peu pour ne pas rester collé
-                            playerObj.x -= Math.cos(playerObj.dir)*10;
-                            playerObj.y -= Math.sin(playerObj.dir)*10;
-                            showAlert("IL MANQUE DES PREUVES !");
-                        }
-                    }
+                // Jouer un son de pas toutes les X frames (basé sur le timer sinusoïdal)
+                if(Math.sin(timer) > 0.95 && Math.random() > 0.5) playSfx('step');
+
+                // Bouger la lampe (Head Bobbing)
+                const swayX = Math.cos(timer) * 10;
+                const swayY = Math.abs(Math.sin(timer)) * 10;
+                document.getElementById('flashlight').style.transform = `translate(${swayX}px, ${swayY}px)`;
+            } else {
+                document.getElementById('flashlight').style.transform = `translate(0px, 0px)`;
+            }
+
+            if (moveStep !== 0) {
+                let dx = Math.cos(playerObj.dir) * moveStep;
+                let dy = Math.sin(playerObj.dir) * moveStep;
+
+                // TENTATIVE X (WALL SLIDING)
+                if (!checkCollision(playerObj.x + dx, playerObj.y)) {
+                    playerObj.x += dx;
+                }
+                // TENTATIVE Y (WALL SLIDING)
+                if (!checkCollision(playerObj.x, playerObj.y + dy)) {
+                    playerObj.y += dy;
+                }
+                
+                // CHECK SORTIE (Si on est sur la case 9)
+                let gx = Math.floor(playerObj.x / TILE_SIZE);
+                let gy = Math.floor(playerObj.y / TILE_SIZE);
+                if(map[gy] && map[gy][gx] === 9 && cluesFound >= 3) {
+                     loadLevel(currentLevel + 1);
                 }
             }
 
+            // CHECK ITEMS
             items.forEach(item => {
                 if (!item.active) return;
                 if (Math.hypot(playerObj.x - item.x, playerObj.y - item.y) < 40) {
                     if (item.type === 'clue') {
                         item.active = false; cluesFound++;
+                        playSfx('collect');
                         document.getElementById('score').innerText = cluesFound;
                         showAlert(item.txt);
                     } else if (item.type === 'samuel') {
@@ -437,12 +482,12 @@
 
         // --- DRAW ---
         function draw() {
-            // Ciel et Sol (Nuit urbaine)
-            ctx.fillStyle = "#050505"; ctx.fillRect(0,0,canvas.width,canvas.height/2);
-            ctx.fillStyle = "#111"; ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
+            // Ciel et Sol
+            ctx.fillStyle = "#020202"; ctx.fillRect(0,0,canvas.width,canvas.height/2);
+            ctx.fillStyle = "#0d0d0d"; ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
 
             const numRays = Math.ceil(canvas.width / 2); 
-            const bob = Math.sin(timer) * 6;
+            const bob = Math.sin(timer) * 8; // Head bob amplitude
 
             for (let i = 0; i < numRays; i++) {
                 let angle = (playerObj.dir - FOV / 2.0) + (i / numRays) * FOV;
@@ -452,8 +497,9 @@
                 let rayX = playerObj.x, rayY = playerObj.y;
                 let texType = 1;
 
-                while (!hit && dist < 1200) {
-                    dist += 2;
+                // Raycast
+                while (!hit && dist < 1000) {
+                    dist += 2; // Precision
                     rayX += eyeX * 2; rayY += eyeY * 2;
                     let tx = Math.floor(rayX / TILE_SIZE); let ty = Math.floor(rayY / TILE_SIZE);
                     if (tx < 0 || ty < 0 || tx >= map[0].length || ty >= map.length) { hit = true; }
@@ -475,13 +521,11 @@
 
                 let renderTex = (texType === 2) ? levels[currentLevel].tex2 : currentTexture;
 
-                if (renderTex) {
-                    ctx.drawImage(renderTex, texX, 0, 1, texSize, x, y, 2, h);
-                } else {
-                    ctx.fillStyle = '#444'; ctx.fillRect(x,y,2,h); 
-                }
+                if (renderTex) ctx.drawImage(renderTex, texX, 0, 1, texSize, x, y, 2, h);
+                else { ctx.fillStyle = '#444'; ctx.fillRect(x,y,2,h); }
 
-                let fog = Math.min(0.95, dist / 800);
+                // Brouillard (Atmosphère Suspense)
+                let fog = Math.min(0.98, dist / 700);
                 ctx.fillStyle = `rgba(0,0,0,${fog})`; ctx.fillRect(x, y, 2, h);
             }
 
@@ -493,7 +537,7 @@
                 let angle = Math.atan2(dy, dx) - playerObj.dir;
                 while(angle < -Math.PI) angle += 2*Math.PI; while(angle > Math.PI) angle -= 2*Math.PI;
 
-                if(Math.abs(angle) < FOV/1.3 && dist > 20) {
+                if(Math.abs(angle) < FOV/1.3 && dist > 15) {
                     let h = (TILE_SIZE * canvas.height) / dist;
                     let x = (0.5 * (angle/(FOV/2)) + 0.5) * canvas.width - h/2;
                     let y = (canvas.height - h) / 2 + bob;
@@ -508,16 +552,15 @@
 
         function drawRadar() {
             radarCtx.clearRect(0,0,140,140);
-            const sc = 8; const cX = 70; const cY = 70;
+            const sc = 7; const cX = 70; const cY = 70;
             
             for(let y=0; y<map.length; y++) {
                 for(let x=0; x<map[y].length; x++) {
                     let dx = (x * TILE_SIZE - playerObj.x) / TILE_SIZE * sc;
                     let dy = (y * TILE_SIZE - playerObj.y) / TILE_SIZE * sc;
                     if (Math.abs(dx) < 70 && Math.abs(dy) < 70) {
-                        if(map[y][x] === 1) { radarCtx.fillStyle = '#622'; radarCtx.fillRect(cX+dx, cY+dy, sc, sc); } // Mur
-                        if(map[y][x] === 2) { radarCtx.fillStyle = '#131'; radarCtx.fillRect(cX+dx, cY+dy, sc, sc); } // Haie
-                        if(map[y][x] === 9) { radarCtx.fillStyle = '#d43737'; radarCtx.fillRect(cX+dx, cY+dy, sc, sc); } // Sortie
+                        if(map[y][x] === 1) { radarCtx.fillStyle = '#422'; radarCtx.fillRect(cX+dx, cY+dy, sc, sc); } 
+                        if(map[y][x] === 9) { radarCtx.fillStyle = '#d43737'; radarCtx.fillRect(cX+dx, cY+dy, sc, sc); } 
                     }
                 }
             }
