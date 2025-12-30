@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission: Retrouver Samuel (ESG Edition)</title>
+    <title>Mission: Place des Vosges Realistic</title>
     <style>
         body { 
-            background-color: #1a1a1a; 
+            background-color: #121212; 
             margin: 0; 
             overflow: hidden; 
             font-family: 'Courier New', monospace; 
@@ -17,401 +17,368 @@
             height: 100vh;
         }
 
-        /* --- ECRAN TITRE (Intro) --- */
+        /* --- INTRO & UI --- */
         #title-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 200; display: flex; flex-direction: column; justify-content: center; align-items: center;
-            animation: fadeOut 2s ease-in-out 3s forwards; pointer-events: none;
+            animation: fadeOut 1s ease-in-out 2.5s forwards; pointer-events: none;
         }
         #title-text {
-            font-size: 60px; color: #fff; letter-spacing: 10px; text-transform: uppercase;
+            font-size: 50px; color: #fff; letter-spacing: 5px; text-transform: uppercase;
             text-shadow: 0 0 20px rgba(255,255,255,0.5); margin-bottom: 10px;
         }
-        #subtitle { font-size: 20px; color: #d43737; letter-spacing: 5px; }
-
         @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
 
-        /* --- UI DU TÉLÉPHONE --- */
         #phone-container {
-            position: absolute; width: 350px; height: 700px;
-            background: #000; border: 8px solid #333; border-radius: 30px;
+            position: absolute; width: 360px; height: 720px;
+            background: #000; border: 10px solid #222; border-radius: 35px;
             display: flex; flex-direction: column; overflow: hidden;
-            z-index: 100; box-shadow: 0 0 50px rgba(0,0,0,0.8);
-            opacity: 0; animation: fadeIn Phone 1s ease-out 3.5s forwards;
+            z-index: 100; box-shadow: 0 0 60px rgba(0,0,0,0.9);
+            opacity: 0; animation: fadeIn 1s ease-out 3s forwards;
         }
-        @keyframes fadeInPhone { to { opacity: 1; } }
+        @keyframes fadeIn { to { opacity: 1; } }
 
-        #chat-header {
-            background: #222; padding: 15px; text-align: center; border-bottom: 1px solid #444;
-            font-weight: bold; color: #fff;
-        }
-        #chat-body {
-            flex: 1; padding: 15px; display: flex; flex-direction: column; gap: 10px;
-            background: #111; overflow-y: auto;
-        }
-        .msg {
-            max-width: 80%; padding: 10px; border-radius: 15px; font-size: 14px;
-            animation: pop 0.3s ease-out;
-        }
+        #chat-header { background: #222; padding: 20px; text-align: center; border-bottom: 1px solid #444; font-weight: bold; }
+        #chat-body { flex: 1; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: #111; overflow-y: auto; }
+        .msg { max-width: 80%; padding: 12px; border-radius: 15px; font-size: 15px; animation: pop 0.3s ease-out; }
         .left { background: #333; align-self: flex-start; border-bottom-left-radius: 2px; }
         .right { background: #007aff; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .name { font-size: 10px; color: #aaa; margin-bottom: 3px; }
+        .name { font-size: 11px; color: #aaa; margin-bottom: 4px; }
         
         #btn-start {
-            padding: 20px; background: #28a745; color: white; text-align: center; 
-            cursor: pointer; font-weight: bold; text-transform: uppercase;
-            transition: background 0.2s; display: none;
+            padding: 25px; background: #28a745; color: white; text-align: center; 
+            cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 18px;
+            transition: background 0.2s; display: none; border-top: 2px solid #444;
         }
         #btn-start:hover { background: #218838; }
 
-        /* --- UI JEU --- */
+        /* --- JEU --- */
+        #game-container { display: none; position: relative; width: 840px; height: 840px; }
+        
         #game-ui {
-            position: absolute; top: 20px; left: 20px; z-index: 10; display: none;
-            background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px; border: 2px solid #555;
+            position: absolute; top: 20px; left: 20px; z-index: 10;
+            background: rgba(0,0,0,0.85); padding: 15px; border-radius: 8px; border: 2px solid #b22222;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
-        .hud-text { margin: 5px 0; font-size: 16px; }
-        .item-list { color: #ffd700; font-size: 14px; margin-top: 5px; }
-
+        .hud-text { margin: 5px 0; font-size: 18px; font-weight:bold; }
+        
         canvas { 
-            box-shadow: 0 0 30px rgba(0,0,0,0.5); 
-            image-rendering: pixelated; 
-            display: none; /* Caché au début */
+            background: #000;
+            border: 4px solid #b22222;
+            box-shadow: 0 0 50px rgba(0,0,0,0.7); 
+            image-rendering: pixelated;
         }
 
         #end-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 200; display: none;
+            background: rgba(10,10,10,0.98); z-index: 200; display: none;
             flex-direction: column; justify-content: center; align-items: center; text-align: center;
         }
-        
+        #samuel-pic {
+            width: 300px; height: 300px; object-fit: cover; border-radius: 15px;
+            border: 5px solid #28a745; margin: 20px 0; box-shadow: 0 0 30px #28a745;
+            background: #333; /* Placeholder color */
+        }
+
         @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
     </style>
 </head>
 <body>
 
     <div id="title-screen">
-        <div id="title-text">PARIS</div>
-        <div id="subtitle" style="color:#d43737">BY NIGHT</div>
-        <div style="margin-top:20px; font-size:14px; color:#666;">ESG EDITION</div>
+        <div id="title-text">PARIS IV</div>
+        <div style="font-size: 30px; color: #d43737; letter-spacing: 3px;">PLACE DES VOSGES</div>
     </div>
 
     <div id="phone-container">
         <div id="chat-header">Groupe: PROJET DE GROUPE (4)</div>
-        <div id="chat-body">
-            </div>
+        <div id="chat-body"></div>
         <div id="btn-start">ALLER CHERCHER SAMUEL</div>
     </div>
 
-    <div id="game-ui">
-        <div class="hud-text" style="color:#4db8ff; font-weight:bold;" id="zone-name">PLACE DES VOSGES</div>
-        <div class="hud-text">Objets trouvés: <span id="score">0</span>/3</div>
-        <div class="hud-text" style="font-size:12px; color:#aaa;">[FLÈCHES] Bouger</div>
-        <div id="message-area" style="margin-top:10px; color:#ff5555; font-weight:bold; min-height:20px;"></div>
+    <div id="game-container">
+        <div id="game-ui">
+            <div class="hud-text" style="color:#d43737; font-family: serif;">LIEU : PLACE DES VOSGES</div>
+            <div class="hud-text">Indices trouvés: <span id="score" style="color:#ffd700;">0</span>/3</div>
+            <div id="message-area" style="margin-top:10px; color:#4db8ff; font-weight:bold; min-height:20px;"></div>
+        </div>
+        <canvas id="gameCanvas" width="840" height="840"></canvas>
     </div>
 
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
-
     <div id="end-screen">
-        <h1 style="color: #28a745; font-size: 40px;">SAMUEL RETROUVÉ !</h1>
-        <p style="font-size: 20px; max-width: 600px; line-height: 1.5;">
-            "Wesh les gars, désolé j'avais plus de batterie et je me suis endormi dans le Kebab.<br>
-            C'est pas la police, c'est juste le vigile du Monoprix qui m'a regardé bizarre."
+        <h1 style="color: #28a745; font-size: 50px; margin: 0;">SAMUEL RETROUVÉ !</h1>
+        <img id="samuel-pic" src="samuel.jpg" alt="Photo de Samuel" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'300\' height=\'300\' style=\'background:%23333;color:white;font-size:20px;text-anchor:middle;\'><text x=\'50%\' y=\'50%\'>samuel.jpg introuvable</text></svg>';">
+        <p style="font-size: 22px; max-width: 700px; line-height: 1.4; background: #222; padding: 20px; border-radius: 10px;">
+            "Wesh les gars, désolé j'avais plus de batterie et je me suis endormi dans le Kebab du coin.<br><br>
+            C'était pas la police, c'est juste le vigile du Monoprix qui m'a mal regardé."
         </p>
         <br>
-        <button onclick="location.reload()" style="padding:15px 30px; font-size:20px; cursor:pointer;">RETOURNER EN COURS</button>
+        <button onclick="location.reload()" style="padding:20px 40px; font-size:22px; cursor:pointer; background:#d43737; color:white; border:none; font-weight:bold;">RETOURNER EN COURS</button>
     </div>
 
     <script>
-        // --- 1. SYSTÈME AUDIO ---
+        // --- 1. AUDIO ---
         const AudioSys = {
             ctx: null,
-            init: function() { 
-                try {
-                    this.ctx = new (window.AudioContext || window.webkitAudioContext)(); 
-                } catch(e) { console.log("Audio not supported"); }
-            },
-            beep: function(freq, type) {
+            init: function() { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {} },
+            beep: function(freq) {
                 if(!this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = type || 'sine';
-                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
-                osc.connect(gain); gain.connect(this.ctx.destination);
-                osc.start(); osc.stop(this.ctx.currentTime + 0.15);
+                const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                gain.gain.setValueAtTime(0.05, this.ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
+                osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + 0.1);
             },
-            playMusic: function(mood) {
+            playAmbience: function() {
                 if(!this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = mood === 'pigalle' ? 'sawtooth' : 'triangle';
-                osc.frequency.setValueAtTime(mood === 'pigalle' ? 50 : 100, this.ctx.currentTime);
-                gain.gain.value = 0.02; // Très bas
-                osc.connect(gain); gain.connect(this.ctx.destination);
-                osc.start();
+                // Bruit de fond "parc" très subtil
+                const bufferSize = 2 * this.ctx.sampleRate, noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate), output = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+                const noise = this.ctx.createBufferSource(); noise.buffer = noiseBuffer; noise.loop = true;
+                const filter = this.ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 400;
+                const gain = this.ctx.createGain(); gain.gain.value = 0.03;
+                noise.connect(filter); filter.connect(gain); gain.connect(this.ctx.destination); noise.start();
             }
         };
 
-        // --- 2. SCÉNARIO (HUMOUR ESG) ---
+        // --- 2. SCÉNARIO ---
         const messages = [
             { sender: 'Matthieu', text: "Il est où Samuel ? Le prof va faire l'appel." },
             { sender: 'Samuel', text: "LES GARS C'EST CHAUD." },
             { sender: 'Samuel', text: "La police me coursent." },
             { sender: 'Moi', text: "Mdr arrête tes mythos Sam, t'as encore bu ?" },
             { sender: 'Samuel', text: "Jure que non ! J'étais Place des Vosges, y'a eu une descente." },
-            { sender: 'Julie', text: "Pff... Il a surement perdu sa carte étudiante et il ose pas venir." },
-            { sender: 'Samuel', text: "J'ai paumé mes affaires en courant vers Pigalle." },
-            { sender: 'Samuel', text: "Venez me chercher je suis perdu." },
-            { sender: 'Moi', text: "Ok j'arrive. Bouge pas (pour une fois)." }
+            { sender: 'Samuel', text: "J'ai paumé mes affaires en courant. Venez me chercher." },
+            { sender: 'Moi', text: "Ok j'arrive. Bouge pas." }
         ];
 
-        // --- 3. JEU (MOTEUR 2D) ---
+        // --- 3. GRAPHISMES AVANCÉS (Textures procédurales) ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const TILE = 40; 
+        const TILE = 28; // Tuiles plus petites pour une carte plus grande
+        const MAP_SIZE = 30; // 30x30 tiles
+        canvas.width = MAP_SIZE * TILE; canvas.height = MAP_SIZE * TILE;
+
+        const textures = {};
+        function createTexture(type) {
+            const c = document.createElement('canvas'); c.width = TILE; c.height = TILE; const x = c.getContext('2d');
+            if(type === 'grass') {
+                x.fillStyle = '#4a7c37'; x.fillRect(0,0,TILE,TILE);
+                x.fillStyle = '#5e9649'; for(let i=0;i<20;i++) x.fillRect(Math.random()*TILE,Math.random()*TILE,2,2);
+            }
+            if(type === 'path') { // Gravier
+                x.fillStyle = '#d4c5a3'; x.fillRect(0,0,TILE,TILE);
+                x.fillStyle = '#bfae8a'; for(let i=0;i<40;i++) x.fillRect(Math.random()*TILE,Math.random()*TILE,2,2);
+            }
+            if(type === 'arcade') { // Sol pierre sous arcades
+                x.fillStyle = '#a8a8a8'; x.fillRect(0,0,TILE,TILE);
+                x.strokeStyle = '#888'; x.strokeRect(0,0,TILE,TILE); x.strokeRect(TILE/4,TILE/4,TILE/2,TILE/2);
+            }
+            if(type === 'brick') { // Mur brique rouge foncé
+                x.fillStyle = '#8a3324'; x.fillRect(0,0,TILE,TILE);
+                x.fillStyle = '#6b271b'; // Joints
+                for(let y=0; y<TILE; y+=7) x.fillRect(0,y,TILE,1);
+                for(let xPos=0; xPos<TILE; xPos+=14) x.fillRect(xPos,0,1,TILE);
+                // Ombre portée
+                x.fillStyle = "rgba(0,0,0,0.3)"; x.fillRect(0, TILE-4, TILE, 4);
+            }
+            if(type === 'fence') { // Grille du parc
+                x.fillStyle = textures.path; x.fillRect(0,0,TILE,TILE); // Fond chemin
+                x.fillStyle = '#222'; 
+                x.fillRect(TILE/2-2, 0, 4, TILE); // Barreau vertical
+                x.fillRect(0, TILE/3, TILE, 4); // Barreau horizontal
+            }
+             if(type === 'statue') { // Centre
+                x.fillStyle = textures.grass; x.fillRect(0,0,TILE,TILE);
+                x.fillStyle = '#ccc'; x.fillRect(4,4,TILE-8,TILE-8);
+                x.fillStyle = '#999'; x.fillRect(8,8,TILE-16,TILE-16);
+            }
+            return x.createPattern(c, 'repeat');
+        }
+
+        // --- 4. CARTE GÉANTE "PLACE DES VOSGES" (30x30) ---
+        // 0=Grass, 1=Brick Wall, 2=Gravel Path (Road), 3=Arcade Floor, 4=Fence, 5=Statue, 9=Exit
+        const map = [];
+        for(let y=0; y<MAP_SIZE; y++) {
+            let row = [];
+            for(let x=0; x<MAP_SIZE; x++) {
+                // Bordures extérieures (Bâtiments)
+                if(x<2 || x>=MAP_SIZE-2 || y<2 || y>=MAP_SIZE-2) row.push(1);
+                // Sol des arcades
+                else if(x===2 || x===MAP_SIZE-3 || y===2 || y===MAP_SIZE-3) row.push(3);
+                // Route autour du parc
+                else if(x===3 || x===MAP_SIZE-4 || y===3 || y===MAP_SIZE-4) row.push(2);
+                // Grille du parc
+                else if(x===4 || x===MAP_SIZE-5 || y===4 || y===MAP_SIZE-5) row.push(4);
+                // Intérieur du parc (Herbe par défaut)
+                else {
+                    // Allées centrales en croix
+                    if(x === MAP_SIZE/2 || x === MAP_SIZE/2-1 || y === MAP_SIZE/2 || y === MAP_SIZE/2-1) row.push(2);
+                    // Allées en diagonales
+                    else if(x===y || x === MAP_SIZE-1-y) row.push(2);
+                    else row.push(0); // Herbe
+                }
+            }
+            map.push(row);
+        }
+        // Centre exact (Statue Louis XIII)
+        map[14][14] = 5; map[15][15] = 5; map[14][15] = 5; map[15][14] = 5;
+        // Sorties sous les arcades
+        map[MAP_SIZE-3][MAP_SIZE/2] = 9; 
+
+        // Items (Sprites distincts)
+        let items = [
+            {x: 8, y: 8, type: 'card'}, // Carte étudiante
+            {x: 22, y: 6, type: 'kebab'}, // Kebab
+            {x: 15, y: 20, type: 'clopes'} // Clopes
+        ];
         
-        let player = { x: 2, y: 2, color: '#fff' };
-        let levelIndex = 0;
+        // Joueur
+        let player = { x: MAP_SIZE/2, y: MAP_SIZE-5 }; // Commence en bas du parc
         let itemsFound = 0;
         let gameActive = false;
-        let currentMap = [];
-        let items = [];
-        let exit = {};
 
-        const THEMES = {
-            vosges: { bg: '#2d6a4f', wall: '#b22222', ground: '#40916c', text: 'PLACE DES VOSGES' }, 
-            pigalle: { bg: '#1a1a1a', wall: '#ff0055', ground: '#333333', text: 'PIGALLE (LA NUIT)' } 
-        };
-        let currentTheme = THEMES.vosges;
-
-        // MAPS
-        const map1 = [
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-            [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1],
-            [1,0,1,1,1,1,1,0,1,0,1,1,1,1,1,0,1,1,0,1],
-            [1,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,1,0,0,1],
-            [1,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1],
-            [1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,0,1,0,0,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,0,1,0,1,0,1,1,1,0,1,1,1,0,1,0,1,0,0,1],
-            [1,0,1,0,1,0,0,0,0,0,0,0,0,0,1,0,1,0,0,1],
-            [1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,0,1,1,0,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1]
-        ];
-
-        const map2 = [
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1],
-            [1,0,1,1,1,1,1,1,1,1,1,0,1,0,1,1,1,1,0,1],
-            [1,0,1,0,0,0,0,0,0,0,1,0,1,0,1,0,0,0,0,1],
-            [1,0,1,0,1,1,1,1,1,0,1,0,0,0,1,0,1,1,0,1],
-            [1,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,1],
-            [1,0,1,1,1,0,1,1,1,0,1,1,1,1,1,0,1,1,0,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,1,1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1],
-            [1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,0,1,1,1,0,1,0,1,1,1,1,1,1,1,0,1,1,0,1],
-            [1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,3,1],
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ];
-
-        const level1Items = [
-            {x: 5, y: 4, label: "Carte Étudiante Perdue"},
-            {x: 15, y: 2, label: "Kebab Sauce Algérienne"},
-            {x: 10, y: 8, label: "Paquet de clopes vide"}
-        ];
-        
-        const level2Items = [
-            {x: 1, y: 11, label: "Ticket de métro"},
-            {x: 17, y: 3, label: "Flyer soirée BDE"},
-            {x: 8, y: 5, label: "Chaussure de Samuel"}
-        ];
-
-        // --- LOGIQUE JEU ---
-
-        function initLevel(lvl) {
-            levelIndex = lvl;
-            itemsFound = 0;
-            document.getElementById('score').innerText = "0";
+        // --- LOGIQUE ---
+        function startGame() {
+            document.getElementById('phone-container').style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
+            gameActive = true;
+            AudioSys.init(); AudioSys.playAmbience();
             
-            if (lvl === 0) {
-                currentMap = map1;
-                items = JSON.parse(JSON.stringify(level1Items)); 
-                currentTheme = THEMES.vosges;
-                player.x = 2; player.y = 2;
-                exit = {x: 18, y: 13, type: 'exit'}; 
-            } else {
-                currentMap = map2;
-                items = JSON.parse(JSON.stringify(level2Items));
-                currentTheme = THEMES.pigalle;
-                player.x = 2; player.y = 1; 
-                exit = {x: 18, y: 11, type: 'samuel'}; 
-            }
-
-            document.getElementById('zone-name').innerText = currentTheme.text;
-            AudioSys.playMusic(lvl === 0 ? 'vosges' : 'pigalle');
+            // Générer les textures maintenant que le canvas est visible
+            textures.grass = createPattern('grass');
+            textures.path = createPattern('path');
+            textures.arcade = createPattern('arcade');
+            textures.brick = createPattern('brick');
+            textures.fence = createPattern('fence');
+            textures.statue = createPattern('statue');
+            
             draw();
         }
 
         function move(dx, dy) {
-            const newX = player.x + dx;
-            const newY = player.y + dy;
+            if(!gameActive) return;
+            const nx = player.x + dx; const ny = player.y + dy;
+            const cell = map[ny][nx];
+            
+            if(cell === 1 || cell === 4 || cell === 5) { // Collision Murs/Grilles/Statue
+                 AudioSys.beep(50); // Son sourd choc
+                 return;
+            } 
 
-            if (currentMap[newY][newX] === 1) return; 
+            player.x = nx; player.y = ny;
+            AudioSys.beep(200); // Son de pas
 
-            player.x = newX;
-            player.y = newY;
-            AudioSys.beep(100, 'triangle'); 
+            const itemIdx = items.findIndex(i => i.x === nx && i.y === ny);
+            if(itemIdx !== -1) {
+                itemsFound++;
+                document.getElementById('score').innerText = itemsFound;
+                let itemName = items[itemIdx].type === 'card' ? "Carte Étudiante" : items[itemIdx].type === 'kebab' ? "Kebab sauce blanche" : "Paquet de clopes";
+                showMessage(`Trouvé : ${itemName} !`);
+                AudioSys.beep(600); // Ding!
+                items.splice(itemIdx, 1);
+            }
 
-            checkEvents();
+            if(cell === 9) { // Sortie (Trouver Samuel)
+                if(itemsFound >= 3) winGame();
+                else showMessage("Il manque des affaires à Samuel !");
+            }
             draw();
         }
 
-        function checkEvents() {
-            const itemIndex = items.findIndex(i => i.x === player.x && i.y === player.y);
-            if (itemIndex !== -1) {
-                itemsFound++;
-                document.getElementById('score').innerText = itemsFound;
-                showMessage("Trouvé : " + items[itemIndex].label);
-                AudioSys.beep(600, 'sine'); 
-                items.splice(itemIndex, 1);
-            }
-
-            if (player.x === exit.x && player.y === exit.y) {
-                if (itemsFound < 3) {
-                    showMessage("Il te manque des indices ! (" + itemsFound + "/3)");
-                    player.x -= 1; 
-                } else {
-                    if (exit.type === 'exit') {
-                        initLevel(1); 
-                    } else {
-                        winGame();
-                    }
-                }
-            }
-        }
-
         function showMessage(txt) {
-            const el = document.getElementById('message-area');
-            el.innerText = txt;
-            setTimeout(() => el.innerText = "", 3000);
+            const el = document.getElementById('message-area'); el.innerText = txt; setTimeout(() => el.innerText = "", 2000);
         }
 
         function winGame() {
             gameActive = false;
-            document.getElementById('gameCanvas').style.display = 'none';
-            document.getElementById('game-ui').style.display = 'none';
+            document.getElementById('game-container').style.display = 'none';
             document.getElementById('end-screen').style.display = 'flex';
+            // Tente de charger l'image réelle si elle a échoué au premier chargement
+            const img = document.getElementById('samuel-pic');
+            if(img.naturalWidth === 0) img.src = img.src; 
         }
 
-        // --- RENDU GRAPHIQUE ---
+        // --- RENDU (MAX GRAPHICS) ---
         function draw() {
-            ctx.fillStyle = currentTheme.bg;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            for (let y = 0; y < currentMap.length; y++) {
-                for (let x = 0; x < currentMap[y].length; x++) {
-                    const cell = currentMap[y][x];
-                    const posX = x * TILE;
-                    const posY = y * TILE;
-
-                    if (cell === 1) {
-                        ctx.fillStyle = currentTheme.wall;
-                        ctx.fillRect(posX, posY, TILE, TILE);
-                        ctx.strokeStyle = "rgba(0,0,0,0.3)";
-                        ctx.strokeRect(posX, posY, TILE, TILE);
-                    } else {
-                        ctx.fillStyle = currentTheme.ground;
-                        ctx.fillRect(posX, posY, TILE, TILE);
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            
+            // 1. MAP
+            for(let y=0; y<MAP_SIZE; y++) {
+                for(let x=0; x<MAP_SIZE; x++) {
+                    const c = map[y][x]; const px = x*TILE; const py = y*TILE;
+                    if(c===0) ctx.fillStyle = textures.grass;
+                    else if(c===1) ctx.fillStyle = textures.brick;
+                    else if(c===2) ctx.fillStyle = textures.path;
+                    else if(c===3) ctx.fillStyle = textures.arcade;
+                    else if(c===4) ctx.fillStyle = textures.fence;
+                    else if(c===5) ctx.fillStyle = textures.statue;
+                    
+                    ctx.fillRect(px, py, TILE, TILE);
+                    
+                    // Ombre portée des murs sur le sol pour la profondeur
+                    if(c===1 && y+1 < MAP_SIZE && map[y+1][x] !== 1) {
+                         ctx.fillStyle = "rgba(0,0,0,0.4)"; ctx.fillRect(px, py+TILE, TILE, TILE/2);
                     }
                 }
             }
 
-            items.forEach(item => {
-                ctx.fillStyle = "#FFD700"; 
-                ctx.beginPath();
-                ctx.arc(item.x * TILE + TILE/2, item.y * TILE + TILE/2, 8, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = "black";
-                ctx.font = "bold 12px Arial";
-                ctx.fillText("?", item.x * TILE + 15, item.y * TILE + 24);
+            // 2. ITEMS (Sprites détaillés)
+            items.forEach(i => {
+                const px = i.x*TILE; const py = i.y*TILE;
+                if(i.type === 'card') {
+                    ctx.fillStyle = "#eee"; ctx.fillRect(px+4, py+8, TILE-8, TILE-12); // Carte
+                    ctx.fillStyle = "#007aff"; ctx.fillRect(px+6, py+10, TILE-12, 6); // Photo
+                } else if (i.type === 'kebab') {
+                    ctx.fillStyle = "#e6be8a"; ctx.beginPath(); ctx.arc(px+TILE/2, py+TILE/2, 10, 0, Math.PI*2); ctx.fill(); // Pain
+                    ctx.fillStyle = "#d35400"; ctx.fillRect(px+8, py+10, 12, 8); // Viande
+                } else {
+                    ctx.fillStyle = "#c0392b"; ctx.fillRect(px+6, py+6, 16, 20); // Paquet rouge
+                    ctx.fillStyle = "white"; ctx.fillRect(px+8, py+8, 12, 6);
+                }
+                // Petit halo doré
+                ctx.strokeStyle = "#FFD700"; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(px+TILE/2, py+TILE/2, 12, 0, Math.PI*2); ctx.stroke();
             });
 
-            const exX = exit.x * TILE; 
-            const exY = exit.y * TILE;
-            if (exit.type === 'exit') {
-                ctx.fillStyle = "#00ff00"; 
-                ctx.fillRect(exX, exY, TILE, TILE);
-                ctx.fillStyle = "black"; ctx.fillText("GO", exX+10, exY+25);
-            } else {
-                ctx.fillStyle = "#00ffff"; 
-                ctx.beginPath();
-                ctx.arc(exX + TILE/2, exY + TILE/2, 15, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = "black"; ctx.fillText("SAM", exX+8, exY+25);
-            }
+            // 3. JOUEUR (Sprite vue de dessus)
+            const px = player.x*TILE; const py = player.y*TILE;
+            // Ombre ronde sous le joueur
+            ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.beginPath(); ctx.ellipse(px+TILE/2, py+TILE-2, 10, 5, 0, 0, Math.PI*2); ctx.fill();
+            // Corps
+            ctx.fillStyle = "#3498db"; ctx.fillRect(px+4, py+8, TILE-8, TILE-10); 
+            // Épaules
+            ctx.fillStyle = "#2980b9"; ctx.fillRect(px+2, py+8, TILE-4, 6);
+            // Tête (ronde vue de dessus)
+            ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(px+TILE/2, py+10, 9, 0, Math.PI*2); ctx.fill();
+            // Cheveux
+            ctx.fillStyle = "#2c3e50"; ctx.beginPath(); ctx.arc(px+TILE/2, py+8, 9, Math.PI, Math.PI*2); ctx.fill();
 
-            ctx.fillStyle = "#fff";
-            ctx.fillRect(player.x * TILE + 5, player.y * TILE + 5, TILE - 10, TILE - 10);
-            ctx.fillStyle = "black";
-            ctx.fillRect(player.x * TILE + 10, player.y * TILE + 10, 5, 5);
-            ctx.fillRect(player.x * TILE + 25, player.y * TILE + 10, 5, 5);
+            // 4. SORTIE (Samuel caché sous une arcade)
+            const sx = (MAP_SIZE/2)*TILE; const sy = (MAP_SIZE-3)*TILE;
+            ctx.fillStyle = "#00ff00"; ctx.globalAlpha = 0.3; ctx.fillRect(sx, sy, TILE, TILE); ctx.globalAlpha = 1;
+            ctx.fillStyle = "white"; ctx.font="12px Arial"; ctx.fillText("SAM?", sx, sy+TILE/2);
         }
 
-        window.addEventListener('keydown', (e) => {
-            if (!gameActive) return;
-            switch(e.key) {
-                case "ArrowUp": move(0, -1); break;
-                case "ArrowDown": move(0, 1); break;
-                case "ArrowLeft": move(-1, 0); break;
-                case "ArrowRight": move(1, 0); break;
-            }
+        window.addEventListener('keydown', e => {
+            if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
+            if(e.key === "ArrowUp") move(0,-1);
+            if(e.key === "ArrowDown") move(0,1);
+            if(e.key === "ArrowLeft") move(-1,0);
+            if(e.key === "ArrowRight") move(1,0);
         });
 
-        // --- GESTION INTRO (Corrigée pour éviter le blocage Audio) ---
+        // --- INTRO CHAT ---
         let msgIdx = 0;
         const chatBody = document.getElementById('chat-body');
-        
         function playChat() {
-            // On attend 4 secondes pour laisser l'intro passer
-            
-            if (msgIdx >= messages.length) {
-                document.getElementById('btn-start').style.display = 'block';
-                return;
-            }
+            if (msgIdx >= messages.length) { document.getElementById('btn-start').style.display = 'block'; return; }
             const m = messages[msgIdx];
-            const div = document.createElement('div');
-            div.className = `msg ${m.sender === 'Moi' ? 'right' : 'left'}`;
+            const div = document.createElement('div'); div.className = `msg ${m.sender === 'Moi' ? 'right' : 'left'}`;
             div.innerHTML = `<div class="name">${m.sender}</div>${m.text}`;
-            chatBody.appendChild(div);
-            chatBody.scrollTop = chatBody.scrollHeight;
-            
-            // IMPORTANT : J'ai retiré le "beep" audio ici car les navigateurs
-            // bloquent le son s'il n'y a pas eu de clic avant. C'est ce qui faisait planter le script.
-            
-            msgIdx++;
-            setTimeout(playChat, 1500);
+            chatBody.appendChild(div); chatBody.scrollTop = chatBody.scrollHeight;
+            msgIdx++; setTimeout(playChat, 1200);
         }
-
-        window.onload = () => {
-            // On lance le chat après l'intro (4s)
-            document.getElementById('phone-container').style.opacity = '1'; // Force opacity just in case animation fails
-            setTimeout(playChat, 4000);
-        };
-
-        document.getElementById('btn-start').addEventListener('click', () => {
-            document.getElementById('phone-container').style.display = 'none';
-            document.getElementById('gameCanvas').style.display = 'block';
-            document.getElementById('game-ui').style.display = 'block';
-            
-            gameActive = true;
-            AudioSys.init(); // On active le son uniquement maintenant (sur le clic)
-            initLevel(0);
-        });
+        window.onload = () => { setTimeout(playChat, 3500); };
+        document.getElementById('btn-start').addEventListener('click', startGame);
 
     </script>
 </body>
