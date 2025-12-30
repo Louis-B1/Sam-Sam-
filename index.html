@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission: Place des Vosges (Fixed)</title>
+    <title>Mission: Place des Vosges</title>
     <style>
+        /* --- STYLE GLOBAL --- */
         body { 
-            background-color: #121212; 
+            background-color: #050505; 
             margin: 0; 
             overflow: hidden; 
             font-family: 'Courier New', monospace; 
@@ -15,103 +16,129 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            user-select: none;
         }
 
-        /* --- INTRO TÉLÉPHONE --- */
+        /* --- 1. ECRAN TITRE --- */
+        #title-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 300; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            animation: fadeOut 1.5s ease-in-out 3s forwards; pointer-events: none;
+        }
+        #title-main { font-size: 60px; color: #fff; letter-spacing: 10px; font-weight: bold; }
+        #title-sub { font-size: 25px; color: #d43737; letter-spacing: 5px; margin-top: 10px; }
+        
+        @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+
+        /* --- 2. TÉLÉPHONE (CHAT) --- */
         #phone-container {
             position: absolute; width: 360px; height: 720px;
-            background: #000; border: 12px solid #1a1a1a; border-radius: 40px;
+            background: #111; border: 12px solid #222; border-radius: 40px;
             display: flex; flex-direction: column; overflow: hidden;
-            z-index: 100; box-shadow: 0 0 80px rgba(0,0,0,0.8);
+            z-index: 200; box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            opacity: 0; animation: fadeIn 1s ease-out 3.5s forwards;
         }
+        @keyframes fadeIn { to { opacity: 1; } }
+
         #chat-header {
-            background: #202020; padding: 20px; text-align: center; border-bottom: 2px solid #333;
-            font-size: 18px; color: #fff; font-weight: bold;
+            background: #202020; padding: 20px; text-align: center; border-bottom: 1px solid #333;
+            color: #fff; font-weight: bold; font-size: 16px;
         }
         #chat-body {
-            flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 15px;
-            background: #111; overflow-y: auto; scroll-behavior: smooth;
+            flex: 1; padding: 15px; display: flex; flex-direction: column; gap: 12px;
+            background: #000; overflow-y: auto; scroll-behavior: smooth;
         }
         .msg {
-            max-width: 80%; padding: 12px; border-radius: 12px; font-size: 16px; line-height: 1.3;
-            box-shadow: 2px 2px 0px #000; animation: pop 0.3s ease-out;
+            max-width: 80%; padding: 12px; border-radius: 18px; font-size: 14px; line-height: 1.4;
+            animation: slideUp 0.3s ease-out; position: relative;
         }
-        .left { background: #333; align-self: flex-start; color: #eee; border-bottom-left-radius: 2px; }
-        .right { background: #007aff; align-self: flex-end; color: white; border-bottom-right-radius: 2px; }
-        .name { font-size: 11px; color: #aaa; margin-bottom: 4px; font-weight: bold; }
+        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .left { background: #333; align-self: flex-start; border-bottom-left-radius: 2px; color: #ddd; }
+        .right { background: #007aff; align-self: flex-end; border-bottom-right-radius: 2px; color: white; }
+        .sender { font-size: 10px; color: #888; margin-bottom: 4px; display: block; }
 
         #btn-start {
             padding: 25px; background: #27ae60; color: white; text-align: center; 
-            cursor: pointer; font-size: 20px; text-transform: uppercase; font-weight: bold;
-            border-top: 4px solid #2ecc71; display: none; /* Caché au début */
+            cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 18px;
+            display: none; border-top: 2px solid #2ecc71;
         }
         #btn-start:hover { background: #2ecc71; }
 
-        /* --- JEU --- */
-        #game-ui {
-            position: absolute; top: 20px; left: 20px; z-index: 10; display: none;
-            background: rgba(0, 0, 0, 0.9); padding: 15px; border: 4px solid #fff; border-radius: 8px;
-        }
-        .hud-text { margin: 5px 0; font-size: 20px; font-weight: bold; }
-
+        /* --- 3. JEU (CANVAS + UI) --- */
+        #game-container { position: relative; display: none; }
+        
         canvas { 
-            border: 8px solid #444; border-radius: 4px;
-            box-shadow: 0 0 100px rgba(0,0,0,1); 
-            image-rendering: pixelated; 
-            display: none;
+            background: #111; border: 4px solid #555; box-shadow: 0 0 60px rgba(0,0,0,1);
+            image-rendering: pixelated; display: block;
         }
 
+        #game-ui {
+            position: absolute; top: 20px; left: 20px;
+            background: rgba(0, 0, 0, 0.8); padding: 15px; border-radius: 8px; border: 2px solid #fff;
+            color: white; font-family: sans-serif; min-width: 200px;
+        }
+        .ui-title { color: #e74c3c; font-weight: bold; font-size: 18px; margin-bottom: 5px; }
+        .ui-score { font-size: 16px; }
+        #msg-popup { 
+            margin-top: 10px; color: #3498db; font-weight: bold; height: 20px; 
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        /* --- 4. FIN --- */
         #end-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 200; display: none;
+            background: rgba(5,5,5,0.98); z-index: 400; display: none;
             flex-direction: column; justify-content: center; align-items: center; text-align: center;
         }
-        #samuel-pic {
-            width: 300px; height: 300px; object-fit: cover; border: 5px solid #27ae60; margin: 20px;
-            background: #333; display: flex; align-items: center; justify-content: center; color: #aaa;
+        #samuel-img {
+            width: 250px; height: 250px; object-fit: cover; border: 5px solid #27ae60; margin: 20px;
+            background: #222; display: flex; align-items: center; justify-content: center; color: #666;
         }
-
-        @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
     </style>
 </head>
 <body>
 
     <div id="youtube-audio" style="position:absolute; top:-9999px;"></div>
 
+    <div id="title-screen">
+        <div id="title-main">PARIS</div>
+        <div id="title-sub">BY NIGHT</div>
+    </div>
+
     <div id="phone-container">
-        <div id="chat-header">Les Chipies (4)</div>
+        <div id="chat-header">Groupe: Les Chipies (4)</div>
         <div id="chat-body"></div>
-        <div id="btn-start">ALLER CHERCHER SAM</div>
+        <div id="btn-start">ALLER CHERCHER SAMUEL</div>
     </div>
 
-    <div id="game-ui">
-        <div class="hud-text" style="color:#e74c3c;">LIEU: PLACE DES VOSGES</div>
-        <div class="hud-text">OBJETS: <span id="score" style="color:#f1c40f;">0</span>/3</div>
-        <div id="message-area" style="color:#3498db; margin-top:10px; height:20px;"></div>
+    <div id="game-container">
+        <div id="game-ui">
+            <div class="ui-title">PLACE DES VOSGES</div>
+            <div class="ui-score">Indices : <span id="score" style="color:#f1c40f">0</span> / 3</div>
+            <div id="msg-popup"></div>
+        </div>
+        <canvas id="gameCanvas" width="800" height="800"></canvas>
     </div>
-
-    <canvas id="gameCanvas" width="800" height="800"></canvas>
 
     <div id="end-screen">
-        <h1 style="color: #27ae60; font-size: 50px;">SAMUEL RETROUVÉ !</h1>
-        <img id="samuel-pic" src="samuel.jpg" alt="PHOTO DE SAMUEL" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
-        <div style="display:none; width:300px; height:300px; border:5px solid #27ae60; margin:20px; line-height:300px; color:white;">(Photo samuel.jpg manquante)</div>
+        <h1 style="color:#27ae60; font-size:40px;">SAMUEL RETROUVÉ !</h1>
         
-        <p style="font-size: 24px; max-width: 700px; background: #222; padding: 20px; border-radius: 10px;">
+        <img id="samuel-img" src="samuel.jpg" alt="Samuel" onerror="this.style.display='none'; document.getElementById('alt-text').style.display='block'">
+        <div id="alt-text" style="display:none; color:white; border:2px solid #444; padding:20px; margin:20px;">(Ajoute 'samuel.jpg' dans le dossier pour voir la photo)</div>
+
+        <div style="background:#222; padding:20px; border-radius:10px; max-width:600px; font-size:20px; line-height:1.5;">
             "Wesh l'équipe... J'ai plus de batterie.<br>
             Je dormais sur un banc.<br>
             C'était pas la police, juste des pigeons qui m'attaquaient."
-        </p>
+        </div>
         <br>
-        <button onclick="location.reload()" style="padding:15px 30px; font-size:20px; cursor:pointer;">REJOUER</button>
+        <button onclick="location.reload()" style="padding:15px 30px; font-size:18px; cursor:pointer; background:#d43737; color:white; border:none; border-radius:5px;">REJOUER</button>
     </div>
 
     <script>
-        // --- 1. CONFIGURATION ---
-        const TILE = 40; // Taille cases
-        const MAP_SIZE = 20; // 20x20 cases = 800x800 pixels
-        
-        // --- 2. AUDIO (API Youtube) ---
+        // --- 1. CONFIGURATION AUDIO (Youtube) ---
         var player;
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
@@ -120,17 +147,21 @@
 
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('youtube-audio', {
-                height: '0', width: '0', 
-                videoId: 'Vol9dZ-t93s', // Charles Aznavour - La Bohème
+                height: '0', width: '0',
+                videoId: 'Vol9dZ-t93s', // La Bohème - Aznavour
                 playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': 'Vol9dZ-t93s' }
             });
         }
 
-        // --- 3. CHAT ---
+        // --- 2. DONNEES DU JEU ---
+        const TILE = 40; // Taille d'une case (20x20 cases = 800px)
+        const GRID_SIZE = 20;
+        
+        // Chat
         const messages = [
             { s: 'Matthieu', t: "Il est où Samuel ? Le prof va faire l'appel." },
             { s: 'Samuel', t: "LES CHIPIES C'EST CHAUD." },
-            { s: 'Samuel', t: "La police me coursent." },
+            { s: 'Samuel', t: "La police me coursent !!" },
             { s: 'Moi', t: "Mdr arrête tes mythos Sam, t'as encore bu ?" },
             { s: 'Samuel', t: "Jure que non ! J'étais Place des Vosges." },
             { s: 'Julie', t: "Il a encore perdu sa carte étudiante..." },
@@ -138,170 +169,199 @@
             { s: 'Moi', t: "Ok j'arrive. Bouge pas." }
         ];
 
-        let msgIdx = 0;
-        function playChat() {
-            if (msgIdx >= messages.length) {
-                document.getElementById('btn-start').style.display = 'block';
-                return;
-            }
-            const m = messages[msgIdx];
-            const div = document.createElement('div');
-            div.className = `msg ${m.s === 'Moi' ? 'right' : 'left'}`;
-            div.innerHTML = `<div class="name">${m.s}</div>${m.t}`;
-            document.getElementById('chat-body').appendChild(div);
-            document.getElementById('chat-body').scrollTop = document.getElementById('chat-body').scrollHeight;
-            msgIdx++;
-            setTimeout(playChat, 1200);
-        }
-
-        // --- 4. CARTE (Code Couleur "Zelda") ---
-        // 0=Herbe, 1=Mur Brique, 2=Chemin, 3=Statue, 9=Sortie
-        const map = [];
-        for(let y=0; y<MAP_SIZE; y++) {
-            let row = [];
-            for(let x=0; x<MAP_SIZE; x++) {
-                // Bordures (Bâtiments rouges)
-                if(x===0 || x===MAP_SIZE-1 || y===0 || y===MAP_SIZE-1) row.push(1);
-                // Allées centrales en croix (Gris)
-                else if(x===MAP_SIZE/2 || x===MAP_SIZE/2-1 || y===MAP_SIZE/2 || y===MAP_SIZE/2-1) row.push(2);
-                // Allées diagonales
-                else if(x===y || x===MAP_SIZE-1-y) row.push(2);
-                // Chemin qui fait le tour intérieur
-                else if(x===2 || x===MAP_SIZE-3 || y===2 || y===MAP_SIZE-3) row.push(2);
-                // Le reste = Herbe (Vert)
-                else row.push(0);
-            }
-            map.push(row);
-        }
-        // Statue au centre
-        map[9][9]=3; map[10][10]=3; map[9][10]=3; map[10][9]=3; 
-        
-        // Objets
+        // Items à trouver
         let items = [
-            {x: 4, y: 4, label: "Carte Étudiante"},
-            {x: 16, y: 4, label: "Kebab"},
-            {x: 4, y: 16, label: "Paquet de clopes"}
+            {x: 4, y: 4, name: "Carte Étudiante"},
+            {x: 15, y: 4, name: "Kebab Sauce Blanche"},
+            {x: 4, y: 15, name: "Paquet de Clopes"}
         ];
-
-        // Samuel (Caché en bas à droite)
-        let samuel = {x: 17, y: 17};
-
-        // Joueur
-        let player = {x: 10, y: 18}; // Commence en bas
+        
+        let samuelPos = {x: 16, y: 16}; // Samuel caché
+        let playerPos = {x: 10, y: 18}; // Départ en bas
         let score = 0;
         let gameActive = false;
 
-        // --- 5. MOTEUR JEU ---
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+        // Génération de la Carte (Place des Vosges simplifiée)
+        // 0=Herbe, 1=Mur Rouge, 2=Chemin Gris, 3=Statue, 9=Samuel
+        let map = [];
 
-        function startGame() {
-            document.getElementById('phone-container').style.display = 'none';
-            document.getElementById('game-ui').style.display = 'block';
-            document.getElementById('gameCanvas').style.display = 'block';
-            
-            gameActive = true;
-            // LANCEMENT MUSIQUE
-            if(player && player.playVideo) {
-                player.unMute(); player.setVolume(70); player.playVideo();
+        function generateMap() {
+            for(let y=0; y<GRID_SIZE; y++) {
+                let row = [];
+                for(let x=0; x<GRID_SIZE; x++) {
+                    // Par défaut : Herbe
+                    let type = 0; 
+
+                    // MURS EXTERIEURS (Bâtiments rouges)
+                    if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) type = 1;
+
+                    // CHEMINS (Arcades intérieures + Croix centrale)
+                    else if (x===2 || x===GRID_SIZE-3 || y===2 || y===GRID_SIZE-3) type = 2; // Tour
+                    else if (x===GRID_SIZE/2 || x===GRID_SIZE/2-1) type = 2; // Vertical
+                    else if (y===GRID_SIZE/2 || y===GRID_SIZE/2-1) type = 2; // Horizontal
+                    
+                    // FONTAINES (Coins du carré central) - Optionnel, on laisse en herbe pour l'instant
+                    
+                    row.push(type);
+                }
+                map.push(row);
             }
-            draw();
+            // Statue au centre
+            map[9][9] = 3; map[10][10] = 3; map[9][10] = 3; map[10][9] = 3;
         }
 
-        function move(dx, dy) {
-            if(!gameActive) return;
-            const nx = player.x + dx;
-            const ny = player.y + dy;
+        // --- 3. FONCTIONS LOGIQUES ---
+        
+        // Intro Chat
+        let msgIndex = 0;
+        function playChat() {
+            if (msgIndex >= messages.length) {
+                document.getElementById('btn-start').style.display = 'block';
+                return;
+            }
+            const m = messages[msgIndex];
+            const div = document.createElement('div');
+            div.className = `msg ${m.s === 'Moi' ? 'right' : 'left'}`;
+            div.innerHTML = `<span class="sender">${m.s}</span>${m.t}`;
             
+            const chatBox = document.getElementById('chat-body');
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            
+            msgIndex++;
+            setTimeout(playChat, 1200);
+        }
+
+        // Démarrage Jeu
+        function startGame() {
+            document.getElementById('phone-container').style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
+            
+            // Lancer la musique (User Interaction requise, donc ici ça marche)
+            if(player && player.playVideo) {
+                player.unMute();
+                player.setVolume(80);
+                player.playVideo();
+            }
+
+            gameActive = true;
+            generateMap();
+            drawGame();
+        }
+
+        // Déplacement
+        function movePlayer(dx, dy) {
+            if(!gameActive) return;
+
+            let nx = playerPos.x + dx;
+            let ny = playerPos.y + dy;
+
             // Collision Murs (1) et Statue (3)
             if(map[ny][nx] === 1 || map[ny][nx] === 3) return;
 
-            player.x = nx; player.y = ny;
+            playerPos.x = nx;
+            playerPos.y = ny;
 
-            // Items
-            const idx = items.findIndex(i => i.x === nx && i.y === ny);
-            if(idx !== -1) {
+            // Check Items
+            let itemIdx = items.findIndex(i => i.x === nx && i.y === ny);
+            if(itemIdx !== -1) {
                 score++;
                 document.getElementById('score').innerText = score;
-                showMessage(`Trouvé: ${items[idx].label} !`);
-                items.splice(idx, 1);
+                showMsg(`Trouvé : ${items[itemIdx].name}`);
+                items.splice(itemIdx, 1); // Retirer l'objet
             }
 
-            // Samuel
-            if(nx === samuel.x && ny === samuel.y) {
-                if(score >= 3) {
-                    gameActive = false;
-                    document.getElementById('gameCanvas').style.display = 'none';
-                    document.getElementById('game-ui').style.display = 'none';
-                    document.getElementById('end-screen').style.display = 'flex';
-                } else {
-                    showMessage("C'est Sam ! Mais il faut ses affaires d'abord.");
-                }
+            // Check Samuel
+            if(nx === samuelPos.x && ny === samuelPos.y) {
+                if(score >= 3) endGame();
+                else showMsg("Il te manque des objets !");
             }
-            draw();
+
+            drawGame();
         }
 
-        function showMessage(txt) {
-            const el = document.getElementById('message-area');
-            el.innerText = txt; setTimeout(() => el.innerText = "", 2000);
+        function showMsg(text) {
+            const el = document.getElementById('msg-popup');
+            el.innerText = text;
+            setTimeout(() => el.innerText = "", 2000);
         }
 
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        function endGame() {
+            gameActive = false;
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('end-screen').style.display = 'flex';
+        }
 
-            for(let y=0; y<MAP_SIZE; y++) {
-                for(let x=0; x<MAP_SIZE; x++) {
-                    const c = map[y][x];
-                    const px = x*TILE; const py = y*TILE;
+        // --- 4. MOTEUR GRAPHIQUE ---
+        const ctx = document.getElementById('gameCanvas').getContext('2d');
 
-                    // DESSIN DES CASES (COULEURS CLAIRES)
-                    if(c === 0) { // Herbe
-                        ctx.fillStyle = "#2ecc71"; ctx.fillRect(px, py, TILE, TILE);
-                        ctx.fillStyle = "#27ae60"; ctx.fillRect(px+5, py+5, 5, 5); // Détail herbe
-                    }
-                    else if(c === 1) { // Mur Brique
+        function drawGame() {
+            ctx.clearRect(0, 0, 800, 800);
+
+            // 1. DESSINER LA CARTE
+            for(let y=0; y<GRID_SIZE; y++) {
+                for(let x=0; x<GRID_SIZE; x++) {
+                    let type = map[y][x];
+                    let px = x * TILE;
+                    let py = y * TILE;
+
+                    if(type === 0) { // Herbe
+                        ctx.fillStyle = "#27ae60"; ctx.fillRect(px, py, TILE, TILE);
+                        // Petit détail herbe
+                        ctx.fillStyle = "#2ecc71"; ctx.fillRect(px+10, py+10, 5, 5); 
+                    } 
+                    else if(type === 1) { // Mur Brique
                         ctx.fillStyle = "#c0392b"; ctx.fillRect(px, py, TILE, TILE);
-                        ctx.strokeStyle = "#96281b"; ctx.strokeRect(px, py, TILE, TILE);
+                        ctx.strokeStyle = "#922b21"; ctx.strokeRect(px, py, TILE, TILE);
                     }
-                    else if(c === 2) { // Chemin
+                    else if(type === 2) { // Chemin
                         ctx.fillStyle = "#ecf0f1"; ctx.fillRect(px, py, TILE, TILE);
                     }
-                    else if(c === 3) { // Statue
-                        ctx.fillStyle = "#95a5a6"; ctx.fillRect(px, py, TILE, TILE);
+                    else if(type === 3) { // Statue
+                        ctx.fillStyle = "#7f8c8d"; ctx.fillRect(px, py, TILE, TILE);
                     }
                 }
             }
 
-            // DESSIN ITEMS
-            items.forEach(i => {
-                const px = i.x*TILE + TILE/2; const py = i.y*TILE + TILE/2;
-                ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(px, py, 10, 0, Math.PI*2); ctx.fill();
-                ctx.strokeStyle = "black"; ctx.lineWidth = 2; ctx.stroke();
+            // 2. DESSINER ITEMS
+            items.forEach(item => {
+                let px = item.x * TILE + TILE/2;
+                let py = item.y * TILE + TILE/2;
+                ctx.fillStyle = "#f1c40f"; 
+                ctx.beginPath(); ctx.arc(px, py, 12, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = "#000"; ctx.stroke();
             });
 
-            // DESSIN SAMUEL
-            ctx.fillStyle = "#e67e22"; 
-            ctx.fillRect(samuel.x*TILE + 5, samuel.y*TILE + 5, TILE-10, TILE-10);
-            ctx.fillStyle = "white"; ctx.font = "10px Arial"; ctx.fillText("SAM", samuel.x*TILE+5, samuel.y*TILE-2);
-
-            // DESSIN JOUEUR
-            const px = player.x*TILE; const py = player.y*TILE;
-            ctx.fillStyle = "#3498db"; ctx.fillRect(px+5, py+5, TILE-10, TILE-10);
-            ctx.fillStyle = "#2c3e50"; ctx.fillRect(px+10, py+5, TILE-20, 10); // Cheveux
+            // 3. DESSINER SAMUEL (Caché)
+            // On affiche un indice visuel discret
+            let sx = samuelPos.x * TILE;
+            let sy = samuelPos.y * TILE;
+            ctx.fillStyle = "#d35400"; ctx.fillRect(sx+10, sy+10, 20, 20); // Juste une tache orange
+            
+            // 4. DESSINER JOUEUR
+            let plx = playerPos.x * TILE;
+            let ply = playerPos.y * TILE;
+            
+            // Corps
+            ctx.fillStyle = "#3498db"; ctx.fillRect(plx+5, ply+10, 30, 25);
+            // Tête
+            ctx.fillStyle = "#f1c40f"; ctx.fillRect(plx+10, ply+2, 20, 15);
         }
 
-        // Contrôles
-        window.addEventListener('keydown', e => {
-            if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
-            if(e.key === "ArrowUp") move(0,-1);
-            if(e.key === "ArrowDown") move(0,1);
-            if(e.key === "ArrowLeft") move(-1,0);
-            if(e.key === "ArrowRight") move(1,0);
-        });
+        // --- 5. INITIALISATION ---
+        window.onload = function() {
+            // Lancer le chat après 4s (temps de l'intro)
+            setTimeout(playChat, 4000);
+        };
 
-        // Démarrage Chat
-        window.onload = () => { setTimeout(playChat, 1000); };
         document.getElementById('btn-start').addEventListener('click', startGame);
+
+        window.addEventListener('keydown', (e) => {
+            if(e.key === "ArrowUp") movePlayer(0, -1);
+            if(e.key === "ArrowDown") movePlayer(0, 1);
+            if(e.key === "ArrowLeft") movePlayer(-1, 0);
+            if(e.key === "ArrowRight") movePlayer(1, 0);
+        });
 
     </script>
 </body>
