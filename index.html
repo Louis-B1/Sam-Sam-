@@ -78,7 +78,8 @@
 
         #flashlight {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, transparent 20%, rgba(0,0,0,0.96) 65%);
+            /* LUMINOSITÉ AMÉLIORÉE ICI (35% transparent au lieu de 20%, et noir moins opaque 0.92) */
+            background: radial-gradient(circle at center, transparent 35%, rgba(0,0,0,0.92) 75%);
             pointer-events: none; z-index: 4; mix-blend-mode: multiply;
         }
         .rain {
@@ -107,7 +108,7 @@
     <div id="title-screen">
         <div id="title-text">PARIS</div>
         <div id="title-text" style="color:#d43737">BY NIGHT</div>
-        <div id="subtitle">CHAPITRE 1</div>
+        <div id="subtitle">AFFAIRE "CORROMPUS"</div>
     </div>
 
     <div id="youtube-audio" style="position:absolute; top:-9999px;"></div>
@@ -116,11 +117,11 @@
         <div id="phone-frame">
             <div id="chat-header">
                 <div style="width:30px;height:30px;background:#555;border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:10px;">👥</div>
-                Les Chipies (4)
+                Groupe: PROJET BAC (4)
             </div>
             <div id="chat-content"></div>
         </div>
-        <div id="start-btn">SAUVER SAMUEL</div>
+        <div id="start-btn">RETROUVER SAMUEL</div>
     </div>
 
     <div id="game-container">
@@ -132,7 +133,7 @@
             <canvas id="radar" width="140" height="140"></canvas>
             <div id="mission-panel">
                 <div id="zoneName" style="font-size: 20px; color: #d4af37; font-weight: bold; margin-bottom: 5px;">CHARGEMENT...</div>
-                <div>PREUVES BAC : <span id="score" style="color:#5f5; font-weight:bold;">0</span> / 3</div>
+                <div>PREUVES DOSSIER : <span id="score" style="color:#5f5; font-weight:bold;">0</span> / 3</div>
                 <div style="font-size: 12px; color: #aaa; margin-top: 8px;">[FLÈCHES] Bouger - [SHIFT] Courir</div>
             </div>
         </div>
@@ -140,14 +141,15 @@
         <div id="alert-msg"></div>
 
         <div id="win-screen">
-            <h1 style="color:#d4af37;">SAMUEL SAUVÉ.</h1>
+            <h1 style="color:#d4af37;">SAMUEL SÉCURISÉ.</h1>
+            <h2 style="color:white; font-size:14px; letter-spacing:2px; margin-bottom:20px;">LES PREUVES SONT SAUVÉES.</h2>
             <img id="samuel-reveal" src="samuel.png" alt="Samuel">
             <p>(Cliquer pour recommencer)</p>
         </div>
     </div>
 
     <script>
-        // --- 1. AUDIO (Ambiance Pluie/Ville) ---
+        // --- 1. AUDIO (ACCORDEON PARISIEN) ---
         var player;
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
@@ -155,8 +157,8 @@
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('youtube-audio', {
-                height: '0', width: '0', videoId: 'jX6kn9_U8qk', // Pluie Ville Nuit
-                playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': 'jX6kn9_U8qk' }
+                height: '0', width: '0', videoId: '3j8CysMvbTk', // French Accordion Classic
+                playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': '3j8CysMvbTk' }
             });
         }
 
@@ -184,10 +186,11 @@
                     let s = Math.random()*4+1; x.fillRect(Math.random()*64, Math.random()*texSize, s, s);
                 }
             }
-            else if (style === 'pigalle') { // Mur Béton Sale
-                x.fillStyle = '#222'; x.fillRect(0, 0, 64, texSize);
+            else if (style === 'pigalle') { // Mur Béton Sale + Neon
+                x.fillStyle = '#202025'; x.fillRect(0, 0, 64, texSize);
                 x.fillStyle = '#000'; for(let i=0; i<30; i++) x.fillRect(0, Math.random()*texSize, 64, 1);
-                x.fillStyle = '#a03'; for(let i=0; i<5; i++) x.fillRect(Math.random()*64, 100+Math.random()*40, 5, 25); // Tag rouge
+                // Effet néon rose reflet
+                x.fillStyle = 'rgba(255, 0, 100, 0.1)'; x.fillRect(10, 20, 40, 60);
             }
             const img = new Image(); img.src = c.toDataURL(); return img;
         }
@@ -196,35 +199,34 @@
         const TEX_VOSGES_HEDGE = createTexture('vosges_hedge');
         const TEX_PIGALLE = createTexture('pigalle');
         
-        // Sprite Samuel
+        // Sprite Samuel (Placeholder si image manquante)
         const samuelSprite = new Image(); samuelSprite.src = "samuel.png";
         
-        // Sprite DOSSIER POLICE (Bleu/Blanc/Rouge)
+        // Sprite DOSSIER PREUVE (Jaune/Noir "CONFIDENTIEL")
         const clueCanvas = document.createElement('canvas'); clueCanvas.width=64; clueCanvas.height=64;
         const cCtx = clueCanvas.getContext('2d');
-        cCtx.fillStyle = '#1a3c6e'; cCtx.fillRect(10, 20, 44, 28); // Dossier Bleu Police
-        cCtx.fillStyle = '#fff'; cCtx.fillRect(10, 25, 44, 4); // Bande blanche
-        cCtx.fillStyle = '#d43737'; cCtx.fillRect(10, 44, 44, 4); // Bande rouge
+        cCtx.fillStyle = '#d4af37'; cCtx.fillRect(10, 20, 44, 28); // Dossier Jaune
+        cCtx.fillStyle = '#000'; cCtx.font = "10px Arial"; cCtx.fillText("CONF", 15, 38);
         cCtx.strokeStyle = '#fff'; cCtx.lineWidth = 2; cCtx.strokeRect(10, 20, 44, 28);
-        cCtx.shadowColor = 'white'; cCtx.shadowBlur = 10;
         const clueSprite = new Image(); clueSprite.src = clueCanvas.toDataURL();
 
-        // --- 3. SCÉNARIO MESSAGERIE (BAC) ---
+        // --- 3. SCÉNARIO REVISITÉ (PLUS PRENANT) ---
         const messages = [
-            { s: 'other', n: 'Lily', t: "T'es où Sam ? Le cours est fini depuis 20min." },
-            { s: 'other', n: 'Mathis', t: "Mec répond, on bouge sans toi sinon." },
-            { s: 'other', n: 'Inès', t: "Il répond jamais de toute façon..." },
-            { s: 'him', n: 'Samuel', t: "LA BAC." },
-            { s: 'him', n: 'Samuel', t: "Ils sont derrière moi." },
-            { s: 'me', n: 'Moi', t: "Quoi ?? La police ?" },
-            { s: 'him', n: 'Samuel', t: "Ils veulent me choper pour rien. Je suis Place des Vosges." },
-            { s: 'him', n: 'Samuel', t: "Si ils m'attrapent c'est fini." },
-            { s: 'me', n: 'Moi', t: "Cours. Je viens te chercher." }
+            { s: 'other', n: 'Lily', t: "Sam ? T'es où ? Le prof t'attend." },
+            { s: 'him', n: 'Samuel', t: "Je ne reviens pas." },
+            { s: 'him', n: 'Samuel', t: "C'est fini pour moi." },
+            { s: 'other', n: 'Mathis', t: "Arrête tes conneries, t'es où ?" },
+            { s: 'him', n: 'Samuel', t: "J'ai vu le commissaire." },
+            { s: 'him', n: 'Samuel', t: "Il a pris l'argent. J'ai tout filmé." },
+            { s: 'me', n: 'Moi', t: "Quoi ?? T'as des preuves ?" },
+            { s: 'him', n: 'Samuel', t: "Ils m'ont vu. Ils me traquent." },
+            { s: 'him', n: 'Samuel', t: "Je suis caché Place des Vosges. Mais ils arrivent." },
+            { s: 'him', n: 'Samuel', t: "Si je ne réponds plus... cherchez les dossiers." },
+            { s: 'me', n: 'Moi', t: "Bouge pas. J'arrive." }
         ];
 
         let msgIdx = 0;
         function playChat() {
-            // Délai initial pour laisser l'écran titre
             if(msgIdx === 0) {
                 setTimeout(() => {
                      const m = messages[0]; addMsg(m); msgIdx++; playChat();
@@ -239,7 +241,7 @@
             const m = messages[msgIdx];
             addMsg(m);
             msgIdx++;
-            setTimeout(playChat, 1200);
+            setTimeout(playChat, 1500); // Rythme un peu plus lent pour lire
         }
         
         function addMsg(m) {
@@ -276,18 +278,18 @@
 
         const TILE_SIZE = 64; const FOV = Math.PI / 2.5; 
         let playerObj = { x: 0, y: 0, dir: 0 };
-        const WALK = 2.5; const RUN = 4.5; const ROT = 0.04;
+        const WALK = 2.8; const RUN = 5.0; const ROT = 0.045; // Vitesse ajustée
         let currentLevel = 0; let gameActive = false; let timer = 0;
         let cluesFound = 0; let currentTexture;
-        let keys = {}; // Stockage touches
+        let keys = {}; 
 
-        // NARRATION INDICES
+        // TEXTES D'AMBIANCE (PLUS DRAMATIQUES)
         const narrative = [
-            ["Dossier BAC #1 : Signalement erroné.", "Dossier BAC #2 : Photo de filature.", "Bonnet de Samuel tombé au sol."],
-            ["PV d'arrestation vierge...", "Matraque oubliée.", "LE DOSSIER COMPLET !"]
+            ["Clé USB cryptée.", "Photo floue du transfert d'argent.", "Le téléphone brisé de Samuel."],
+            ["Badge de police ensanglanté.", "Rapport falsifié.", "L'ENREGISTREMENT COMPLET !"]
         ];
 
-        // 1 = Mur Brique, 2 = Haie, 5 = Indice, 9 = Sortie
+        // 1 = Mur Brique, 2 = Haie, 5 = Indice, 9 = Sortie, 8 = Samuel
         const levels = [
             {
                 name: "PLACE DES VOSGES",
@@ -298,12 +300,12 @@
                     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
                     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
                     [1,0,2,2,2,0,0,2,2,0,0,2,2,2,0,1],
-                    [1,0,2,0,5,0,0,0,0,0,0,5,0,2,0,1], // Indices
+                    [1,0,2,0,5,0,0,0,0,0,0,5,0,2,0,1], 
                     [1,0,2,0,0,0,2,2,0,0,0,0,0,2,0,1],
                     [1,0,0,0,0,0,2,2,0,0,0,0,0,0,0,1],
-                    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], // Centre large
+                    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
                     [1,0,0,0,0,0,2,2,0,0,0,0,0,0,0,1],
-                    [1,0,2,0,5,0,0,0,0,0,0,0,0,2,0,1], // Indice
+                    [1,0,2,0,5,0,0,0,0,0,0,0,0,2,0,1], 
                     [1,0,2,2,2,0,0,2,2,0,0,2,2,2,0,1],
                     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
                     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,9,1], // Sortie Sud-Est
@@ -311,30 +313,32 @@
                 ], start: {x: 1.5, y: 1.5, dir: 0}
             },
             {
-                name: "PIGALLE - FUITE",
+                name: "PIGALLE - PLANQUE",
                 tex: TEX_PIGALLE,
                 tex2: TEX_PIGALLE,
-                // CARTE CORRIGÉE : GRANDS COULOIRS, IMPOSSIBLE DE BLOQUER
+                // CARTE CORRIGÉE ET ÉLARGIE POUR ÉVITER LE BUG DE COLLISION
                 map: [
-                    [1,1,1,1,1,1,1,1,1,1,1,1],
-                    [1,0,0,0,0,0,0,0,0,0,0,1], // Spawn large
-                    [1,0,0,0,0,0,0,0,0,0,0,1], 
-                    [1,0,1,1,1,0,0,1,1,1,0,1],
-                    [1,0,1,5,0,0,0,0,5,1,0,1], // Indices
-                    [1,0,1,1,1,0,0,1,1,1,0,1],
-                    [1,0,0,0,0,0,0,0,0,0,0,1], // Couloir large
-                    [1,0,0,0,0,0,0,0,0,0,0,1],
-                    [1,0,0,0,0,8,0,0,0,0,0,1], // 8 = Samuel (fin)
-                    [1,1,1,1,1,1,1,1,1,1,1,1]
-                ], start: {x: 2.5, y: 1.5, dir: 0} // Départ sûr
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,0,0,0,1,0,0,5,0,0,1,0,0,0,1], // Ligne large
+                    [1,0,0,0,1,0,1,1,1,0,1,0,0,0,1], // Spawn en 2.5, 2.5
+                    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1], // Grand couloir central
+                    [1,1,1,0,1,1,1,0,1,1,1,0,1,1,1],
+                    [1,5,0,0,0,0,0,0,0,0,0,0,0,5,1], // Indices latéraux
+                    [1,1,1,0,1,1,1,0,1,1,1,0,1,1,1],
+                    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
+                    [1,0,0,0,1,0,1,0,1,0,1,0,0,0,1],
+                    [1,0,0,0,1,0,1,8,1,0,1,0,0,0,1], // Samuel au fond (8)
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+                ], start: {x: 2.5, y: 2.5, dir: 1.5} // Départ sécurisé au centre d'une zone libre
             }
         ];
 
         let map=[]; let items=[];
 
-        function resetInput() {
-            // Force le relâchement de toutes les touches pour éviter le bug de mouvement
-            for (let key in keys) delete keys[key];
+        // --- CORRECTION INPUT ---
+        function resetKeys() {
+            // Vide les touches pressées pour éviter que le perso avance tout seul au chargement
+            keys = {};
         }
 
         function loadLevel(idx) {
@@ -342,7 +346,8 @@
             currentLevel = idx; cluesFound = 0;
             const lvl = levels[idx];
             
-            resetInput(); // FIX PIGALLE
+            // APPEL FIX BUG
+            resetKeys();
 
             document.getElementById('zoneName').innerText = lvl.name;
             document.getElementById('score').innerText = "0";
@@ -358,7 +363,7 @@
             let cCount = 0;
             for(let y=0; y<map.length; y++) for(let x=0; x<map[y].length; x++) {
                 if(map[y][x] === 5) { 
-                    let txt = narrative[currentLevel][cCount] || "Preuve BAC.";
+                    let txt = narrative[currentLevel][cCount] || "Preuve trouvée.";
                     items.push({x: x*TILE_SIZE+32, y: y*TILE_SIZE+32, type: 'clue', active:true, txt: txt}); 
                     map[y][x]=0; 
                     cCount++;
@@ -399,9 +404,10 @@
                             // Changement de niveau
                             loadLevel(currentLevel + 1);
                         } else {
-                            playerObj.x -= Math.cos(playerObj.dir)*20;
-                            playerObj.y -= Math.sin(playerObj.dir)*20;
-                            showAlert("TROUVEZ LES 3 DOSSIERS D'ABORD !");
+                            // Rebondit un peu pour ne pas rester collé
+                            playerObj.x -= Math.cos(playerObj.dir)*10;
+                            playerObj.y -= Math.sin(playerObj.dir)*10;
+                            showAlert("IL MANQUE DES PREUVES !");
                         }
                     }
                 }
@@ -426,16 +432,16 @@
         function showAlert(txt) {
             const el = document.getElementById('alert-msg');
             el.innerText = txt; el.style.display = 'block';
-            setTimeout(() => el.style.display='none', 2500);
+            setTimeout(() => el.style.display='none', 3000);
         }
 
         // --- DRAW ---
         function draw() {
             // Ciel et Sol (Nuit urbaine)
             ctx.fillStyle = "#050505"; ctx.fillRect(0,0,canvas.width,canvas.height/2);
-            ctx.fillStyle = "#0e0e0e"; ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
+            ctx.fillStyle = "#111"; ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
 
-            const numRays = Math.ceil(canvas.width / 2); 
+            const numRays = Math.ceil(canvas.width / 2); 
             const bob = Math.sin(timer) * 6;
 
             for (let i = 0; i < numRays; i++) {
