@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission: Samuel à Paris (Stable Final)</title>
+    <title>Mission: Samuel à Paris (Final Stable)</title>
     <style>
+        /* --- STYLE RETRO --- */
         body { 
             background-color: #050505; margin: 0; overflow: hidden; 
             font-family: 'Courier New', monospace; color: white; 
@@ -17,7 +18,7 @@
             background-size: 100% 4px;
         }
 
-        /* --- UI --- */
+        /* --- TITLE --- */
         #title-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 300; display: flex; flex-direction: column; justify-content: center; align-items: center;
@@ -26,6 +27,7 @@
         #title-main { font-size: 80px; font-weight: bold; text-shadow: 6px 6px 0 #d43737; }
         @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
 
+        /* --- PHONE --- */
         #phone-container {
             position: absolute; width: 360px; height: 720px;
             background: #111; border: 12px solid #222; border-radius: 40px;
@@ -75,29 +77,13 @@
         #letter-popup h3 { margin-top: 0; color: #e74c3c; font-size: 24px; text-decoration: underline; }
         #letter-popup p { font-size: 18px; font-weight: bold; font-style: italic; }
 
-        /* --- CINEMATIQUE --- */
-        #cinematic-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 500; display: none;
-            color: #fff; flex-direction: column; justify-content: center; align-items: center;
-        }
-        .metro-lights {
-            width: 100%; height: 20px;
-            background: repeating-linear-gradient(90deg, #000, #000 50px, #fff 50px, #fff 55px);
-            animation: moveLights 0.5s linear infinite; margin: 20px 0;
-        }
-        @keyframes moveLights { from { background-position: 0 0; } to { background-position: 110px 0; } }
-
         /* --- FIN --- */
         #end-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(5,5,5,0.98); z-index: 400; display: none;
             flex-direction: column; justify-content: center; align-items: center; text-align: center;
         }
-        #samuel-img { 
-            width: 250px; height: 250px; object-fit: cover; border: 5px solid #27ae60; margin: 20px; background: #222; 
-            animation: pulseSam 2s infinite ease-in-out;
-        }
+        #samuel-img { width: 250px; height: 250px; object-fit: cover; border: 5px solid #27ae60; margin: 20px; background: #222; animation: pulseSam 2s infinite ease-in-out; }
         @keyframes pulseSam { 0% { transform: scale(1); box-shadow: 0 0 20px #27ae60; } 50% { transform: scale(1.05); box-shadow: 0 0 40px #2ecc71; } 100% { transform: scale(1); box-shadow: 0 0 20px #27ae60; } }
         .end-text-box { background:#222; padding:20px; border-radius:10px; max-width:600px; font-size:18px; line-height:1.5; animation: slideUpBox 0.8s ease-out 0.3s backwards; }
         @keyframes slideUpBox { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
@@ -107,12 +93,6 @@
 
     <div class="scanlines"></div>
     <div id="youtube-audio" style="position:absolute; top:-9999px;"></div>
-
-    <div id="cinematic-overlay">
-        <div class="metro-lights"></div>
-        <h2 style="letter-spacing: 5px;">DIRECTION : PIGALLE...</h2>
-        <div class="metro-lights"></div>
-    </div>
 
     <div id="title-screen">
         <div id="title-main">PARIS</div>
@@ -131,13 +111,11 @@
             <div class="ui-score">Indices : <span id="score" style="color:#2ecc71">0</span> / 3</div>
             <div id="msg-popup"></div>
         </div>
-        
         <div id="main-popup"></div>
         <div id="letter-popup">
             <h3>💌 Lettre d'Alexis 💌</h3>
             <p>"Mon Sam chéri, rejoins-moi vite. Le Kebab refroidit... Je t'attends. <3"</p>
         </div>
-
         <canvas id="gameCanvas" width="800" height="800"></canvas>
     </div>
 
@@ -155,8 +133,8 @@
     </div>
 
     <script>
-        // CONFIG
-        const TILE = 40; const GRID_SIZE = 20;
+        const TILE = 40; 
+        const GRID_SIZE = 20;
         
         // AUDIO
         var player;
@@ -171,7 +149,7 @@
             });
         }
 
-        // DATA
+        // DONNEES
         const chatMessages = [
             { s: 'Mathis', t: "Il est passé où Samuel ?" },
             { s: 'Samuel', t: "Oh les gars ! C’est Chaud là !" },
@@ -192,34 +170,33 @@
         let gameActive = false;
         let animTimer = 0;
 
-        // LEVELS
-        function getLevelData(lvl) {
-            if(lvl === 1) {
-                return {
-                    name: "PLACE DES VOSGES",
-                    colors: { wall: "#a52a2a", ground: "#27ae60", path: "#ecf0f1" },
-                    items: [
-                        {x: 4, y: 4, type: "card", name: "Carte Bancaire"},
-                        {x: 15, y: 4, type: "kebab", name: "Kebab Sauce Blanche"},
-                        {x: 4, y: 15, type: "cap", name: "Casquette Mbappé"}
-                    ],
-                    enemies: [{x: 8, y: 8, dx: 1}, {x: 12, y: 12, dx: -1}], 
-                    start: {x: 10, y: 18}, exit: {x: 10, y: 0}, exitName: "MÉTRO"
-                };
-            } else {
-                return {
-                    name: "PIGALLE (LA NUIT)",
-                    colors: { wall: "#2c2c2c", ground: "#1a1a1a", path: "#333" },
-                    items: [
-                        {x: 3, y: 3, type: "letter", name: "Lettre d'amour d'Alexis"},
-                        {x: 16, y: 3, type: "key", name: "Clé d'Angèle"},
-                        {x: 16, y: 16, type: "foodbag", name: "Sac de nourriture"}
-                    ],
-                    enemies: [{x: 5, y: 5, dx: 1}, {x: 15, y: 15, dx: -1}, {x: 5, y: 15, dx: 1}, {x: 10, y: 10, dx: 1}],
-                    start: {x: 10, y: 18}, exit: {x: 10, y: 9}, exitName: "SAMUEL"
-                };
+        // CONFIG NIVEAUX
+        const levels = {
+            1: {
+                name: "PLACE DES VOSGES",
+                // Couleurs
+                bg: "#27ae60", wall: "#a52a2a", path: "#ecf0f1",
+                items: [
+                    {x: 4, y: 4, type: "card", name: "Carte Bancaire"},
+                    {x: 15, y: 4, type: "kebab", name: "Kebab Sauce Blanche"},
+                    {x: 4, y: 15, type: "cap", name: "Casquette Mbappé"}
+                ],
+                enemies: [{x: 8, y: 8, dx: 1}, {x: 12, y: 12, dx: -1}], 
+                start: {x: 10, y: 18}, exit: {x: 10, y: 0}, exitName: "MÉTRO"
+            },
+            2: {
+                name: "PIGALLE (LA NUIT)",
+                // Couleurs
+                bg: "#2c3e50", wall: "#111", path: "#34495e",
+                items: [
+                    {x: 3, y: 3, type: "letter", name: "Lettre d'amour d'Alexis"},
+                    {x: 16, y: 3, type: "key", name: "Clé d'Angèle"},
+                    {x: 16, y: 16, type: "foodbag", name: "Sac de nourriture"}
+                ],
+                enemies: [{x: 5, y: 5, dx: 1}, {x: 15, y: 15, dx: -1}, {x: 5, y: 15, dx: 1}, {x: 10, y: 10, dx: 1}],
+                start: {x: 10, y: 18}, exit: {x: 10, y: 9}, exitName: "SAMUEL"
             }
-        }
+        };
 
         const ctx = document.getElementById('gameCanvas').getContext('2d');
 
@@ -254,26 +231,23 @@
 
         function loadLevel(lvlIdx) {
             currentLevel = lvlIdx;
-            const data = getLevelData(lvlIdx);
-            
-            // MAP GENERATION
+            const data = levels[lvlIdx];
             map = [];
+            // INIT MAP (Safe mode)
             for(let y=0; y<GRID_SIZE; y++) {
                 let row = [];
                 for(let x=0; x<GRID_SIZE; x++) {
-                    let type = 0; 
-                    if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) type = 1; 
+                    let type = 0; // Sol
+                    if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) type = 1; // Murs extérieurs
                     
                     if (lvlIdx === 1) { // VOSGES
                         if (x === 10 && y === 0) type = 2; // Metro
                         else if (x===2 || x===GRID_SIZE-3 || y===2 || y===GRID_SIZE-3) type = 2;
                         else if (x===GRID_SIZE/2 || y===GRID_SIZE/2) type = 2;
-                        // Murs périmétriques sauf métro
-                        if ((x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) && !(x===10 && y===0)) type = 1;
                     } 
-                    else if (lvlIdx === 2) { // PIGALLE (Large place)
+                    else if (lvlIdx === 2) { // PIGALLE (Place simple sans trous)
                         if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) type = 1;
-                        else type = 2; // Tout est chemin
+                        else type = 2; // Tout est chemin (Gris foncé/Bleu nuit)
                     }
                     row.push(type);
                 }
@@ -284,7 +258,6 @@
             enemies = JSON.parse(JSON.stringify(data.enemies));
             playerPos = {...data.start};
             score = 0;
-            
             document.getElementById('level-name').innerText = data.name;
             document.getElementById('score').innerText = "0";
             if(lvlIdx === 2) showMsg("Sam est à Pigalle !");
@@ -319,9 +292,8 @@
                     if(score > 0) {
                         score--; document.getElementById('score').innerText = score;
                         showMsg("Le pigeon a volé un indice !");
-                        const originalItems = getLevelData(currentLevel).items;
+                        const originalItems = levels[currentLevel].items;
                         const randomItem = originalItems[Math.floor(Math.random() * originalItems.length)];
-                        // On remet l'objet volé au centre (safe)
                         items.push({x: 10, y: 10, type: randomItem.type, name: randomItem.name});
                     } else { showMsg("Aïe ! Sale pigeon !"); }
                     
@@ -345,22 +317,10 @@
             setTimeout(() => { popup.style.display = 'none'; }, 5000);
         }
 
-        function playMetroCinematic(onComplete) {
-            gameActive = false;
-            document.getElementById('cinematic-overlay').style.display = 'flex';
-            setTimeout(() => {
-                document.getElementById('cinematic-overlay').style.display = 'none';
-                onComplete();
-                gameActive = true; 
-                drawGame();
-            }, 3000);
-        }
-
         function movePlayer(dx, dy) {
             if(!gameActive) return;
             let nx = playerPos.x + dx; let ny = playerPos.y + dy;
             
-            // Check wall (Sauf sortie Metro niveau 1)
             if(map[ny][nx] === 1 && !(currentLevel===1 && nx===10 && ny===0)) return;
             
             playerPos.x = nx; playerPos.y = ny;
@@ -384,15 +344,15 @@
                 items.splice(idx, 1);
 
                 if(score === 3) {
-                    const exitName = getLevelData(currentLevel).exitName;
+                    const exitName = levels[currentLevel].exitName;
                     setTimeout(() => showPopup(`<h3>✅ MISSION ACCOMPLIE ✅</h3><p>Fonce vers : <b>${exitName}</b> !</p>`, 4000), 100);
                 }
             }
 
-            const data = getLevelData(currentLevel);
-            if(nx === data.exit.x && ny === data.exit.y) {
+            const exit = levels[currentLevel].exit;
+            if(nx === exit.x && ny === exit.y) {
                 if(score >= 3) {
-                    if(currentLevel === 1) playMetroCinematic(() => loadLevel(2));
+                    if(currentLevel === 1) loadLevel(2);
                     else { gameActive = false; document.getElementById('game-container').style.display='none'; document.getElementById('end-screen').style.display='flex'; }
                 } else {
                     showMsg("Il te manque des objets !");
@@ -408,31 +368,23 @@
 
         function drawGame() {
             ctx.clearRect(0, 0, 800, 800);
-            const conf = getLevelData(currentLevel).colors;
+            const conf = levels[currentLevel];
 
             for(let y=0; y<GRID_SIZE; y++) {
                 for(let x=0; x<GRID_SIZE; x++) {
                     let t = map[y][x]; let px = x*TILE; let py = y*TILE;
                     
-                    if(currentLevel === 1) { // VOSGES
-                        if (t===1) { ctx.fillStyle = conf.wall; ctx.fillRect(px,py,TILE,TILE); ctx.strokeStyle = "rgba(0,0,0,0.2)"; ctx.strokeRect(px,py,TILE,TILE); }
-                        else if (t===2) { ctx.fillStyle = conf.path; ctx.fillRect(px,py,TILE,TILE); }
-                        else { 
-                            ctx.fillStyle = conf.ground; ctx.fillRect(px,py,TILE,TILE); 
-                            // Fleurs
+                    if(t===1) { // MUR
+                        ctx.fillStyle = conf.wall; ctx.fillRect(px,py,TILE,TILE); 
+                        ctx.strokeStyle = "rgba(0,0,0,0.3)"; ctx.strokeRect(px,py,TILE,TILE);
+                    } else if (t===2) { // CHEMIN
+                        ctx.fillStyle = conf.path; ctx.fillRect(px,py,TILE,TILE);
+                    } else { // SOL
+                        ctx.fillStyle = conf.bg; ctx.fillRect(px,py,TILE,TILE);
+                        // FLEURS ET BANCS (Seulement Vosges)
+                        if(currentLevel === 1) {
                             if((x+y)%9 === 0 && x%3 !== 0 && x>2 && x<17 && y>2 && y<17 && t===0) drawSprite(ctx, 'flower', x, y);
                             if((x === 3 || x === 16) && y%4 === 0 && y>2 && y<17) drawSprite(ctx, 'bench', x, y);
-                        }
-                    } else { // PIGALLE
-                        if (t===1) {
-                            ctx.fillStyle = conf.wall; ctx.fillRect(px,py,TILE,TILE); ctx.strokeStyle = "#111"; ctx.strokeRect(px,py,TILE,TILE);
-                            if((x%3===0 || y%3===0)) {
-                                 ctx.fillStyle = (x+y)%2===0 ? "#ff00cc" : "#00ccff"; 
-                                 if(Math.sin(animTimer*2) > 0) ctx.fillRect(px+5, py+5, TILE-10, TILE-10);
-                            }
-                        } else {
-                            ctx.fillStyle = conf.ground; ctx.fillRect(px,py,TILE,TILE); 
-                            ctx.strokeStyle = conf.path; ctx.strokeRect(px,py,TILE,TILE); 
                         }
                     }
                 }
@@ -442,7 +394,7 @@
             enemies.forEach(e => drawSprite(ctx, 'pigeon', e.x, e.y));
             drawSprite(ctx, 'player', playerPos.x, playerPos.y);
 
-            const ex = getLevelData(currentLevel).exit;
+            const ex = levels[currentLevel].exit;
             if(currentLevel === 1) {
                 drawSprite(ctx, 'metroExit', ex.x, ex.y);
             } else {
