@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission: Samuel à Paris (Final Stable)</title>
+    <title>Mission: Samuel (Ultimate Fix)</title>
     <style>
-        /* --- STYLE RETRO --- */
+        /* --- STYLE --- */
         body { 
             background-color: #050505; margin: 0; overflow: hidden; 
             font-family: 'Courier New', monospace; color: white; 
@@ -96,19 +96,9 @@
             background: rgba(5,5,5,0.98); z-index: 400; display: none;
             flex-direction: column; justify-content: center; align-items: center; text-align: center;
         }
-        #samuel-img { 
-            width: 250px; height: 250px; object-fit: cover; border: 5px solid #27ae60; margin: 20px; background: #222; 
-            animation: pulseSam 2s infinite ease-in-out;
-        }
-        @keyframes pulseSam {
-            0% { transform: scale(1); box-shadow: 0 0 20px #27ae60; }
-            50% { transform: scale(1.05); box-shadow: 0 0 40px #2ecc71; }
-            100% { transform: scale(1); box-shadow: 0 0 20px #27ae60; }
-        }
-        .end-text-box {
-            background:#222; padding:20px; border-radius:10px; max-width:600px; font-size:18px; line-height:1.5;
-            animation: slideUpBox 0.8s ease-out 0.3s backwards;
-        }
+        #samuel-img { width: 250px; height: 250px; object-fit: cover; border: 5px solid #27ae60; margin: 20px; background: #222; animation: pulseSam 2s infinite ease-in-out; }
+        @keyframes pulseSam { 0% { transform: scale(1); box-shadow: 0 0 20px #27ae60; } 50% { transform: scale(1.05); box-shadow: 0 0 40px #2ecc71; } 100% { transform: scale(1); box-shadow: 0 0 20px #27ae60; } }
+        .end-text-box { background:#222; padding:20px; border-radius:10px; max-width:600px; font-size:18px; line-height:1.5; animation: slideUpBox 0.8s ease-out 0.3s backwards; }
         @keyframes slideUpBox { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -140,13 +130,11 @@
             <div class="ui-score">Indices : <span id="score" style="color:#2ecc71">0</span> / 3</div>
             <div id="msg-popup"></div>
         </div>
-        
         <div id="main-popup"></div>
         <div id="letter-popup">
             <h3>💌 Lettre d'Alexis 💌</h3>
             <p>"Mon Sam chéri, rejoins-moi vite. Le Kebab refroidit... Je t'attends. <3"</p>
         </div>
-
         <canvas id="gameCanvas" width="800" height="800"></canvas>
     </div>
 
@@ -185,7 +173,7 @@
             { s: 'Mathis', t: "Il est passé où Samuel ?" },
             { s: 'Samuel', t: "Oh les gars ! C’est Chaud là !" },
             { s: 'Samuel', t: "La police me coursent !!" },
-            { s: 'Inèss', t: "Mdr arrête Sam, t'as encore bu avoue ?" }, // Correction Inèss
+            { s: 'Inèss', t: "Mdr arrête Sam, t'as encore bu avoue ?" }, // Corrigé
             { s: 'Samuel', t: "Non ! J'étais Place des Vosges, puis j'ai fui vers Pigalle." },
             { s: 'Lily', t: "Encore..." },
             { s: 'Samuel', t: "J'ai paumé mes affaires. Attention aux pigeons, ils sont violents." },
@@ -231,6 +219,7 @@
 
         const ctx = document.getElementById('gameCanvas').getContext('2d');
 
+        // --- DESSIN DES SPRITES ---
         function drawSprite(ctx, type, x, y) {
             const px = x * TILE; const py = y * TILE;
             
@@ -276,36 +265,48 @@
             }
         }
 
+        // --- GÉNÉRATION SÉCURISÉE DES NIVEAUX ---
         function loadLevel(lvlIdx) {
             currentLevel = lvlIdx;
             const data = levels[lvlIdx];
             map = [];
+            
+            // 1. On remplit tout avec du sol (Safe par défaut)
             for(let y=0; y<GRID_SIZE; y++) {
                 let row = [];
                 for(let x=0; x<GRID_SIZE; x++) {
-                    let type = 0; 
-                    if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) type = 1; 
-
-                    if (lvlIdx === 1) {
-                        // VOSGES : Herbe/Chemin
-                        if (x === 10 && y === 0) type = 2; // Sortie
-                        else if (x===2 || x===GRID_SIZE-3 || y===2 || y===GRID_SIZE-3) type = 2;
-                        else if (x===GRID_SIZE/2 || y===GRID_SIZE/2) type = 2;
-                        if ((x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) && !(x===10 && y===0)) type = 1;
-                    } else if (lvlIdx === 2) {
-                         // PIGALLE : Grande Rue Sombre
-                         // 0 = Rue, 1 = Mur, 2 = Trottoir (pour le style)
-                         if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) type = 1;
-                         else if (x===2 || x===GRID_SIZE-3 || y===2 || y===GRID_SIZE-3 || x===GRID_SIZE/2 || y===GRID_SIZE/2) type = 2;
-                         else type = 0;
-                    }
-                    row.push(type);
+                    row.push(0); // 0 = Sol (Marchable)
                 }
                 map.push(row);
             }
+
+            // 2. On dessine les murs et chemins selon le niveau
+            for(let y=0; y<GRID_SIZE; y++) {
+                for(let x=0; x<GRID_SIZE; x++) {
+                    if (lvlIdx === 1) { // VOSGES
+                        // Bords = Murs (Sauf sortie)
+                        if ((x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) && !(x===10 && y===0)) map[y][x] = 1;
+                        // Chemins
+                        if (x===2 || x===GRID_SIZE-3 || y===2 || y===GRID_SIZE-3) map[y][x] = 2;
+                        if (x===GRID_SIZE/2 || y===GRID_SIZE/2) map[y][x] = 2;
+                        if (x===10 && y===0) map[y][x] = 2; // Force le chemin sous le métro
+                    } 
+                    else if (lvlIdx === 2) { // PIGALLE
+                        // Bords = Murs
+                        if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) map[y][x] = 1;
+                        // Trottoirs
+                        if (x===2 || x===GRID_SIZE-3 || y===2 || y===GRID_SIZE-3 || x===GRID_SIZE/2 || y===GRID_SIZE/2) map[y][x] = 2;
+                        // Le reste reste à 0 (Rue)
+                    }
+                }
+            }
+
             items = JSON.parse(JSON.stringify(data.items));
             enemies = JSON.parse(JSON.stringify(data.enemies));
-            playerPos = {...data.start};
+            
+            // Reset joueur en position sûre
+            playerPos = {...data.start}; 
+            
             score = 0;
             document.getElementById('level-name').innerText = data.name;
             document.getElementById('score').innerText = "0";
@@ -318,7 +319,7 @@
             if(player && player.playVideo) { player.unMute(); player.setVolume(70); player.playVideo(); }
             gameActive = true;
             loadLevel(1);
-            drawGame(); 
+            drawGame();
             gameLoop();
         }
 
@@ -334,16 +335,23 @@
             if (Math.floor(animTimer) % 10 !== 0) return;
             enemies.forEach(e => {
                 let nextX = e.x + e.dx;
-                if (map[e.y][nextX] === 1) e.dx *= -1; else e.x += e.dx;
+                // Verif simple mur
+                if (nextX < 0 || nextX >= GRID_SIZE || map[e.y][nextX] === 1) e.dx *= -1; 
+                else e.x += e.dx;
+
                 if (e.x === playerPos.x && e.y === playerPos.y) {
                     if(score > 0) {
                         score--; document.getElementById('score').innerText = score;
                         showMsg("Le pigeon a volé un indice !");
                         const originalItems = levels[currentLevel].items;
                         const randomItem = originalItems[Math.floor(Math.random() * originalItems.length)];
-                        items.push({x: randomItem.x, y: randomItem.y, type: randomItem.type, name: randomItem.name});
+                        // On ajoute l'objet volé à une pos aléatoire mais sûre (au centre)
+                        items.push({x: 10, y: 10, type: randomItem.type, name: randomItem.name});
                     } else { showMsg("Aïe ! Sale pigeon !"); }
-                    if (map[playerPos.y][playerPos.x - e.dx * 2] !== 1) playerPos.x -= e.dx * 2;
+                    
+                    // Recul sécurisé
+                    let backX = playerPos.x - e.dx * 2;
+                    if(backX > 1 && backX < GRID_SIZE-1 && map[playerPos.y][backX] !== 1) playerPos.x = backX;
                 }
             });
         }
@@ -368,8 +376,8 @@
             setTimeout(() => {
                 document.getElementById('cinematic-overlay').style.display = 'none';
                 onComplete();
-                drawGame(); 
-                gameActive = true;
+                gameActive = true; // IMPORTANT : On réactive le jeu
+                drawGame();
             }, 3000);
         }
 
@@ -377,8 +385,9 @@
             if(!gameActive) return;
             let nx = playerPos.x + dx; let ny = playerPos.y + dy;
             
-            // Mur ? OK sauf sortie niveau 1
-            if(map[ny][nx] === 1 && !(currentLevel===1 && nx===10 && ny===0)) return;
+            // Collision basique
+            if(nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) return;
+            if(map[ny][nx] === 1) return; // Mur
             
             playerPos.x = nx; playerPos.y = ny;
 
@@ -388,9 +397,8 @@
                 document.getElementById('score').innerText = score;
                 const item = items[idx];
                 
-                if(item.type === 'letter') {
-                    showLoveLetter();
-                } else {
+                if(item.type === 'letter') showLoveLetter();
+                else {
                     let desc = "Indice trouvé !";
                     if(item.type === 'card') desc = "La carte de Sam ! Il l'a encore paumée...";
                     if(item.type === 'kebab') desc = "Le dîner de Sam. Il y a un mot d'Alexis dessus.";
@@ -443,24 +451,20 @@
                     let t = map[y][x]; let px = x*TILE; let py = y*TILE;
                     
                     if(currentLevel === 1) {
-                        // VOSGES RENDERING
-                        if (t===1) { 
-                            ctx.fillStyle = conf.colorWall; ctx.fillRect(px,py,TILE,TILE); 
-                            ctx.strokeStyle = "rgba(0,0,0,0.2)"; ctx.strokeRect(px,py,TILE,TILE);
-                        } else if (t===2) { 
-                            ctx.fillStyle = conf.colorPath; ctx.fillRect(px,py,TILE,TILE); 
-                        } else { 
+                        // VOSGES STYLE
+                        if (t===1) { ctx.fillStyle = conf.colorWall; ctx.fillRect(px,py,TILE,TILE); ctx.strokeStyle = "rgba(0,0,0,0.2)"; ctx.strokeRect(px,py,TILE,TILE); }
+                        else if (t===2) { ctx.fillStyle = conf.colorPath; ctx.fillRect(px,py,TILE,TILE); }
+                        else { 
                             ctx.fillStyle = conf.colorGround; ctx.fillRect(px,py,TILE,TILE); 
-                            // Fleurs et Bancs
                             if((x+y)%9 === 0 && x%3 !== 0 && x>2 && x<17 && y>2 && y<17 && t===0) drawSprite(ctx, 'flower', x, y);
                             if((x === 3 || x === 16) && y%4 === 0 && y>2 && y<17) drawSprite(ctx, 'bench', x, y);
                         }
                     } else {
-                        // PIGALLE RENDERING (Fixe Stable)
+                        // PIGALLE STYLE
                         if (t===1) {
                             ctx.fillStyle = conf.colorWall; ctx.fillRect(px,py,TILE,TILE);
                             ctx.strokeStyle = "#111"; ctx.strokeRect(px,py,TILE,TILE);
-                            // Néons
+                            // Néons fixes
                             if((x%3===0 || y%3===0)) {
                                  ctx.fillStyle = (x+y)%2===0 ? "#ff00cc" : "#00ccff"; 
                                  if(Math.sin(animTimer*2) > 0) ctx.fillRect(px+5, py+5, TILE-10, TILE-10);
@@ -468,8 +472,8 @@
                         } else if (t===2) {
                             ctx.fillStyle = conf.colorPath; ctx.fillRect(px,py,TILE,TILE); // Trottoir
                         } else {
-                            ctx.fillStyle = "#1a1a1a"; ctx.fillRect(px,py,TILE,TILE); // Route noire
-                            ctx.strokeStyle = "#222"; ctx.strokeRect(px,py,TILE,TILE); // Pavés
+                            ctx.fillStyle = "#1a1a1a"; ctx.fillRect(px,py,TILE,TILE); // Rue
+                            ctx.strokeStyle = "#222"; ctx.strokeRect(px,py,TILE,TILE); 
                         }
                     }
                 }
