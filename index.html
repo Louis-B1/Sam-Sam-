@@ -3,116 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokémon à Paris: ESG Edition</title>
+    <title>Mission: Les Chipies</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
         body { 
-            background-color: #111; 
+            background-color: #050505; 
             margin: 0; 
             overflow: hidden; 
-            font-family: 'VT323', monospace; /* Police Retro */
+            font-family: 'VT323', monospace; 
             color: white; 
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            user-select: none;
         }
 
-        /* --- UI DU TÉLÉPHONE (Intro) --- */
+        /* --- TÉLÉPHONE (INTRO) --- */
         #phone-container {
             position: absolute; width: 360px; height: 720px;
-            background: #000; border: 10px solid #222; border-radius: 35px;
+            background: #000; border: 12px solid #1a1a1a; border-radius: 40px;
             display: flex; flex-direction: column; overflow: hidden;
-            z-index: 100; box-shadow: 0 0 60px rgba(0,0,0,0.9);
+            z-index: 100; box-shadow: 0 0 80px rgba(0,0,0,0.8);
         }
         #chat-header {
-            background: #2a2a2a; padding: 20px; text-align: center; border-bottom: 2px solid #444;
-            font-size: 22px; color: #fff; letter-spacing: 1px;
+            background: #202020; padding: 25px; text-align: center; border-bottom: 2px solid #333;
+            font-size: 24px; color: #fff; letter-spacing: 1px; font-weight: bold;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
         }
         #chat-body {
             flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 15px;
-            background: #111; overflow-y: auto;
+            background: #111; overflow-y: auto; scroll-behavior: smooth;
         }
+        /* Style des bulles corrigé pour être visible tout de suite */
         .msg {
-            max-width: 85%; padding: 12px; border-radius: 4px; font-size: 18px; line-height: 1.2;
-            box-shadow: 2px 2px 0px #000;
+            max-width: 80%; padding: 15px; border-radius: 8px; font-size: 20px; line-height: 1.1;
+            box-shadow: 3px 3px 0px #000; opacity: 0; animation: fadePop 0.3s forwards;
         }
-        .left { background: #444; align-self: flex-start; color: #ddd; }
-        .right { background: #007aff; align-self: flex-end; color: white; }
-        .name { font-size: 14px; color: #bbb; margin-bottom: 4px; text-transform: uppercase; }
+        @keyframes fadePop { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        #btn-start {
-            padding: 25px; background: #d43737; color: white; text-align: center; 
-            cursor: pointer; font-size: 24px; text-transform: uppercase;
-            border-top: 2px solid #555; transition: background 0.2s;
-        }
-        #btn-start:hover { background: #b02a2a; }
+        .left { background: #333; align-self: flex-start; color: #eee; border-top-left-radius: 0; }
+        .right { background: #007aff; align-self: flex-end; color: white; border-top-right-radius: 0; }
+        .name { font-size: 14px; color: #aaa; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* --- UI JEU --- */
+        #btn-start {
+            padding: 30px; background: #2ecc71; color: #004400; text-align: center; 
+            cursor: pointer; font-size: 28px; text-transform: uppercase; font-weight: bold;
+            border-top: 4px solid #27ae60; display: none;
+        }
+        #btn-start:hover { background: #27ae60; color: white; }
+
+        /* --- JEU (POKÉMON STYLE) --- */
         #game-ui {
             position: absolute; top: 20px; left: 20px; z-index: 10; display: none;
-            background: rgba(0, 0, 0, 0.85); padding: 15px; border: 4px solid white;
-            box-shadow: 5px 5px 0px black;
+            background: rgba(255, 255, 255, 0.9); padding: 10px 20px; border: 4px solid #333; border-radius: 4px;
+            box-shadow: 5px 5px 0px rgba(0,0,0,0.5); color: black;
         }
-        .hud-text { margin: 5px 0; font-size: 24px; text-shadow: 2px 2px 0 #000; }
+        .hud-text { margin: 0; font-size: 28px; font-weight: bold; }
         
         canvas { 
-            border: 4px solid #444;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8); 
-            image-rendering: pixelated; /* RENDU PIXEL ART NET */
+            border: 8px solid #ddd; border-radius: 4px;
+            box-shadow: 0 0 100px rgba(0,0,0,1); 
+            image-rendering: pixelated; 
             display: none;
+        }
+
+        /* Scanlines Retro */
+        .scanlines {
+            position: fixed; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px;
         }
 
         #end-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); z-index: 200; display: none;
-            flex-direction: column; justify-content: center; align-items: center; text-align: center;
-        }
-
-        /* Scanline effect */
-        .scanlines {
-            position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 50;
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
-            background-size: 100% 4px;
+            flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white;
         }
     </style>
 </head>
 <body>
 
     <div class="scanlines"></div>
-
+    
     <div id="youtube-audio" style="position:absolute; top:-9999px;"></div>
 
     <div id="phone-container">
-        <div id="chat-header">Groupe: PROJET ESG (4)</div>
-        <div id="chat-body"></div>
-        <div id="btn-start" style="display:none;">RETROUVER SAMUEL</div>
+        <div id="chat-header">
+            <div style="width:15px; height:15px; background:#0f0; border-radius:50%;"></div>
+            Les Chipies (4)
+        </div>
+        <div id="chat-body">
+            </div>
+        <div id="btn-start">ALLER CHERCHER SAM</div>
     </div>
 
     <div id="game-ui">
-        <div class="hud-text" style="color:#ffd700;" id="zone-name">LIEU: INCONNU</div>
-        <div class="hud-text">OBJETS: <span id="score">0</span>/3</div>
-        <div id="message-area" style="margin-top:10px; color:#55ff55; font-size: 20px; min-height:30px;"></div>
+        <div class="hud-text" id="zone-name">PLACE DES VOSGES</div>
+        <div style="font-size:20px; color:#555;">OBJETS: <span id="score" style="color:#d32f2f; font-weight:bold;">0</span>/3</div>
+        <div id="message-area" style="margin-top:5px; color:#007aff; font-size: 22px; min-height:25px;"></div>
     </div>
 
     <canvas id="gameCanvas" width="800" height="600"></canvas>
 
     <div id="end-screen">
-        <h1 style="color: #55ff55; font-size: 60px; text-shadow: 4px 4px 0 #000;">SAMUEL RETROUVÉ !</h1>
-        <div style="background: #222; padding: 20px; border: 4px solid white; max-width: 600px;">
-            <p style="font-size: 28px; line-height: 1.4;">
+        <h1 style="color: #2ecc71; font-size: 60px; margin-bottom: 20px;">SAMUEL RETROUVÉ !</h1>
+        <div style="background: #fff; color:black; padding: 30px; border-radius:10px; border: 5px solid #aaa; max-width: 600px;">
+            <p style="font-size: 30px; line-height: 1.2;">
                 "Wesh l'équipe... J'ai plus de batterie.<br>
                 Je dormais dans un kebab rue de Douai.<br>
-                C'était pas la Police, c'était le livreur Uber Eats qui klaxonnait."
+                C'était pas la Police, c'était le camion poubelle qui faisait trop de bruit."
             </p>
         </div>
-        <br><br>
-        <button onclick="location.reload()" style="padding:15px 30px; font-size:24px; cursor:pointer; font-family:'VT323';">RETOURNER EN COURS</button>
+        <br>
+        <button onclick="location.reload()" style="padding:15px 30px; font-size:24px; cursor:pointer; font-family:'VT323'; background:#d32f2f; color:white; border:none;">RETOURNER EN COURS</button>
     </div>
 
     <script>
-        // --- 1. SYSTÈME AUDIO (Youtube API) ---
+        // --- 1. CONFIGURATION ---
+        const TILE = 50; 
+        let patterns = {};
+        
+        // --- 2. AUDIO (API ROBUSTE) ---
         var player;
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
@@ -122,335 +135,281 @@
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('youtube-audio', {
                 height: '0', width: '0', 
-                videoId: 'tE7Qy9i2Qhs', // "Paris Cafe Ambience Jazz"
+                videoId: 'tE7Qy9i2Qhs', // Jazz Parisien Chill
                 playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': 'tE7Qy9i2Qhs' }
             });
         }
 
-        // --- 2. TEXTURES PIXEL ART (Génération procédurale) ---
-        const TILE = 50; 
-        const patterns = {};
-
+        // --- 3. GÉNÉRATEUR DE TEXTURES PIXEL ART (Style Pokémon) ---
         function createPattern(type) {
             const c = document.createElement('canvas'); c.width = TILE; c.height = TILE;
             const ctx = c.getContext('2d');
 
             if(type === 'grass_vosges') {
-                // Herbe verte parc
-                ctx.fillStyle = '#4a8f4a'; ctx.fillRect(0,0,TILE,TILE);
-                ctx.fillStyle = '#5ca05c'; 
-                for(let i=0; i<10; i++) ctx.fillRect(Math.random()*TILE, Math.random()*TILE, 4, 4);
+                // Herbe verte lumineuse (Nintendo style)
+                ctx.fillStyle = '#6ab04c'; ctx.fillRect(0,0,TILE,TILE);
+                ctx.fillStyle = '#badc58'; 
+                ctx.fillRect(5,5,4,4); ctx.fillRect(25,35,4,4); ctx.fillRect(40,10,4,4);
+                ctx.fillStyle = '#488235'; 
+                ctx.fillRect(0,0,2,TILE); ctx.fillRect(0,0,TILE,2); // Bordure subtile
             }
             else if(type === 'brick_vosges') {
-                // Brique rouge typique place des vosges + Pierre blanche
-                ctx.fillStyle = '#b84030'; ctx.fillRect(0,0,TILE,TILE); // Fond rouge
-                ctx.fillStyle = '#8f291b'; // Joint sombre
-                for(let y=0; y<TILE; y+=10) ctx.fillRect(0, y, TILE, 2);
-                for(let x=0; x<TILE; x+=20) ctx.fillRect(x, 0, 2, TILE);
-                // Arcade pierre (coin)
-                ctx.fillStyle = '#e0d8c0'; ctx.fillRect(0,0,8,TILE); 
+                // Brique rouge + Pierre
+                ctx.fillStyle = '#eb4d4b'; ctx.fillRect(0,0,TILE,TILE);
+                ctx.fillStyle = '#c0392b'; // Ombre brique
+                for(let y=0; y<TILE; y+=12.5) {
+                    ctx.fillRect(0, y, TILE, 2);
+                    let off = (y/12.5)%2===0?0:25; ctx.fillRect(off, y, 2, 12.5);
+                }
+                // Arche pierre
+                ctx.fillStyle = '#f1f2f6'; ctx.fillRect(0,0,10,TILE);
+                ctx.strokeStyle = '#bdc3c7'; ctx.strokeRect(0,0,10,TILE);
             }
-            else if(type === 'path_vosges') {
-                // Gravier beige
-                ctx.fillStyle = '#d6c8a5'; ctx.fillRect(0,0,TILE,TILE);
-                ctx.fillStyle = '#c2b38f';
-                for(let i=0; i<30; i++) ctx.fillRect(Math.random()*TILE, Math.random()*TILE, 2, 2);
+            else if(type === 'path') {
+                // Sable beige
+                ctx.fillStyle = '#f7f1e3'; ctx.fillRect(0,0,TILE,TILE);
+                ctx.fillStyle = '#d1ccc0';
+                for(let i=0; i<15; i++) ctx.fillRect(Math.random()*TILE, Math.random()*TILE, 3, 3);
             }
             else if(type === 'cobble_pigalle') {
-                // Pavés sombres nuit
-                ctx.fillStyle = '#222'; ctx.fillRect(0,0,TILE,TILE);
-                ctx.strokeStyle = '#333';
-                for(let y=0; y<TILE; y+=10) for(let x=0; x<TILE; x+=10) {
-                    ctx.strokeRect(x,y,10,10);
-                }
+                // Pavés bleutés nuit
+                ctx.fillStyle = '#2c3e50'; ctx.fillRect(0,0,TILE,TILE);
+                ctx.strokeStyle = '#34495e'; ctx.lineWidth = 2;
+                for(let y=0; y<TILE; y+=12.5) for(let x=0; x<TILE; x+=12.5) ctx.strokeRect(x,y,12.5,12.5);
             }
             else if(type === 'wall_pigalle') {
-                // Mur sombre batiment
-                ctx.fillStyle = '#111'; ctx.fillRect(0,0,TILE,TILE);
-                ctx.fillStyle = '#0a0a0a'; ctx.fillRect(5,5,TILE-10,TILE-10); // Fenetre éteinte
+                // Façade sombre
+                ctx.fillStyle = '#1e272e'; ctx.fillRect(0,0,TILE,TILE);
+                ctx.fillStyle = '#000'; ctx.fillRect(10,10,30,30); // Fenetre noire
+                ctx.fillStyle = '#333'; ctx.fillRect(24,10,2,30); ctx.fillRect(10,24,30,2); // Croisillons
             }
-            else if(type === 'neon_pink') {
-                // Enseigne "SEX SHOP" ou Club (Pixel art abstrait)
-                ctx.fillStyle = '#111'; ctx.fillRect(0,0,TILE,TILE);
-                ctx.fillStyle = '#ff0099'; 
-                ctx.shadowBlur = 10; ctx.shadowColor = '#ff0099';
-                ctx.fillRect(10, 15, 30, 5); ctx.fillRect(10, 25, 30, 5);
-                ctx.shadowBlur = 0;
-            }
-            else if(type === 'neon_blue') {
-                // Enseigne "BAR"
-                ctx.fillStyle = '#111'; ctx.fillRect(0,0,TILE,TILE);
-                ctx.fillStyle = '#00ccff'; 
-                ctx.shadowBlur = 10; ctx.shadowColor = '#00ccff';
-                ctx.font = "10px monospace"; ctx.fillText("BAR", 10, 30);
-                ctx.shadowBlur = 0;
+            else if(type === 'neon_sex') {
+                ctx.fillStyle = '#1e272e'; ctx.fillRect(0,0,TILE,TILE);
+                ctx.fillStyle = '#ff00a0'; ctx.shadowBlur = 15; ctx.shadowColor = '#ff00a0';
+                ctx.font = "14px monospace"; ctx.fillText("CLUB", 8, 30); ctx.shadowBlur = 0;
             }
             else if(type === 'fountain') {
-                // Eau
-                ctx.fillStyle = '#4488ff'; ctx.fillRect(0,0,TILE,TILE);
-                ctx.fillStyle = '#aaddff'; ctx.fillRect(10,10,TILE-20,TILE-20);
+                ctx.fillStyle = '#3498db'; ctx.fillRect(0,0,TILE,TILE);
+                ctx.fillStyle = '#ecf0f1'; ctx.globalAlpha=0.3;
+                ctx.beginPath(); ctx.arc(TILE/2, TILE/2, 15, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
             }
-
             return ctx.createPattern(c, 'repeat');
         }
 
-        // --- 3. SCÉNARIO ---
-        const messages = [
-            { sender: 'Matthieu', text: "Il est où Samuel ? Le prof va faire l'appel." },
-            { sender: 'Samuel', text: "LES GARS C'EST CHAUD." },
-            { sender: 'Samuel', text: "La police me coursent." },
-            { sender: 'Moi', text: "Mdr arrête tes mythos Sam, t'as encore bu ?" },
-            { sender: 'Samuel', text: "Jure que non ! J'étais Place des Vosges, y'a eu une descente." },
-            { sender: 'Julie', text: "Pff... Il a surement perdu sa carte étudiante et il ose pas venir." },
-            { sender: 'Samuel', text: "J'ai paumé mes affaires en courant vers Pigalle." },
-            { sender: 'Samuel', text: "Venez me chercher je suis perdu." },
-            { sender: 'Moi', text: "Ok j'arrive. Bouge pas (pour une fois)." }
-        ];
-
-        // --- 4. MAPS (DESIGN POKÉMON STYLE) ---
-        // 0:Path/Grass, 1:BrickWall, 2:Grass(Decor), 4:Fountain
-        const mapVosges = [
-            [1,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1], // Mur Nord (Arcades)
-            [1,0,0,0,0,0,0,0,2,2,0,0,0,0,0,1], // Chemin gravier
-            [1,0,2,2,2,2,0,0,4,4,0,0,2,2,0,1], // Herbe + Fontaine
-            [1,0,2,2,2,2,0,0,4,4,0,0,2,2,0,1],
-            [1,0,2,2,2,2,0,0,0,0,0,0,2,2,0,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], // Grande allée centrale
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,0,2,2,2,2,0,0,0,0,0,0,2,2,0,1],
-            [1,0,2,2,2,2,0,0,0,0,0,0,2,2,0,1],
-            [1,0,2,2,2,2,0,0,0,0,0,0,2,2,0,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,9,1], // 9 = Sortie
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]  // Mur Sud
-        ];
-
-        // 0:Cobble, 1:Wall, 5:NeonPink, 6:NeonBlue
-        const mapPigalle = [
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], // Rue large
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,0,1,5,1,1,1,0,1,1,6,1,1,0,0,1], // Bloc batiments avec néons
-            [1,0,1,1,1,1,1,0,1,1,1,1,1,0,0,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], // Rue
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,0,1,1,6,1,1,0,1,1,1,5,1,0,0,1], // Bloc sud
-            [1,0,1,1,1,1,1,0,1,1,1,1,1,0,0,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,0,0,0,0,0,0,8,0,0,0,0,0,0,0,1], // 8 = Samuel
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ];
-
-        // --- 5. MOTEUR JEU ---
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        let player = { x: 2, y: 2, dir: 'down' };
-        let level = 0;
-        let itemsFound = 0;
-        let gameActive = false;
-        let currentMap = [];
-        let items = [];
-        
-        // Initialisation des patterns
         function initPatterns() {
             patterns.grass = createPattern('grass_vosges');
             patterns.brick = createPattern('brick_vosges');
-            patterns.path = createPattern('path_vosges');
+            patterns.path = createPattern('path');
             patterns.cobble = createPattern('cobble_pigalle');
             patterns.wall = createPattern('wall_pigalle');
-            patterns.neonP = createPattern('neon_pink');
-            patterns.neonB = createPattern('neon_blue');
+            patterns.neon = createPattern('neon_sex');
             patterns.water = createPattern('fountain');
         }
 
-        const itemsLvl1 = [
-            {x: 8, y: 5, label: "Carte Étudiante"},
-            {x: 2, y: 8, label: "Paquet de clopes"},
-            {x: 12, y: 2, label: "Chargeur iPhone"}
+        // --- 4. DATA JEU ---
+        // Niveau 1: Place des Vosges (Carré, Fontaine centrale, Herbe)
+        const map1 = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,0,0,2,0,0,0,0,0,0,0,1],
+            [1,0,2,2,2,2,0,2,0,2,2,2,2,0,0,1],
+            [1,0,2,2,2,2,0,0,0,2,2,2,2,0,0,1],
+            [1,0,2,2,4,4,0,0,0,4,4,2,2,0,0,1], // Fontaine (4)
+            [1,0,2,2,4,4,0,0,0,4,4,2,2,0,0,1],
+            [1,0,2,2,2,2,0,0,0,2,2,2,2,0,0,1],
+            [1,0,2,2,2,2,0,0,0,2,2,2,2,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], // Allée
+            [1,0,2,2,2,2,0,0,0,2,2,2,2,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,9,1], // Sortie (9)
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
         ];
-        const itemsLvl2 = [
-            {x: 5, y: 9, label: "Kebab Froid"},
-            {x: 12, y: 5, label: "Ticket RATP"},
-            {x: 1, y: 10, label: "Flyer 'Sauna'"}
+        
+        // Niveau 2: Pigalle (Rue, Clubs)
+        const map2 = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], // Trottoir large
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,1,5,1,1,0,1,1,5,1,0,1,5,1,1,1], // Clubs (5)
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], // Route
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,1,1,0,0,1,1,1,1,0,0,1,1,1,1,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,1,1,1,0,0,0,1,1,1,0,0,0,1],
+            [1,0,0,0,0,0,0,8,0,0,0,0,0,0,0,1], // Samuel (8)
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
         ];
 
-        function loadLevel(idx) {
-            level = idx;
-            itemsFound = 0;
-            document.getElementById('score').innerText = "0";
-            items = [];
+        const items1 = [
+            {x: 8, y: 5, label: "Carte Étudiante"}, {x: 3, y: 3, label: "Vape"}, {x: 12, y: 8, label: "Chargeur"}
+        ];
+        const items2 = [
+            {x: 2, y: 8, label: "Kebab Froid"}, {x: 12, y: 5, label: "Ticket Métro"}, {x: 6, y: 2, label: "Flyer BDE"}
+        ];
 
-            if(level === 0) {
-                currentMap = mapVosges;
-                items = JSON.parse(JSON.stringify(itemsLvl1));
-                player.x = 2; player.y = 2;
-                document.getElementById('zone-name').innerText = "LIEU: PLACE DES VOSGES";
-                document.getElementById('zone-name').style.color = "#55ff55"; // Vert
-            } else {
-                currentMap = mapPigalle;
-                items = JSON.parse(JSON.stringify(itemsLvl2));
-                player.x = 2; player.y = 2;
-                document.getElementById('zone-name').innerText = "LIEU: PIGALLE (NUIT)";
-                document.getElementById('zone-name').style.color = "#ff55ff"; // Rose
+        // --- 5. LOGIQUE JEU ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let player = {x: 1, y: 1};
+        let currentMap = [];
+        let items = [];
+        let level = 1;
+        let score = 0;
+        let gameActive = false;
+
+        function startGame() {
+            document.getElementById('phone-container').style.display = 'none';
+            document.getElementById('game-ui').style.display = 'block';
+            document.getElementById('gameCanvas').style.display = 'block';
+            gameActive = true;
+            
+            // SON: On lance ici pour contourner les protections navigateur
+            if(player && player.playVideo) {
+                player.unMute();
+                player.setVolume(50);
+                player.playVideo();
             }
-            draw();
+
+            initPatterns();
+            loadLevel(1);
+            loop();
+        }
+
+        function loadLevel(lvl) {
+            level = lvl;
+            score = 0;
+            document.getElementById('score').innerText = "0";
+            
+            if(lvl === 1) {
+                currentMap = map1;
+                items = JSON.parse(JSON.stringify(items1));
+                player = {x: 2, y: 2};
+                document.getElementById('zone-name').innerText = "PLACE DES VOSGES";
+            } else {
+                currentMap = map2;
+                items = JSON.parse(JSON.stringify(items2));
+                player = {x: 2, y: 2};
+                document.getElementById('zone-name').innerText = "PIGALLE (NUIT)";
+            }
         }
 
         function move(dx, dy) {
+            if(!gameActive) return;
             const nx = player.x + dx;
             const ny = player.y + dy;
 
-            // Définir direction pour le sprite (si on avait des sprites animés)
-            if(dy === 1) player.dir = 'down';
-            if(dy === -1) player.dir = 'up';
-            if(dx === 1) player.dir = 'right';
-            if(dx === -1) player.dir = 'left';
-
-            // Collision basique
+            // Collision
             const cell = currentMap[ny][nx];
-            if(cell === 1 || cell === 5 || cell === 6 || cell === 4) return; // Murs et obstacles
+            if(cell === 1 || cell === 4 || cell === 5) return; // Murs
 
             player.x = nx; player.y = ny;
 
-            // Interactions
             // Items
             const itemIdx = items.findIndex(i => i.x === nx && i.y === ny);
             if(itemIdx !== -1) {
-                itemsFound++;
-                document.getElementById('score').innerText = itemsFound;
-                showMessage("Trouvé: " + items[itemIdx].label);
+                score++;
+                document.getElementById('score').innerText = score;
+                showMessage(`Trouvé: ${items[itemIdx].label} !`);
                 items.splice(itemIdx, 1);
             }
 
             // Sortie (9)
             if(cell === 9) {
-                if(itemsFound >= 3) loadLevel(1);
+                if(score >= 3) loadLevel(2);
                 else showMessage("Il te manque des objets !");
             }
             // Samuel (8)
             if(cell === 8) {
-                if(itemsFound >= 3) {
+                if(score >= 3) {
                     gameActive = false;
-                    document.getElementById('end-screen').style.display = 'flex';
-                    document.getElementById('game-ui').style.display = 'none';
                     document.getElementById('gameCanvas').style.display = 'none';
-                } else {
-                    showMessage("C'est Samuel ! Mais où sont ses affaires ?");
-                }
+                    document.getElementById('game-ui').style.display = 'none';
+                    document.getElementById('end-screen').style.display = 'flex';
+                } else showMessage("C'est Sam ! Mais il faut ses affaires.");
             }
-            draw();
         }
 
         function showMessage(txt) {
             const el = document.getElementById('message-area');
             el.innerText = txt;
-            el.style.animation = 'none';
-            el.offsetHeight; /* trigger reflow */
-            el.style.animation = 'pop 0.3s';
-            setTimeout(() => el.innerText = "", 3000);
+            setTimeout(() => el.innerText = "", 2000);
         }
 
-        function draw() {
-            // Nettoyage
-            ctx.fillStyle = "#000";
-            ctx.fillRect(0,0,canvas.width, canvas.height);
-
-            // Centrage de la caméra (simple offset)
-            // On dessine toute la map car elle est petite (16x12 tiles = 800x600 pixels pile poil avec TILE=50)
+        function loop() {
+            if(!gameActive) return;
+            ctx.clearRect(0,0,canvas.width, canvas.height);
             
+            // DESSIN MAP
             for(let y=0; y<currentMap.length; y++) {
                 for(let x=0; x<currentMap[y].length; x++) {
-                    const cell = currentMap[y][x];
-                    const px = x * TILE;
-                    const py = y * TILE;
+                    const c = currentMap[y][x];
+                    const px = x*TILE; const py = y*TILE;
                     
-                    // 1. SOL
-                    if(level === 0) {
-                        if(cell === 2) ctx.fillStyle = patterns.grass; // Herbe décor
-                        else if(cell === 4) ctx.fillStyle = patterns.grass; // Fond fontaine
-                        else ctx.fillStyle = patterns.path; // Chemin gravier
+                    // Sol
+                    if(level === 1) {
+                        if(c === 0) ctx.fillStyle = patterns.path;
+                        else ctx.fillStyle = patterns.grass;
                     } else {
-                        ctx.fillStyle = patterns.cobble; // Pavés partout
+                        ctx.fillStyle = patterns.cobble;
                     }
-                    ctx.fillRect(px, py, TILE, TILE);
+                    if(c !== 4) ctx.fillRect(px, py, TILE, TILE); // Pas dessiner sous l'eau
 
-                    // 2. OBJETS / MURS
-                    if(cell === 1) {
-                        ctx.fillStyle = (level === 0) ? patterns.brick : patterns.wall;
-                        ctx.fillRect(px, py, TILE, TILE);
-                        // Ombre fausse 3D
-                        ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fillRect(px, py+TILE-10, TILE, 10);
-                    }
-                    else if(cell === 4) { // Fontaine
-                        ctx.fillStyle = patterns.water; ctx.fillRect(px, py, TILE, TILE);
-                    }
-                    else if(cell === 5) { // Neon Pink
-                        ctx.fillStyle = patterns.neonP; ctx.fillRect(px, py, TILE, TILE);
-                    }
-                    else if(cell === 6) { // Neon Blue
-                        ctx.fillStyle = patterns.neonB; ctx.fillRect(px, py, TILE, TILE);
-                    }
+                    // Blocs
+                    if(c === 1) { ctx.fillStyle = level===1 ? patterns.brick : patterns.wall; ctx.fillRect(px,py,TILE,TILE); }
+                    if(c === 4) { ctx.fillStyle = patterns.water; ctx.fillRect(px,py,TILE,TILE); }
+                    if(c === 5) { ctx.fillStyle = patterns.neon; ctx.fillRect(px,py,TILE,TILE); }
                 }
             }
 
-            // 3. ITEMS (Pokéball Style)
+            // DESSIN ITEMS (Pokéballs)
             items.forEach(i => {
-                const px = i.x * TILE + TILE/2;
-                const py = i.y * TILE + TILE/2;
-                ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(px, py, 10, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = "red"; ctx.beginPath(); ctx.arc(px, py, 10, 0, Math.PI, true); ctx.fill();
-                ctx.fillStyle = "black"; ctx.beginPath(); ctx.moveTo(px-10, py); ctx.lineTo(px+10, py); ctx.stroke();
-                ctx.beginPath(); ctx.arc(px, py, 3, 0, Math.PI*2); ctx.fillStyle="white"; ctx.fill(); ctx.stroke();
+                const cx = i.x*TILE + TILE/2; const cy = i.y*TILE + TILE/2;
+                ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = "#e74c3c"; ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI, true); ctx.fill();
+                ctx.fillStyle = "#333"; ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI*2); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cx-12, cy); ctx.lineTo(cx+12, cy); ctx.stroke();
             });
 
-            // 4. PLAYER (Style Character Sprite Minimaliste)
-            const px = player.x * TILE;
-            const py = player.y * TILE;
+            // DESSIN JOUEUR (Sprite simple)
+            const px = player.x*TILE; const py = player.y*TILE;
+            ctx.fillStyle = "#3498db"; ctx.fillRect(px+10, py+15, 30, 30); // Corps
+            ctx.fillStyle = "#f1c40f"; ctx.fillRect(px+12, py+5, 26, 20); // Tête
+            ctx.fillStyle = "#2c3e50"; ctx.fillRect(px+12, py, 26, 8); // Cheveux
             
-            // Ombre
-            ctx.fillStyle = "rgba(0,0,0,0.4)";
-            ctx.beginPath(); ctx.ellipse(px+TILE/2, py+TILE-5, 15, 8, 0, 0, Math.PI*2); ctx.fill();
-
-            // Corps
-            ctx.fillStyle = "#007aff"; // Pull Bleu
-            ctx.fillRect(px+10, py+15, TILE-20, TILE-20);
-            
-            // Tête
-            ctx.fillStyle = "#ffccaa"; // Peau
-            ctx.fillRect(px+12, py+5, TILE-24, 20);
-            
-            // Cheveux (Bruns)
-            ctx.fillStyle = "#4a3020";
-            ctx.fillRect(px+10, py+2, TILE-20, 10);
-
-            // 5. SAMUEL / SORTIE
-            // Si on est au niveau 1 (Sortie)
-            if(level === 0) {
-                ctx.fillStyle = "#00ff00"; ctx.globalAlpha = 0.5;
-                ctx.fillRect(14*TILE, 10*TILE, TILE, TILE); ctx.globalAlpha = 1;
-                ctx.fillStyle = "white"; ctx.font = "20px VT323"; ctx.fillText("MÉTRO", 14*TILE+5, 10*TILE+30);
+            // DESSIN SAMUEL / SORTIE
+            if(level === 1) {
+                ctx.fillStyle = "#2ecc71"; ctx.font="20px VT323"; 
+                ctx.fillText("MÉTRO", 14*TILE, 10*TILE+30);
             } else {
-                // Samuel (Niveau 2)
                 const sx = 7*TILE; const sy = 10*TILE;
-                ctx.fillStyle = "#ff5555"; // Pull Rouge
-                ctx.fillRect(sx+10, sy+15, TILE-20, TILE-20);
-                ctx.fillStyle = "#ffccaa"; ctx.fillRect(sx+12, sy+5, TILE-24, 20);
-                ctx.fillStyle = "black"; ctx.fillRect(sx+10, sy+2, TILE-20, 10);
-                ctx.fillStyle = "white"; ctx.fillText("SAM", sx+10, sy-10);
+                ctx.fillStyle = "#e74c3c"; ctx.fillRect(sx+10, sy+15, 30, 30);
+                ctx.fillStyle = "#f1c40f"; ctx.fillRect(sx+12, sy+5, 26, 20);
+                ctx.fillStyle = "#000"; ctx.fillText("SAM", sx+10, sy-5);
             }
+
+            requestAnimationFrame(loop);
         }
 
-        // --- CONTROLES ---
         window.addEventListener('keydown', e => {
-            if(!gameActive) return;
-            if(e.key === "ArrowUp") move(0, -1);
-            if(e.key === "ArrowDown") move(0, 1);
-            if(e.key === "ArrowLeft") move(-1, 0);
-            if(e.key === "ArrowRight") move(1, 0);
+            if(e.key === "ArrowUp") move(0,-1);
+            if(e.key === "ArrowDown") move(0,1);
+            if(e.key === "ArrowLeft") move(-1,0);
+            if(e.key === "ArrowRight") move(1,0);
         });
 
-        // --- INTRO CHAT ---
-        const chatBody = document.getElementById('chat-body');
+        // --- 6. SCÉNARIO (LES CHIPIES) ---
+        const messages = [
+            { s: 'Matthieu', t: "Il est où Samuel ? Le prof va faire l'appel." },
+            { s: 'Samuel', t: "LES CHIPIES C'EST CHAUD." },
+            { s: 'Samuel', t: "La police me coursent." },
+            { s: 'Moi', t: "Mdr arrête tes mythos Sam, t'as encore bu ?" },
+            { s: 'Samuel', t: "Jure que non ! J'étais Place des Vosges, y'a eu une descente." },
+            { s: 'Julie', t: "Pff... Il a surement perdu sa carte étudiante et il ose pas venir." },
+            { s: 'Samuel', t: "J'ai paumé mes affaires en courant vers Pigalle." },
+            { s: 'Samuel', t: "Venez me chercher je suis perdu." },
+            { s: 'Moi', t: "Ok j'arrive. Bouge pas (pour une fois)." }
+        ];
+
+        // Lancement immédiat du chat pour éviter le bug
         let msgIdx = 0;
         function playChat() {
             if (msgIdx >= messages.length) {
@@ -459,33 +418,21 @@
             }
             const m = messages[msgIdx];
             const div = document.createElement('div');
-            div.className = `msg ${m.sender === 'Moi' ? 'right' : 'left'}`;
-            div.innerHTML = `<div class="name">${m.sender}</div>${m.text}`;
-            chatBody.appendChild(div);
-            chatBody.scrollTop = chatBody.scrollHeight;
+            div.className = `msg ${m.s === 'Moi' ? 'right' : 'left'}`;
+            div.innerHTML = `<div class="name">${m.s}</div>${m.t}`;
+            document.getElementById('chat-body').appendChild(div);
+            // Scroll auto
+            document.getElementById('chat-body').scrollTop = document.getElementById('chat-body').scrollHeight;
             msgIdx++;
             setTimeout(playChat, 1200);
         }
 
-        window.onload = () => {
-            initPatterns();
+        // Démarrage sûr au chargement
+        window.onload = function() {
             setTimeout(playChat, 500);
         };
-
-        document.getElementById('btn-start').addEventListener('click', () => {
-            document.getElementById('phone-container').style.display = 'none';
-            document.getElementById('gameCanvas').style.display = 'block';
-            document.getElementById('game-ui').style.display = 'block';
-            gameActive = true;
-            
-            // LANCER LA MUSIQUE (Contourne autoplay policy)
-            if(player && player.playVideo) {
-                player.setVolume(50);
-                player.playVideo();
-            }
-
-            loadLevel(0);
-        });
+        
+        document.getElementById('btn-start').addEventListener('click', startGame);
 
     </script>
 </body>
