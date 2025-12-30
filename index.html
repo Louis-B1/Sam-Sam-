@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission: Place des Vosges</title>
+    <title>Mission: Place des Vosges (Finale)</title>
     <style>
         /* --- STYLE GLOBAL --- */
         body { 
@@ -57,7 +57,7 @@
         
         .left { background: #333; align-self: flex-start; border-bottom-left-radius: 2px; color: #ddd; }
         .right { background: #007aff; align-self: flex-end; border-bottom-right-radius: 2px; color: white; }
-        .sender { font-size: 10px; color: #888; margin-bottom: 4px; display: block; }
+        .sender { font-size: 10px; color: #888; margin-bottom: 4px; display: block; font-weight: bold; text-transform: uppercase; }
 
         #btn-start {
             padding: 25px; background: #27ae60; color: white; text-align: center; 
@@ -77,13 +77,13 @@
         #game-ui {
             position: absolute; top: 20px; left: 20px;
             background: rgba(0, 0, 0, 0.8); padding: 15px; border-radius: 8px; border: 2px solid #fff;
-            color: white; font-family: sans-serif; min-width: 200px;
+            color: white; font-family: sans-serif; min-width: 250px;
         }
         .ui-title { color: #e74c3c; font-weight: bold; font-size: 18px; margin-bottom: 5px; }
         .ui-score { font-size: 16px; }
         #msg-popup { 
-            margin-top: 10px; color: #3498db; font-weight: bold; height: 20px; 
-            text-shadow: 1px 1px 0 #000;
+            margin-top: 10px; color: #3498db; font-weight: bold; min-height: 20px; 
+            text-shadow: 1px 1px 0 #000; font-size: 14px;
         }
 
         /* --- 4. FIN --- */
@@ -108,7 +108,7 @@
     </div>
 
     <div id="phone-container">
-        <div id="chat-header">Groupe: Les Chipies (4)</div>
+        <div id="chat-header">Groupe: PROJET DE GROUPE (4)</div>
         <div id="chat-body"></div>
         <div id="btn-start">ALLER CHERCHER SAMUEL</div>
     </div>
@@ -129,9 +129,10 @@
         <div id="alt-text" style="display:none; color:white; border:2px solid #444; padding:20px; margin:20px;">(Ajoute 'samuel.jpg' dans le dossier pour voir la photo)</div>
 
         <div style="background:#222; padding:20px; border-radius:10px; max-width:600px; font-size:20px; line-height:1.5;">
-            "Wesh l'équipe... J'ai plus de batterie.<br>
+            "Wesh l'équipe... J'ai plus de batterie sur mon tel.<br>
             Je dormais sur un banc.<br>
-            C'était pas la police, juste des pigeons qui m'attaquaient."
+            C'était pas la police, juste des pigeons qui m'attaquaient.<br>
+            Paris be like !"
         </div>
         <br>
         <button onclick="location.reload()" style="padding:15px 30px; font-size:18px; cursor:pointer; background:#d43737; color:white; border:none; border-radius:5px;">REJOUER</button>
@@ -154,54 +155,44 @@
         }
 
         // --- 2. DONNEES DU JEU ---
-        const TILE = 40; // Taille d'une case (20x20 cases = 800px)
+        const TILE = 40; 
         const GRID_SIZE = 20;
         
-        // Chat
+        // NOUVEAU CHAT
         const messages = [
-            { s: 'Matthieu', t: "Il est où Samuel ? Le prof va faire l'appel." },
-            { s: 'Samuel', t: "LES CHIPIES C'EST CHAUD." },
+            { s: 'Mathis', t: "Il est où Samuel ? Le prof va faire l'appel." },
+            { s: 'Samuel', t: "Oh les gars ! C’est Chaud là !." },
             { s: 'Samuel', t: "La police me coursent !!" },
-            { s: 'Moi', t: "Mdr arrête tes mythos Sam, t'as encore bu ?" },
+            { s: 'Inès', t: "Mdr arrête Sam, t'as encore bu avoue ?" },
             { s: 'Samuel', t: "Jure que non ! J'étais Place des Vosges." },
-            { s: 'Julie', t: "Il a encore perdu sa carte étudiante..." },
-            { s: 'Samuel', t: "J'ai tout paumé en courant. Venez me chercher." },
+            { s: 'Lily', t: "Encore..." },
+            { s: 'Samuel', t: "J'ai paumé mes affaires en courant. Venez me chercher." },
             { s: 'Moi', t: "Ok j'arrive. Bouge pas." }
         ];
 
-        // Items à trouver
+        // NOUVEAUX ITEMS
         let items = [
-            {x: 4, y: 4, name: "Carte Étudiante"},
-            {x: 15, y: 4, name: "Kebab Sauce Blanche"},
-            {x: 4, y: 15, name: "Paquet de Clopes"}
+            {x: 4, y: 4, name: "Carte Bancaire de Samuel"},
+            {x: 15, y: 4, name: "Kebab Sauce Blanche (Mot d'Alexis)"},
+            {x: 4, y: 15, name: "Casquette & Lunettes Mbappé (PSG)"}
         ];
         
-        let samuelPos = {x: 16, y: 16}; // Samuel caché
-        let playerPos = {x: 10, y: 18}; // Départ en bas
+        let samuelPos = {x: 16, y: 16}; 
+        let playerPos = {x: 10, y: 18}; 
         let score = 0;
         let gameActive = false;
 
-        // Génération de la Carte (Place des Vosges simplifiée)
-        // 0=Herbe, 1=Mur Rouge, 2=Chemin Gris, 3=Statue, 9=Samuel
+        // Génération de la Carte
         let map = [];
-
         function generateMap() {
             for(let y=0; y<GRID_SIZE; y++) {
                 let row = [];
                 for(let x=0; x<GRID_SIZE; x++) {
-                    // Par défaut : Herbe
-                    let type = 0; 
-
-                    // MURS EXTERIEURS (Bâtiments rouges)
-                    if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) type = 1;
-
-                    // CHEMINS (Arcades intérieures + Croix centrale)
-                    else if (x===2 || x===GRID_SIZE-3 || y===2 || y===GRID_SIZE-3) type = 2; // Tour
-                    else if (x===GRID_SIZE/2 || x===GRID_SIZE/2-1) type = 2; // Vertical
-                    else if (y===GRID_SIZE/2 || y===GRID_SIZE/2-1) type = 2; // Horizontal
-                    
-                    // FONTAINES (Coins du carré central) - Optionnel, on laisse en herbe pour l'instant
-                    
+                    let type = 0; // Herbe par défaut
+                    if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) type = 1; // Mur
+                    else if (x===2 || x===GRID_SIZE-3 || y===2 || y===GRID_SIZE-3) type = 2; // Chemin Tour
+                    else if (x===GRID_SIZE/2 || x===GRID_SIZE/2-1) type = 2; // Chemin Vertical
+                    else if (y===GRID_SIZE/2 || y===GRID_SIZE/2-1) type = 2; // Chemin Horizontal
                     row.push(type);
                 }
                 map.push(row);
@@ -212,7 +203,6 @@
 
         // --- 3. FONCTIONS LOGIQUES ---
         
-        // Intro Chat
         let msgIndex = 0;
         function playChat() {
             if (msgIndex >= messages.length) {
@@ -232,12 +222,10 @@
             setTimeout(playChat, 1200);
         }
 
-        // Démarrage Jeu
         function startGame() {
             document.getElementById('phone-container').style.display = 'none';
             document.getElementById('game-container').style.display = 'block';
             
-            // Lancer la musique (User Interaction requise, donc ici ça marche)
             if(player && player.playVideo) {
                 player.unMute();
                 player.setVolume(80);
@@ -249,32 +237,28 @@
             drawGame();
         }
 
-        // Déplacement
         function movePlayer(dx, dy) {
             if(!gameActive) return;
 
             let nx = playerPos.x + dx;
             let ny = playerPos.y + dy;
 
-            // Collision Murs (1) et Statue (3)
             if(map[ny][nx] === 1 || map[ny][nx] === 3) return;
 
             playerPos.x = nx;
             playerPos.y = ny;
 
-            // Check Items
             let itemIdx = items.findIndex(i => i.x === nx && i.y === ny);
             if(itemIdx !== -1) {
                 score++;
                 document.getElementById('score').innerText = score;
                 showMsg(`Trouvé : ${items[itemIdx].name}`);
-                items.splice(itemIdx, 1); // Retirer l'objet
+                items.splice(itemIdx, 1);
             }
 
-            // Check Samuel
             if(nx === samuelPos.x && ny === samuelPos.y) {
                 if(score >= 3) endGame();
-                else showMsg("Il te manque des objets !");
+                else showMsg("Il manque des indices pour trouver Sam !");
             }
 
             drawGame();
@@ -283,7 +267,7 @@
         function showMsg(text) {
             const el = document.getElementById('msg-popup');
             el.innerText = text;
-            setTimeout(() => el.innerText = "", 2000);
+            setTimeout(() => el.innerText = "", 3000);
         }
 
         function endGame() {
@@ -298,7 +282,6 @@
         function drawGame() {
             ctx.clearRect(0, 0, 800, 800);
 
-            // 1. DESSINER LA CARTE
             for(let y=0; y<GRID_SIZE; y++) {
                 for(let x=0; x<GRID_SIZE; x++) {
                     let type = map[y][x];
@@ -307,7 +290,6 @@
 
                     if(type === 0) { // Herbe
                         ctx.fillStyle = "#27ae60"; ctx.fillRect(px, py, TILE, TILE);
-                        // Petit détail herbe
                         ctx.fillStyle = "#2ecc71"; ctx.fillRect(px+10, py+10, 5, 5); 
                     } 
                     else if(type === 1) { // Mur Brique
@@ -323,7 +305,7 @@
                 }
             }
 
-            // 2. DESSINER ITEMS
+            // ITEMS
             items.forEach(item => {
                 let px = item.x * TILE + TILE/2;
                 let py = item.y * TILE + TILE/2;
@@ -332,25 +314,20 @@
                 ctx.strokeStyle = "#000"; ctx.stroke();
             });
 
-            // 3. DESSINER SAMUEL (Caché)
-            // On affiche un indice visuel discret
+            // SAMUEL (Indice discret)
             let sx = samuelPos.x * TILE;
             let sy = samuelPos.y * TILE;
-            ctx.fillStyle = "#d35400"; ctx.fillRect(sx+10, sy+10, 20, 20); // Juste une tache orange
+            ctx.fillStyle = "#d35400"; ctx.fillRect(sx+10, sy+10, 20, 20); 
             
-            // 4. DESSINER JOUEUR
+            // JOUEUR
             let plx = playerPos.x * TILE;
             let ply = playerPos.y * TILE;
-            
-            // Corps
             ctx.fillStyle = "#3498db"; ctx.fillRect(plx+5, ply+10, 30, 25);
-            // Tête
             ctx.fillStyle = "#f1c40f"; ctx.fillRect(plx+10, ply+2, 20, 15);
         }
 
         // --- 5. INITIALISATION ---
         window.onload = function() {
-            // Lancer le chat après 4s (temps de l'intro)
             setTimeout(playChat, 4000);
         };
 
