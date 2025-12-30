@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission: Samuel à Paris (Final Cut v2)</title>
+    <title>Mission: Samuel à Paris (Final Fix)</title>
     <style>
         /* --- STYLE RETRO --- */
         body { 
@@ -231,7 +231,6 @@
 
         const ctx = document.getElementById('gameCanvas').getContext('2d');
 
-        // --- DESSIN DES SPRITES ---
         function drawSprite(ctx, type, x, y) {
             const px = x * TILE; const py = y * TILE;
             
@@ -261,23 +260,18 @@
                 ctx.fillStyle = "#3498db"; ctx.fillRect(px+10, py+12, 20, 16); ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(px+20, py+14, 9, 0, Math.PI*2); ctx.fill();
             }
             else if (type === 'flower') {
-                ctx.fillStyle = "#2ecc71"; ctx.fillRect(px+19, py+22, 2, 8); // Tige
+                ctx.fillStyle = "#2ecc71"; ctx.fillRect(px+19, py+22, 2, 8); 
                 ctx.fillStyle = (x+y)%2===0 ? "#e74c3c" : "#fff"; ctx.beginPath(); ctx.arc(px+20, py+20, 6, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(px+20, py+20, 2, 0, Math.PI*2); ctx.fill();
             }
             else if (type === 'bench') {
                  ctx.fillStyle = "#8B4513"; ctx.fillRect(px+5, py+10, 30, 10); ctx.fillStyle = "#A0522D"; ctx.fillRect(px+5, py+12, 30, 2); ctx.fillRect(px+5, py+16, 30, 2);
             }
-            // NOUVEAU SPRITE MÉTRO CORRIGÉ (M à droite)
             else if (type === 'metroExit') {
-                 // Escalier
                  ctx.fillStyle = "#2c3e50"; ctx.fillRect(px, py+15, TILE, TILE-15);
                  ctx.fillStyle = "#34495e"; for(let i=0; i<3; i++) ctx.fillRect(px, py+15 + i*6, TILE, 2);
-                 // Poteau à droite
                  ctx.fillStyle = "#7f8c8d"; ctx.fillRect(px+30, py, 5, 20);
-                 // Panneau jaune
                  ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(px+32, py, 12, 0, Math.PI*2); ctx.fill();
                  ctx.strokeStyle = "#f39c12"; ctx.lineWidth=2; ctx.stroke();
-                 // M Bleu centré dans le panneau
                  ctx.fillStyle = "#2980b9"; ctx.font="bold 16px Arial"; ctx.textAlign = "center"; ctx.fillText("M", px+32, py+5); ctx.textAlign = "start"; 
             }
         }
@@ -290,23 +284,18 @@
                 let row = [];
                 for(let x=0; x<GRID_SIZE; x++) {
                     let type = 0; 
-                    // Murs extérieurs de base
                     if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) type = 1; 
 
                     if (lvlIdx === 1) {
-                        // --- LAYOUT VOSGES ---
-                        // Ouverture Métro
-                        if (x === 10 && y === 0) type = 2;
-                        // Chemins
+                        // VOSGES : Herbe + Chemins + Métro
+                        if (x === 10 && y === 0) type = 2; // Ouverture Métro
                         else if (x===2 || x===GRID_SIZE-3 || y===2 || y===GRID_SIZE-3) type = 2;
                         else if (x===GRID_SIZE/2 || y===GRID_SIZE/2) type = 2;
-                        // On remet les murs si un chemin a écrasé un bord (sauf l'entrée métro)
                         if ((x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) && !(x===10 && y===0)) type = 1;
                     } else if (lvlIdx === 2) {
-                         // --- LAYOUT PIGALLE ---
-                         // Juste une grande place goudronnée (type 2) avec des murs autour (type 1)
+                         // PIGALLE : Grande place noire + Murs néons
                          if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) type = 1;
-                         else type = 2;
+                         else type = 2; // Tout est chemin
                     }
                     row.push(type);
                 }
@@ -327,7 +316,6 @@
             if(player && player.playVideo) { player.unMute(); player.setVolume(70); player.playVideo(); }
             gameActive = true;
             loadLevel(1);
-            drawGame(); // Dessin immédiat pour éviter le flash
             gameLoop();
         }
 
@@ -377,8 +365,8 @@
             setTimeout(() => {
                 document.getElementById('cinematic-overlay').style.display = 'none';
                 onComplete();
-                // IMPORTANT : On force le dessin du niveau 2 immédiatement
-                drawGame();
+                // IMPORTANT : Dessin immédiat de Pigalle pour éviter le flash vert
+                drawGame(); 
                 gameActive = true;
             }, 3000);
         }
@@ -386,6 +374,8 @@
         function movePlayer(dx, dy) {
             if(!gameActive) return;
             let nx = playerPos.x + dx; let ny = playerPos.y + dy;
+            
+            // Gestion collision mur SAUF si c'est la sortie métro (10,0) niveau 1
             if(map[ny][nx] === 1 && !(currentLevel===1 && nx===10 && ny===0)) return;
             
             playerPos.x = nx; playerPos.y = ny;
