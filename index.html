@@ -2,11 +2,11 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission Samuel: Paris Neon Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mission Samuel: Paris Neon Edition (v3.1)</title>
     <style>
         /* ===========================
-           🎨 STYLE NEON / ULTIMATE
+           🎨 STYLE & RESET
            =========================== */
         :root {
             --neon-pink: #FF006E;
@@ -14,7 +14,6 @@
             --neon-purple: #8B5CF6;
             --neon-green: #10B981;
             --bg-dark: #050505;
-            --surface: #1a1a1a;
             --text-main: #F9FAFB;
         }
 
@@ -25,9 +24,10 @@
             color: var(--text-main); 
             display: flex; justify-content: center; align-items: center; height: 100vh;
             user-select: none;
+            -webkit-user-select: none;
         }
 
-        /* Scanlines subtiles pour garder un peu de texture */
+        /* Scanlines effet rétro-futuriste */
         .scanlines {
             position: fixed; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999;
             background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, transparent 1px, transparent 2px);
@@ -41,7 +41,7 @@
             animation: fadeOut 1s ease-in-out 3s forwards; pointer-events: none;
         }
         #title-main { 
-            font-size: 70px; font-weight: 900; letter-spacing: 5px;
+            font-size: clamp(40px, 10vw, 80px); font-weight: 900; letter-spacing: 5px;
             color: #fff; text-shadow: 0 0 20px var(--neon-purple), 0 0 40px var(--neon-pink);
             animation: glitch 3s infinite;
         }
@@ -52,9 +52,9 @@
             40% { transform: translate(2px, -2px); } 
         }
 
-        /* --- TÉLÉPHONE MODERNE --- */
+        /* --- TÉLÉPHONE --- */
         #phone-container {
-            position: absolute; width: 380px; height: 750px;
+            position: absolute; width: min(380px, 95vw); height: min(750px, 90vh);
             background: #000; border: 12px solid #222; border-radius: 45px;
             display: flex; flex-direction: column; overflow: hidden;
             z-index: 200; box-shadow: 0 0 60px rgba(139, 92, 246, 0.3);
@@ -64,15 +64,15 @@
         
         #chat-header { 
             background: linear-gradient(90deg, #222, #111); 
-            padding: 25px; text-align: center; border-bottom: 1px solid #333; 
-            font-weight: bold; font-size: 18px; letter-spacing: 1px;
+            padding: 20px; text-align: center; border-bottom: 1px solid #333; 
+            font-weight: bold; font-size: 16px; letter-spacing: 1px;
         }
         #chat-body { 
             flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 15px; 
             background: #050505; overflow-y: auto; 
         }
         .msg { 
-            max-width: 80%; padding: 14px 18px; border-radius: 20px; font-size: 14px; 
+            max-width: 80%; padding: 12px 16px; border-radius: 18px; font-size: 14px; 
             line-height: 1.4; animation: slideUp 0.3s ease-out; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -82,25 +82,25 @@
             background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink)); 
             align-self: flex-end; border-bottom-right-radius: 4px; color: #fff; 
         }
-        .sender { font-size: 11px; opacity: 0.7; margin-bottom: 4px; display: block; font-weight: bold; text-transform: uppercase; }
+        .sender { font-size: 10px; opacity: 0.7; margin-bottom: 4px; display: block; font-weight: bold; text-transform: uppercase; }
         
         #btn-start { 
-            margin: 20px; padding: 20px; border-radius: 30px; border: none;
+            margin: 20px; padding: 18px; border-radius: 25px; border: none;
             background: linear-gradient(90deg, var(--neon-green), #059669); 
-            color: #fff; font-weight: bold; font-size: 18px; cursor: pointer; 
+            color: #fff; font-weight: bold; font-size: 16px; cursor: pointer; 
             display: none; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
             transition: transform 0.2s;
         }
         #btn-start:hover { transform: scale(1.05); }
 
-        /* --- JEU & CANVAS --- */
-        #game-container { position: relative; display: none; }
+        /* --- JEU --- */
+        #game-container { position: relative; display: none; width: 100vw; height: 100vh; justify-content: center; align-items: center; }
         
         canvas { 
             background: #050810; border-radius: 12px;
             border: 4px solid var(--neon-purple); 
             box-shadow: 0 0 80px rgba(139, 92, 246, 0.2); 
-            /* image-rendering: pixelated; On retire pour un look plus lisse "néon" */
+            max-width: 95vw; max-height: 95vw;
         }
         
         #game-ui {
@@ -108,36 +108,36 @@
             display: flex; gap: 20px; z-index: 10;
         }
         .hud-box {
-            background: rgba(20, 20, 30, 0.8); backdrop-filter: blur(10px);
-            padding: 10px 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
+            background: rgba(20, 20, 30, 0.85); backdrop-filter: blur(10px);
+            padding: 8px 16px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);
+            text-align: center; min-width: 100px;
         }
-        .ui-label { font-size: 12px; color: #aaa; text-transform: uppercase; display: block; }
-        .ui-value { font-size: 20px; font-weight: bold; color: var(--neon-blue); }
+        .ui-label { font-size: 10px; color: #aaa; text-transform: uppercase; display: block; letter-spacing: 1px; }
+        .ui-value { font-size: 18px; font-weight: bold; color: var(--neon-blue); text-shadow: 0 0 10px rgba(0, 245, 255, 0.5); }
         
         #msg-popup { 
-            position: absolute; bottom: 30px; width: 100%; text-align: center;
+            position: absolute; bottom: 40px; width: 100%; text-align: center;
             color: var(--neon-pink); font-weight: bold; font-size: 18px; 
             text-shadow: 0 0 10px rgba(255,0,110,0.5);
-            height: 30px; 
+            height: 30px; pointer-events: none;
         }
 
-        /* --- POPUPS STYLÉS --- */
+        /* --- POPUPS --- */
         #main-popup {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(10, 10, 20, 0.95); color: #fff; padding: 30px; 
+            background: rgba(10, 10, 20, 0.95); color: #fff; padding: 25px; 
             border: 2px solid var(--neon-blue); border-radius: 15px;
             z-index: 100; display: none; text-align: center; 
-            box-shadow: 0 0 50px rgba(0, 245, 255, 0.3); min-width: 320px;
+            box-shadow: 0 0 50px rgba(0, 245, 255, 0.3); min-width: 300px;
         }
         #main-popup h3 { margin-top: 0; color: var(--neon-blue); text-transform: uppercase; letter-spacing: 2px; }
         
         #letter-popup {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #fff; color: #111; padding: 40px; 
+            background: #fff; color: #111; padding: 30px; 
             z-index: 101; display: none; text-align: center; 
             box-shadow: 0 0 100px rgba(255,255,255,0.5); transform: translate(-50%, -50%) rotate(-2deg);
-            border-radius: 2px; font-family: 'Courier New', cursive; min-width: 300px;
+            border-radius: 2px; font-family: 'Courier New', cursive; min-width: 280px;
         }
         #letter-popup h3 { color: #d63031; border-bottom: 2px solid #d63031; display: inline-block; }
 
@@ -149,14 +149,14 @@
         }
         .end-text-box { 
             background: linear-gradient(135deg, #222, #111); 
-            padding: 30px; border-radius: 20px; max-width: 500px; 
+            padding: 25px; border-radius: 20px; max-width: 500px; 
             border: 1px solid #333; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            margin-top: 20px;
+            margin-top: 20px; width: 90%;
         }
         #samuel-img { 
-            width: 200px; height: 200px; object-fit: cover; border-radius: 50%; 
+            width: 150px; height: 150px; object-fit: cover; border-radius: 50%; 
             border: 4px solid var(--neon-green); margin: 20px; 
-            box-shadow: 0 0 30px var(--neon-green);
+            box-shadow: 0 0 30px var(--neon-green); background: #333;
         }
     </style>
 </head>
@@ -166,8 +166,9 @@
     <div id="youtube-audio" style="position:absolute; top:-9999px;"></div>
 
     <div id="title-screen">
-        <div id="title-main" data-text="PARIS">PARIS</div>
-        <div style="font-size: 24px; color: var(--neon-purple); letter-spacing: 10px; margin-top: 20px; text-transform: uppercase;">By Night</div>
+        <div id="title-main">PARIS</div>
+        <div style="font-size: clamp(16px, 4vw, 24px); color: var(--neon-purple); letter-spacing: 10px; margin-top: 10px; text-transform: uppercase;">By Night</div>
+        <div style="font-size: 10px; color: #555; margin-top: 50px;">v3.1-NeonArchitecture</div>
     </div>
 
     <div id="phone-container">
@@ -201,21 +202,21 @@
     </div>
 
     <div id="end-screen">
-        <h1 style="color: var(--neon-green); font-size: 40px; text-shadow: 0 0 20px var(--neon-green);">SAMUEL RETROUVÉ !</h1>
-        <img id="samuel-img" src="samuel.jpg" alt="Samuel" onerror="this.src='https://via.placeholder.com/200/000000/FFFFFF/?text=SAM'">
+        <h1 style="color: var(--neon-green); font-size: clamp(24px, 6vw, 40px); text-shadow: 0 0 20px var(--neon-green);">SAMUEL RETROUVÉ !</h1>
+        <img id="samuel-img" src="samuel.jpg" alt="Samuel" onerror="this.style.background='#333'; this.alt='Photo manquante'">
         <div class="end-text-box">
-            <p style="font-size: 18px; color: #ccc;">"Wesh l'équipe... J'ai plus de batterie."</p>
-            <p style="font-size: 16px; color: #888;">"Je dormais sur un banc. C'était pas la police, juste des pigeons qui m'attaquaient."</p>
-            <p style="color: var(--neon-purple); font-weight: bold; margin-top: 15px;">#ParisLife</p>
+            <p style="font-size: 18px; color: #ccc; font-style: italic;">"Wesh l'équipe... J'ai plus de batterie."</p>
+            <p style="font-size: 16px; color: #888; margin-top: 15px;">"Je dormais sur un banc. C'était pas la police, juste des pigeons qui m'attaquaient."</p>
+            <p style="color: var(--neon-purple); font-weight: bold; margin-top: 15px; letter-spacing: 2px;">#ParisLife</p>
         </div>
-        <button onclick="location.reload()" style="margin-top: 30px; padding: 15px 40px; background: transparent; border: 2px solid var(--neon-green); color: var(--neon-green); font-weight: bold; cursor: pointer; border-radius: 25px;">REJOUER</button>
+        <button onclick="location.reload()" style="margin-top: 30px; padding: 15px 40px; background: transparent; border: 2px solid var(--neon-green); color: var(--neon-green); font-weight: bold; cursor: pointer; border-radius: 25px; font-size: 16px;">REJOUER</button>
     </div>
 
     <script>
         const TILE = 40; 
         const GRID_SIZE = 20;
         
-        /* --- AUDIO --- */
+        /* --- SYSTÈME AUDIO (Youtube API) --- */
         var player;
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
@@ -223,12 +224,12 @@
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('youtube-audio', {
-                height: '0', width: '0', videoId: 'Vol9dZ-t93s', // Synthwave Music
+                height: '0', width: '0', videoId: 'Vol9dZ-t93s', // Synthwave Music ID
                 playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': 'Vol9dZ-t93s' }
             });
         }
 
-        /* --- DONNÉES DU JEU (TRAME ORIGINALE) --- */
+        /* --- SCÉNARIO CHAT --- */
         const chatMessages = [
             { s: 'Mathis', t: 'Il est passé où Samuel ?' },
             { s: 'Samuel', t: 'Oh les gars ! C’est Chaud là !' },
@@ -240,6 +241,7 @@
             { s: 'Moi', t: 'Ok j\'arrive.' }
         ];
 
+        /* --- VARIABLES DE JEU --- */
         let currentLevel = 1;
         let map = [];
         let items = [];
@@ -249,119 +251,176 @@
         let gameActive = false;
         let animTimer = 0;
 
-        /* CONFIGURATION DES NIVEAUX (Couleurs mises à jour pour le style Néon) */
+        /* --- CONFIGURATION DES NIVEAUX --- */
         const levels = {
             1: {
                 name: "PLACE DES VOSGES",
-                colorWall: "#380e0e", // Sombre pour le contraste
-                colorGround: "#0a1f0a", // Vert très sombre
-                colorPath: "#143314", // Chemin un peu plus clair
-                neonColor: "#27ae60", // Couleur de lueur
+                colorWall: "#4a1c1c", // Brique sombre
+                colorGround: "#0f2e0f", // Herbe sombre
+                colorPath: "#3d342b", // Sable
+                neonColor: "#FF5733", // Orange/Rouge Brique Néon
                 items: [
                     {x: 4, y: 4, type: 'card', name: 'Carte Bancaire'},
                     {x: 15, y: 4, type: 'kebab', name: 'Kebab Sauce Blanche'},
                     {x: 4, y: 15, type: 'cap', name: 'Casquette Mbappé'}
                 ],
-                enemies: [{x: 8, y: 8, dx: 1}, {x: 12, y: 12, dx: -1}], 
-                start: {x: 10, y: 18}, exit: {x: 10, y: 0}, exitName: "MÉTRO"
+                enemies: [{x: 6, y: 6, dx: 1}, {x: 13, y: 13, dx: -1}, {x: 6, y: 13, dx: 1}], 
+                start: {x: 10, y: 18}, exit: {x: 10, y: 1}, exitName: "MÉTRO"
             },
             2: {
                 name: "PIGALLE (LA NUIT)",
-                colorWall: "#0f0f1a", 
-                colorGround: "#050505", 
-                colorPath: "#111",
-                neonColor: "#d63031", // Rouge/Rose néon
+                colorWall: "#1a0510", // Bâtiment sombre
+                colorGround: "#111111", // Bitume
+                colorPath: "#222", // Trottoir
+                neonColor: "#ff00ff", // Rose Néon
                 items: [
-                    {x: 3, y: 3, type: 'letter', name: "Lettre d'amour d'Alexis"},
-                    {x: 16, y: 3, type: 'key', name: "Clé d'Angèle"},
-                    {x: 16, y: 16, type: 'foodbag', name: "Sac de nourriture"}
+                    {x: 3, y: 5, type: 'letter', name: "Lettre d'amour"},
+                    {x: 16, y: 5, type: 'key', name: "Clé d'Angèle"},
+                    {x: 10, y: 10, type: 'foodbag', name: "Sac de nourriture"}
                 ],
-                enemies: [{x: 5, y: 5, dx: 1}, {x: 15, y: 15, dx: -1}, {x: 5, y: 15, dx: 1}, {x: 10, y: 10, dx: 1}],
-                start: {x: 10, y: 18}, exit: {x: 10, y: 9}, exitName: "SAMUEL"
+                enemies: [{x: 5, y: 8, dx: 1}, {x: 14, y: 8, dx: -1}, {x: 5, y: 12, dx: 1}, {x: 14, y: 12, dx: -1}, {x: 10, y: 5, dx: 0}],
+                start: {x: 10, y: 18}, exit: {x: 10, y: 2}, exitName: "SAMUEL"
             }
         };
 
         const ctx = document.getElementById('gameCanvas').getContext('2d');
 
-        // Fonction pour dessiner avec effet de lueur (Glow)
+        /* --- UTILITAIRES GRAPHIQUES --- */
         function drawGlowRect(ctx, x, y, w, h, color, blur = 10) {
             ctx.shadowBlur = blur;
             ctx.shadowColor = color;
             ctx.fillStyle = color;
             ctx.fillRect(x, y, w, h);
-            ctx.shadowBlur = 0; // Reset
+            ctx.shadowBlur = 0;
         }
 
+        /* --- DESSIN DES SPRITES (OBJETS & PERSONNAGES) --- */
         function drawSprite(ctx, type, x, y) {
-            const px = x * TILE; const py = y * TILE;
-            const cx = px + TILE/2; const cy = py + TILE/2;
+            const px = x * TILE; 
+            const py = y * TILE;
+            const cx = px + TILE/2; 
+            const cy = py + TILE/2;
 
-            if (type === 'card') {
-                drawGlowRect(ctx, px+8, py+12, 24, 16, '#00F5FF', 10);
-                ctx.fillStyle = '#000'; ctx.fillRect(px+8, py+14, 24, 4); 
-            } else if (type === 'kebab') {
-                drawGlowRect(ctx, px+10, py+10, 20, 20, '#FFD700', 10); // Or
-                ctx.fillStyle = '#fff'; ctx.fillRect(px+15, py+15, 10, 10);
-            } else if (type === 'cap') {
-                ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI * 2);
-                ctx.fillStyle = '#0033cc'; ctx.fill();
-                ctx.shadowBlur = 10; ctx.shadowColor = '#0033cc';
-                ctx.fillStyle = '#fff'; ctx.font="10px Arial"; ctx.fillText("P", cx-3, cy+3);
+            if (type === 'pigeon') {
+                // ANIMATION PIGEON (Respiration & Picorage)
+                let breath = Math.sin(animTimer * 5) * 2; 
+                let peck = Math.cos(animTimer * 8) * 3; 
+
+                // Ombre
+                ctx.shadowBlur = 10; ctx.shadowColor = '#000';
+                
+                // Corps (Gris bleuté)
+                ctx.fillStyle = '#64748b'; 
+                ctx.beginPath(); ctx.ellipse(cx, cy + breath, 12, 8, 0, 0, Math.PI*2); ctx.fill();
+
+                // Aile (Plus claire)
+                ctx.fillStyle = '#94a3b8';
+                ctx.beginPath(); ctx.ellipse(cx - 2, cy - 2 + breath, 8, 5, 0.2, 0, Math.PI*2); ctx.fill();
+
+                // Tête (Mobile)
+                ctx.fillStyle = '#475569'; 
+                let headX = cx + 8;
+                let headY = cy - 6 + breath + (peck > 1.5 ? 4 : 0); // Picore si peck est haut
+                ctx.beginPath(); ctx.arc(headX, headY, 5, 0, Math.PI*2); ctx.fill();
+
+                // Bec (Orange)
+                ctx.fillStyle = '#f97316';
+                ctx.beginPath(); ctx.moveTo(headX+2, headY); ctx.lineTo(headX+8, headY+2); ctx.lineTo(headX+2, headY+3); ctx.fill();
+
+                // Oeil (Rouge agressif)
+                ctx.fillStyle = '#ef4444'; 
+                ctx.beginPath(); ctx.arc(headX+2, headY-2, 1.5, 0, Math.PI*2); ctx.fill();
                 ctx.shadowBlur = 0;
-            } else if (type === 'key') {
-                drawGlowRect(ctx, px+15, py+10, 10, 20, '#F59E0B', 15);
-            } else if (type === 'foodbag') {
-                 drawGlowRect(ctx, px+10, py+15, 20, 20, '#8B5CF6', 10); // Violet
-                 ctx.fillStyle = '#fff'; ctx.fillText("🛍️", px+10, py+30);
-            } else if (type === 'letter') {
-                drawGlowRect(ctx, px+8, py+12, 24, 16, '#fff', 10);
-                ctx.fillStyle = '#FF006E'; ctx.fillText("❤️", px+12, py+24);
-            } else if (type === 'pigeon') {
-                // Ennemi rougeoyant agressif
-                let bounce = Math.sin(animTimer) * 3;
-                ctx.shadowBlur = 15; ctx.shadowColor = '#FF0000';
-                ctx.fillStyle = '#555'; ctx.beginPath(); ctx.arc(cx, cy+bounce, 12, 0, Math.PI*2); ctx.fill();
-                // Yeux rouges
-                ctx.fillStyle = '#FF0000'; ctx.beginPath(); ctx.arc(cx-4, cy-2+bounce, 3, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(cx+4, cy-2+bounce, 3, 0, Math.PI*2); ctx.fill();
-                ctx.shadowBlur = 0;
-            } else if (type === 'player') {
-                // Joueur = Point Bleu Néon
-                ctx.shadowBlur = 20; ctx.shadowColor = '#00F5FF';
-                ctx.fillStyle = '#00F5FF'; 
-                ctx.beginPath(); ctx.arc(cx, cy, 10, 0, Math.PI*2); ctx.fill();
+            }
+            else if (type === 'player') {
+                // Joueur (Halo Néon)
+                ctx.shadowBlur = 15; ctx.shadowColor = '#00F5FF';
+                ctx.fillStyle = '#00F5FF'; ctx.beginPath(); ctx.arc(cx, cy, 9, 0, Math.PI*2); ctx.fill();
                 ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI*2); ctx.fill();
                 ctx.shadowBlur = 0;
-            } else if (type === 'flower') {
-                ctx.fillStyle = '#10B981'; ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI*2); ctx.fill();
-            } else if (type === 'metroExit') {
-                 drawGlowRect(ctx, px, py, TILE, TILE, '#00F5FF', 5);
+            } 
+            else if (type === 'card') {
+                drawGlowRect(ctx, px+8, py+12, 24, 16, '#00F5FF', 10);
+                ctx.fillStyle = '#000'; ctx.fillRect(px+8, py+14, 24, 4); 
+            } 
+            else if (type === 'kebab') {
+                drawGlowRect(ctx, px+10, py+10, 20, 20, '#FFD700', 10);
+                ctx.fillStyle = '#fff'; ctx.font="12px Arial"; ctx.fillText("🌯", px+12, py+24);
+            } 
+            else if (type === 'cap') {
+                ctx.shadowBlur = 10; ctx.shadowColor = '#0033cc';
+                ctx.fillStyle = '#0033cc'; ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#fff'; ctx.font="bold 10px Arial"; ctx.fillText("P", cx-3, cy+3);
+                ctx.shadowBlur = 0;
+            }
+            else if (type === 'letter') {
+                drawGlowRect(ctx, px+10, py+12, 20, 16, '#fff', 8);
+                ctx.fillStyle = '#FF006E'; ctx.font="12px Arial"; ctx.fillText("♥", px+14, py+24);
+            }
+            else if (type === 'key') {
+                 drawGlowRect(ctx, px+15, py+10, 10, 20, '#F59E0B', 15);
+            }
+            else if (type === 'foodbag') {
+                 drawGlowRect(ctx, px+10, py+15, 20, 20, '#8B5CF6', 10); 
+            }
+            else if (type === 'metroExit') {
+                 drawGlowRect(ctx, px+5, py+5, TILE-10, TILE-10, '#00F5FF', 20);
                  ctx.fillStyle = '#000'; ctx.font="bold 20px Arial"; ctx.fillText("M", px+12, py+28);
             }
         }
 
+        /* --- GÉNÉRATION DE NIVEAU (ARCHITECTURE) --- */
         function loadLevel(lvlIdx) {
             currentLevel = lvlIdx;
             const data = levels[lvlIdx];
             map = [];
-            // GÉNÉRATION MAP
+            
             for(let y=0; y<GRID_SIZE; y++) {
                 let row = [];
                 for(let x=0; x<GRID_SIZE; x++) {
-                    let type = 0; // Sol
-                    if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) type = 1; // Murs
-                    
-                    if (lvlIdx === 1) { // VOSGES
-                        if (x === 10 && y === 0) type = 2; // Metro
-                        else if (x===2 || x===GRID_SIZE-3 || y===2 || y===GRID_SIZE-3) type = 2;
-                        else if (x===GRID_SIZE/2 || y===GRID_SIZE/2) type = 2;
-                        if ((x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) && !(x===10 && y===0)) type = 1;
+                    let type = 0; // 0=Fond, 1=Mur, 2=Chemin
+
+                    // BORDURES
+                    if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) type = 1;
+
+                    /* --- PLACE DES VOSGES (Symétrique, Jardin) --- */
+                    if (lvlIdx === 1) {
+                        // Le Carré central (Herbe)
+                        if (x > 2 && x < 17 && y > 2 && y < 17) type = 0; 
+                        else type = 2; // Arcades autour
+
+                        // Les allées en croix
+                        if (x === 9 || x === 10 || y === 9 || y === 10) type = 2;
+
+                        // La Statue centrale
+                        if ((x===9 || x===10) && (y===9 || y===10)) type = 1;
+
+                        // Fontaines aux angles (Murs spéciaux)
+                        if ((x===4 && y===4) || (x===15 && y===4) || (x===4 && y===15) || (x===15 && y===15)) type = 1; 
+                        
+                        // Entrées
+                        if (x===10 && (y===0 || y===1 || y===18)) type = 2; 
                     } 
-                    else if (lvlIdx === 2) { // PIGALLE
+                    
+                    /* --- PIGALLE (Rue Urbaine, Nuit) --- */
+                    else if (lvlIdx === 2) {
+                        type = 0; // Bitume par défaut
+
+                        // Trottoirs latéraux
+                        if (x < 3 || x > 16) type = 2;
+
+                        // Bâtiments (Blocs)
+                        if (x > 3 && x < 8 && y > 4 && y < 15 && y !== 9 && y !== 10) type = 1;
+                        if (x > 11 && x < 16 && y > 4 && y < 15 && y !== 9 && y !== 10) type = 1;
+
+                        // Moulin Rouge (Haut)
+                        if (y < 4 && (x < 8 || x > 11)) type = 1;
+
+                        // Bordures
                         if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) type = 1;
-                        else if (x===2 || x===GRID_SIZE-3 || y===2 || y===GRID_SIZE-3 || x===GRID_SIZE/2 || y===GRID_SIZE/2) type = 2;
-                        else type = 0;
+                        if (x===10) type = 0; // Rue centrale dégagée
                     }
+
                     row.push(type);
                 }
                 map.push(row);
@@ -374,13 +433,21 @@
             
             document.getElementById('level-name').innerText = data.name;
             document.getElementById('score').innerText = "0/3";
-            if(lvlIdx === 2) showMsg("Sam est à Pigalle !");
+            if(lvlIdx === 2) showMsg("Bienvenue à Pigalle...");
         }
 
+        /* --- LOGIQUE DU JEU --- */
         function startGame() {
             document.getElementById('phone-container').style.display = 'none';
-            document.getElementById('game-container').style.display = 'block';
-            if(player && player.playVideo) { player.unMute(); player.setVolume(50); player.playVideo(); }
+            document.getElementById('game-container').style.display = 'flex';
+            
+            // Lancer la musique si l'API est prête
+            if(player && player.playVideo) { 
+                player.unMute(); 
+                player.setVolume(50); 
+                player.playVideo(); 
+            }
+            
             gameActive = true;
             loadLevel(1);
             drawGame();
@@ -391,32 +458,37 @@
             if(!gameActive) return;
             updateEnemies();
             drawGame();
-            animTimer += 0.2;
+            animTimer += 0.15;
             requestAnimationFrame(gameLoop);
         }
 
         function updateEnemies() {
-            if (Math.floor(animTimer) % 10 !== 0) return;
+            if (Math.floor(animTimer * 10) % 10 !== 0) return; // Vitesse de déplacement
             enemies.forEach(e => {
                 let nextX = e.x + e.dx;
+                // Rebondir sur les murs
                 if (nextX <= 0 || nextX >= GRID_SIZE || map[e.y][nextX] === 1) e.dx *= -1; 
                 else e.x += e.dx;
 
+                // Collision Joueur
                 if (e.x === playerPos.x && e.y === playerPos.y) {
                     if(score > 0) {
                         score--; document.getElementById('score').innerText = score + "/3";
                         showMsg("Le pigeon a volé un indice !");
+                        // Respawn item aléatoire
                         const originalItems = levels[currentLevel].items;
                         const randomItem = originalItems[Math.floor(Math.random() * originalItems.length)];
                         items.push({x: 10, y: 10, type: randomItem.type, name: randomItem.name});
                     } else { showMsg("Aïe ! Sale pigeon !"); }
                     
+                    // Recul du joueur
                     let backX = playerPos.x - e.dx * 2;
                     if(backX > 1 && backX < GRID_SIZE-1 && map[playerPos.y][backX] !== 1) playerPos.x = backX;
                 }
             });
         }
 
+        /* --- INTERACTIONS & MOUVEMENT --- */
         let popupTimeout;
         function showPopup(html, duration = 3000) {
             const popup = document.getElementById('main-popup');
@@ -477,7 +549,7 @@
                     }
                 } else {
                     showMsg("Il te manque des objets !");
-                    playerPos.y += (currentLevel===1 ? 1 : -1); 
+                    playerPos.y += (currentLevel===1 ? 1 : -1); // Repousse
                 }
             }
         }
@@ -487,7 +559,7 @@
             setTimeout(() => el.innerText = "", 2500);
         }
 
-        /* --- DESSIN DU JEU (Style NOUVEAU JEU) --- */
+        /* --- MOTEUR DE RENDU (DRAW) --- */
         function drawGame() {
             ctx.clearRect(0, 0, 800, 800);
             const conf = levels[currentLevel];
@@ -496,35 +568,33 @@
                 for(let x=0; x<GRID_SIZE; x++) {
                     let t = map[y][x]; let px = x*TILE; let py = y*TILE;
                     
-                    // Style Néon pour les sols et murs
                     if (t===1) { 
-                        // MURS
+                        // MURS AVEC NÉON
                         ctx.fillStyle = conf.colorWall; 
                         ctx.fillRect(px,py,TILE,TILE);
-                        // Bordure néon
                         ctx.strokeStyle = conf.neonColor;
-                        ctx.lineWidth = 1;
+                        ctx.lineWidth = 2;
                         ctx.strokeRect(px+2, py+2, TILE-4, TILE-4);
-                        // Lueur sur les murs
-                        if((x+y)%2===0) {
-                            ctx.fillStyle = "rgba(255,255,255,0.05)";
-                            ctx.fillRect(px,py,TILE,TILE);
+
+                        // Fontaine Place des Vosges
+                        if (currentLevel === 1 && ((x===9||x===10) && (y===9||y===10))) {
+                            ctx.shadowBlur = 20; ctx.shadowColor = '#00F5FF';
+                            ctx.fillStyle = '#00F5FF'; ctx.fillRect(px+5, py+5, TILE-10, TILE-10);
+                            ctx.shadowBlur = 0;
+                        }
+                        // Eau des coins (Vosges)
+                        if (currentLevel === 1 && ((x===4&&y===4)||(x===15&&y===4))) {
+                             ctx.fillStyle = '#00F5FF'; ctx.fillRect(px+5, py+5, TILE-10, TILE-10);
                         }
                     } else { 
                         // SOL
                         ctx.fillStyle = (t===2) ? conf.colorPath : conf.colorGround; 
                         ctx.fillRect(px,py,TILE,TILE);
                         
-                        // Grille subtile
+                        // Grille fine
                         ctx.strokeStyle = "rgba(255,255,255,0.03)";
                         ctx.lineWidth = 1;
                         ctx.strokeRect(px,py,TILE,TILE);
-
-                        // Décorations subtiles
-                        if(currentLevel === 1 && t===0 && (x+y)%5===0) {
-                             ctx.fillStyle = "rgba(39, 174, 96, 0.3)";
-                             ctx.beginPath(); ctx.arc(px+20, py+20, 2, 0, Math.PI*2); ctx.fill();
-                        }
                     }
                 }
             }
@@ -540,9 +610,11 @@
                 ctx.shadowBlur = 20; ctx.shadowColor = '#fff';
                 ctx.fillStyle = '#fff'; ctx.fillRect(ex.x*TILE+10, ex.y*TILE+10, 20, 20); 
                 ctx.shadowBlur = 0;
+                ctx.fillStyle = '#fff'; ctx.font="10px Arial"; ctx.fillText("SAM", ex.x*TILE+10, ex.y*TILE-5);
             }
         }
 
+        /* --- INITIALISATION --- */
         let msgIndex = 0;
         function playChat() {
             if (msgIndex >= chatMessages.length) { document.getElementById('btn-start').style.display = 'block'; return; }
@@ -551,17 +623,44 @@
             div.innerHTML = `<span class="sender">${m.s}</span>${m.t}`;
             const chatBody = document.getElementById('chat-body');
             chatBody.appendChild(div); 
-            chatBody.scrollTop = chatBody.scrollHeight; // Scroll auto
+            chatBody.scrollTop = chatBody.scrollHeight;
             msgIndex++; setTimeout(playChat, 1200);
         }
+
         window.onload = () => { setTimeout(playChat, 4000); };
+        
         document.getElementById('btn-start').addEventListener('click', startGame);
+        
+        // Contrôles Clavier
         window.addEventListener('keydown', e => {
             if(e.key.includes('Arrow')) { e.preventDefault(); 
                 if(e.key==='ArrowUp') movePlayer(0,-1); if(e.key==='ArrowDown') movePlayer(0,1);
                 if(e.key==='ArrowLeft') movePlayer(-1,0); if(e.key==='ArrowRight') movePlayer(1,0);
             }
         });
+
+        // Contrôles Tactiles (Mobile)
+        let touchStartX = 0;
+        let touchStartY = 0;
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, {passive: false});
+
+        document.addEventListener('touchend', e => {
+            if(!gameActive) return;
+            let touchEndX = e.changedTouches[0].clientX;
+            let touchEndY = e.changedTouches[0].clientY;
+            let dx = touchEndX - touchStartX;
+            let dy = touchEndY - touchStartY;
+            
+            if(Math.abs(dx) > Math.abs(dy)) {
+                if(Math.abs(dx) > 30) movePlayer(dx > 0 ? 1 : -1, 0);
+            } else {
+                if(Math.abs(dy) > 30) movePlayer(0, dy > 0 ? 1 : -1);
+            }
+        }, {passive: false});
+
     </script>
 </body>
 </html>
