@@ -620,28 +620,23 @@
     </style>
 </head>
 <body>
-    <!-- Scanlines Effect -->
     <div class="scanlines"></div>
 
-    <!-- Title Screen -->
     <div id="title-screen">
         <h1 class="title-main" data-text="PARIS BY NIGHT">PARIS BY NIGHT</h1>
         <p class="title-subtitle">Mission Samuel</p>
     </div>
 
-    <!-- Phone Container -->
     <div id="phone-container">
         <div id="chat-header">💬 BRIEFING MISSION</div>
         <div id="chat-body"></div>
         <button id="btn-start">🚀 COMMENCER LA MISSION</button>
     </div>
 
-    <!-- Game Container -->
     <div id="game-container">
         <canvas id="gameCanvas" width="800" height="800"></canvas>
     </div>
 
-    <!-- HUD -->
     <div id="hud">
         <div class="hud-panel">
             <span class="hud-label">Score</span>
@@ -671,10 +666,8 @@
         </div>
     </div>
 
-    <!-- Notification -->
     <div id="notification"></div>
 
-    <!-- Game Over Screen -->
     <div id="gameover-screen">
         <h1 class="gameover-title" id="gameover-title">MISSION ACCOMPLIE!</h1>
         <div class="final-stats">
@@ -695,6 +688,75 @@
     </div>
 
     <script>
+        // ===========================
+        // 🎮 GAME MANAGER (AJOUTÉ)
+        // ===========================
+        class GameManager {
+            constructor() {
+                this.score = 0;
+                this.combo = 1;
+                this.comboTimer = 0;
+                this.comboMaxTime = 3;
+                this.bestCombo = 1;
+                this.itemsCollected = 0;
+                this.itemsTotal = 0;
+            }
+
+            addScore(points) {
+                const finalPoints = points * this.combo;
+                this.score += finalPoints;
+                document.getElementById('score-value').textContent = this.score;
+                
+                // Float text
+                if (player) {
+                    game.entities.push(new FloatingText(`+${finalPoints}`, player.x, player.y - 20, '#FFD700'));
+                }
+            }
+
+            increaseCombo() {
+                this.combo++;
+                if (this.combo > this.bestCombo) this.bestCombo = this.combo;
+                this.comboTimer = this.comboMaxTime;
+                this.updateComboUI();
+                audioManager.play('combo_high');
+            }
+
+            updateCombo(dt) {
+                if (this.combo > 1) {
+                    this.comboTimer -= dt;
+                    if (this.comboTimer <= 0) {
+                        this.combo = 1;
+                        document.getElementById('combo-panel').classList.remove('active');
+                    }
+                    this.updateComboUI();
+                }
+            }
+
+            updateComboUI() {
+                if (this.combo > 1) {
+                    document.getElementById('combo-panel').classList.add('active');
+                    document.getElementById('combo-value').textContent = `x${this.combo}`;
+                    const percent = (this.comboTimer / this.comboMaxTime) * 100;
+                    document.getElementById('combo-fill').style.width = `${percent}%`;
+                }
+            }
+
+            collectItem(item) {
+                this.itemsCollected++;
+                this.increaseCombo();
+                this.addScore(500);
+                audioManager.play('collect');
+                levelManager.updateItemSlots();
+                
+                const typeNames = {
+                    'TICKET': 'TICKET MÉTRO',
+                    'PHOTO': 'PREUVE PHOTO',
+                    'ADDRESS': 'ADRESSE SECRÈTE'
+                };
+                showNotification(`🔎 ${typeNames[item.itemType]} TROUVÉ !`);
+            }
+        }
+
         // ===========================
         // 🎮 GAME ENGINE
         // ===========================
@@ -1545,7 +1607,6 @@
                     }
                 } else {
                     // Pigalle - Buildings
-                    // Add some buildings
                     const buildings = [
                         {x: 3, y: 3, w: 4, h: 4},
                         {x: 13, y: 3, w: 4, h: 4},
@@ -1567,6 +1628,45 @@
                 return map;
             }
             
+            renderMap(ctx) {
+                // Background du niveau
+                ctx.fillStyle = this.currentLevel.colors.ground;
+                ctx.fillRect(0, 0, 800, 800);
+
+                // Grid/Tiles rendering
+                for (let y = 0; y < 20; y++) {
+                    for (let x = 0; x < 20; x++) {
+                        const tile = this.currentLevel.map[y][x];
+                        const posX = x * 40;
+                        const posY = y * 40;
+
+                        if (tile === 1) { // Wall
+                            ctx.fillStyle = this.currentLevel.colors.wall;
+                            ctx.fillRect(posX, posY, 40, 40);
+                            ctx.strokeStyle = '#000';
+                            ctx.strokeRect(posX, posY, 40, 40);
+                            
+                            // Neon edge for walls
+                            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                            ctx.fillRect(posX + 5, posY + 5, 30, 30);
+                        } else if (tile === 2) { // Path
+                            ctx.fillStyle = this.currentLevel.colors.path;
+                            ctx.fillRect(posX, posY, 40, 40);
+                        }
+                    }
+                }
+
+                // Render Exit
+                if (gameManager.itemsCollected >= gameManager.itemsTotal) {
+                    const exit = this.currentLevel.exit;
+                    ctx.fillStyle = '#00F5FF';
+                    ctx.shadowColor = '#00F5FF';
+                    ctx.shadowBlur = 20;
+                    ctx.fillRect(exit.x * 40 + 10, exit.y * 40 + 10, 20, 20);
+                    ctx.shadowBlur = 0;
+                }
+            }
+
             loadLevel(index) {
                 this.currentLevelIndex = index;
                 this.currentLevel = this.levels[index];
@@ -1657,3 +1757,110 @@
                     }
                 }
             }
+        }
+
+        // ===========================
+        // 🚀 BOOTSTRAP & UTILS (AJOUTÉ)
+        // ===========================
+
+        function showNotification(text) {
+            const notif = document.getElementById('notification');
+            notif.textContent = text;
+            notif.classList.add('show');
+            setTimeout(() => {
+                notif.classList.remove('show');
+            }, 2500);
+        }
+
+        // Initialisation des globales
+        const game = new GameEngine();
+        const audioManager = new AudioManager();
+        const gameManager = new GameManager(); // Nouvelle instance
+        const levelManager = new LevelManager();
+        let player = null;
+
+        // Gestion du Chat au démarrage
+        const messages = [
+            { text: "Agent Samuel, me recevez-vous ?", sender: "QG", delay: 500 },
+            { text: "Affirmatif. En position.", sender: "SAMUEL", delay: 1500, self: true },
+            { text: "Votre mission : Récupérer les 3 indices cachés dans Paris.", sender: "QG", delay: 2500 },
+            { text: "Attention aux agents ennemis. Bonne chance.", sender: "QG", delay: 4000 }
+        ];
+
+        function startChat() {
+            const chatBody = document.getElementById('chat-body');
+            let totalDelay = 0;
+
+            messages.forEach(msg => {
+                totalDelay += msg.delay;
+                setTimeout(() => {
+                    const div = document.createElement('div');
+                    div.className = `msg ${msg.self ? 'right' : 'left'}`;
+                    div.innerHTML = `<span class="sender">${msg.sender}</span>${msg.text}`;
+                    chatBody.appendChild(div);
+                    chatBody.scrollTop = chatBody.scrollHeight;
+                    audioManager.createBeep(800, 0.05); // Bip chat
+                }, totalDelay);
+            });
+
+            setTimeout(() => {
+                const btn = document.getElementById('btn-start');
+                btn.style.display = 'block';
+                btn.style.animation = 'fadeInUp 0.5s ease forwards';
+            }, totalDelay + 1000);
+        }
+
+        // Démarrage du jeu
+        document.getElementById('btn-start').addEventListener('click', () => {
+            document.getElementById('phone-container').style.opacity = '0';
+            document.getElementById('title-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('phone-container').style.display = 'none';
+                document.getElementById('title-screen').style.display = 'none';
+                document.getElementById('game-container').style.display = 'flex';
+                document.getElementById('hud').classList.add('active');
+                
+                game.state = 'PLAYING';
+                game.startTime = Date.now();
+                levelManager.loadLevel(0);
+                game.init();
+                
+                // Activer l'audio après interaction utilisateur
+                if(audioManager.audioContext.state === 'suspended') {
+                    audioManager.audioContext.resume();
+                }
+            }, 1000);
+        });
+
+        // Contrôles Clavier (AJOUTÉ)
+        window.addEventListener('keydown', (e) => {
+            if (game.state !== 'PLAYING' || !player) return;
+
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'z':
+                case 'w':
+                    player.move(0, -1);
+                    break;
+                case 'ArrowDown':
+                case 's':
+                    player.move(0, 1);
+                    break;
+                case 'ArrowLeft':
+                case 'q':
+                case 'a':
+                    player.move(-1, 0);
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                    player.move(1, 0);
+                    break;
+            }
+        });
+
+        // Lancer la séquence d'intro après 5 secondes (temps de l'anim titre)
+        setTimeout(startChat, 5000);
+
+    </script>
+</body>
+</html>
