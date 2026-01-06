@@ -90,7 +90,7 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            animation: titleFadeOut 1.5s ease-in-out 4s forwards;
+            animation: titleFadeOut 1.5s ease-in-out 3s forwards;
         }
 
         @keyframes titleFadeOut {
@@ -198,7 +198,7 @@
             overflow: hidden;
             opacity: 0;
             z-index: 500;
-            animation: phoneSlideIn 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) 4.5s forwards;
+            animation: phoneSlideIn 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) 3.5s forwards;
         }
 
         @keyframes phoneSlideIn {
@@ -337,6 +337,10 @@
             transform: scale(0.95);
         }
 
+        #btn-start.visible {
+            display: block;
+        }
+
         /* ===========================
            🎮 CONTENEUR CANVAS
         =========================== */
@@ -350,6 +354,10 @@
             justify-content: center;
             align-items: center;
             z-index: 100;
+        }
+
+        #game-container.active {
+            display: flex;
         }
 
         #gameCanvas {
@@ -616,27 +624,46 @@
             .title-main {
                 font-size: 40px;
             }
+
+            #hud {
+                flex-wrap: wrap;
+                top: 10px;
+                gap: 10px;
+            }
+
+            .hud-panel {
+                padding: 8px 12px;
+            }
+
+            .hud-value {
+                font-size: 18px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Scanlines Effect -->
     <div class="scanlines"></div>
 
+    <!-- Title Screen -->
     <div id="title-screen">
         <h1 class="title-main" data-text="PARIS BY NIGHT">PARIS BY NIGHT</h1>
         <p class="title-subtitle">Mission Samuel</p>
     </div>
 
+    <!-- Phone Container -->
     <div id="phone-container">
         <div id="chat-header">💬 BRIEFING MISSION</div>
         <div id="chat-body"></div>
         <button id="btn-start">🚀 COMMENCER LA MISSION</button>
     </div>
 
+    <!-- Game Container -->
     <div id="game-container">
         <canvas id="gameCanvas" width="800" height="800"></canvas>
     </div>
 
+    <!-- HUD -->
     <div id="hud">
         <div class="hud-panel">
             <span class="hud-label">Score</span>
@@ -666,8 +693,10 @@
         </div>
     </div>
 
+    <!-- Notification -->
     <div id="notification"></div>
 
+    <!-- Game Over Screen -->
     <div id="gameover-screen">
         <h1 class="gameover-title" id="gameover-title">MISSION ACCOMPLIE!</h1>
         <div class="final-stats">
@@ -676,12 +705,12 @@
                 <span class="stat-value" id="final-score">0</span>
             </div>
             <div class="stat-row">
-                <span class="stat-label">Meilleur Combo:</span>
-                <span class="stat-value" id="final-combo">x1</span>
+                <span class="stat-label">Combo Max:</span>
+                <span class="stat-value" id="final-combo">0</span>
             </div>
             <div class="stat-row">
                 <span class="stat-label">Temps:</span>
-                <span class="stat-value" id="final-time">0:00</span>
+                <span class="stat-value" id="final-time">0s</span>
             </div>
         </div>
         <button class="btn-restart" onclick="location.reload()">🔄 REJOUER</button>
@@ -689,773 +718,77 @@
 
     <script>
         // ===========================
-        // 🎮 GAME MANAGER (AJOUTÉ)
+        // 📱 CHAT MESSAGES SYSTEM
         // ===========================
-        class GameManager {
-            constructor() {
-                this.score = 0;
-                this.combo = 1;
-                this.comboTimer = 0;
-                this.comboMaxTime = 3;
-                this.bestCombo = 1;
-                this.itemsCollected = 0;
-                this.itemsTotal = 0;
+
+        const chatMessages = [
+            { sender: 'Agent M', text: 'Salut ! On a besoin de toi pour une mission urgente.' },
+            { sender: 'Moi', text: 'De quoi s\'agit-il ?' },
+            { sender: 'Agent M', text: 'Un certain Samuel a disparu. Il se cachait dans Paris.' },
+            { sender: 'Agent M', text: 'On a retrouvé des indices qu\'il a laissés.' },
+            { sender: 'Moi', text: 'Quel genre d\'indices ?' },
+            { sender: 'Agent M', text: 'Un ticket de métro, une photo et une adresse.' },
+            { sender: 'Agent M', text: 'Tu devras récupérer ces 3 indices dans chaque zone.' },
+            { sender: 'Moi', text: 'Il y a des dangers ?' },
+            { sender: 'Agent M', text: 'Oui... Des pigeons agressifs patrouillent les lieux. Ne te fais pas repérer !' },
+            { sender: 'Moi', text: 'Compris. Je pars maintenant.' },
+            { sender: 'Agent M', text: 'Bonne chance ! Utilise les flèches du clavier pour te déplacer.' }
+        ];
+
+        let currentMessageIndex = 0;
+        const chatBody = document.getElementById('chat-body');
+        const btnStart = document.getElementById('btn-start');
+
+        function displayNextMessage() {
+            if (currentMessageIndex >= chatMessages.length) {
+                // Afficher le bouton start après tous les messages
+                btnStart.classList.add('visible');
+                return;
             }
 
-            addScore(points) {
-                const finalPoints = points * this.combo;
-                this.score += finalPoints;
-                document.getElementById('score-value').textContent = this.score;
-                
-                // Float text
-                if (player) {
-                    game.entities.push(new FloatingText(`+${finalPoints}`, player.x, player.y - 20, '#FFD700'));
-                }
-            }
-
-            increaseCombo() {
-                this.combo++;
-                if (this.combo > this.bestCombo) this.bestCombo = this.combo;
-                this.comboTimer = this.comboMaxTime;
-                this.updateComboUI();
-                audioManager.play('combo_high');
-            }
-
-            updateCombo(dt) {
-                if (this.combo > 1) {
-                    this.comboTimer -= dt;
-                    if (this.comboTimer <= 0) {
-                        this.combo = 1;
-                        document.getElementById('combo-panel').classList.remove('active');
-                    }
-                    this.updateComboUI();
-                }
-            }
-
-            updateComboUI() {
-                if (this.combo > 1) {
-                    document.getElementById('combo-panel').classList.add('active');
-                    document.getElementById('combo-value').textContent = `x${this.combo}`;
-                    const percent = (this.comboTimer / this.comboMaxTime) * 100;
-                    document.getElementById('combo-fill').style.width = `${percent}%`;
-                }
-            }
-
-            collectItem(item) {
-                this.itemsCollected++;
-                this.increaseCombo();
-                this.addScore(500);
-                audioManager.play('collect');
-                levelManager.updateItemSlots();
-                
-                const typeNames = {
-                    'TICKET': 'TICKET MÉTRO',
-                    'PHOTO': 'PREUVE PHOTO',
-                    'ADDRESS': 'ADRESSE SECRÈTE'
-                };
-                showNotification(`🔎 ${typeNames[item.itemType]} TROUVÉ !`);
-            }
+            const message = chatMessages[currentMessageIndex];
+            const messageDiv = document.createElement('div');
+            messageDiv.className = message.sender === 'Moi' ? 'msg right' : 'msg left';
+            
+            const senderSpan = document.createElement('span');
+            senderSpan.className = 'sender';
+            senderSpan.textContent = message.sender;
+            
+            const textNode = document.createTextNode(message.text);
+            
+            messageDiv.appendChild(senderSpan);
+            messageDiv.appendChild(textNode);
+            chatBody.appendChild(messageDiv);
+            
+            // Auto-scroll vers le bas
+            chatBody.scrollTop = chatBody.scrollHeight;
+            
+            currentMessageIndex++;
+            
+            // Délai avant le prochain message
+            setTimeout(displayNextMessage, 1500);
         }
+
+        // Démarrer le chat après le titre
+        setTimeout(() => {
+            displayNextMessage();
+        }, 4000);
 
         // ===========================
         // 🎮 GAME ENGINE
         // ===========================
 
-        class GameEngine {
-            constructor() {
-                this.canvas = document.getElementById('gameCanvas');
-                this.ctx = this.canvas.getContext('2d');
-                this.lastTime = 0;
-                this.deltaTime = 0;
-                
-                this.state = 'MENU'; // MENU | PLAYING | PAUSED | GAMEOVER | VICTORY
-                this.entities = [];
-                this.particles = [];
-                
-                this.shake = 0;
-                this.freeze = 0;
-                
-                this.startTime = 0;
-                this.elapsedTime = 0;
-            }
-            
-            init() {
-                this.loop(0);
-            }
-            
-            loop(currentTime) {
-                this.deltaTime = Math.min((currentTime - this.lastTime) / 1000, 0.1);
-                this.lastTime = currentTime;
-                
-                if (this.freeze > 0) {
-                    this.freeze -= this.deltaTime;
-                } else {
-                    this.update(this.deltaTime);
-                }
-                
-                this.render();
-                
-                requestAnimationFrame((t) => this.loop(t));
-            }
-            
-            update(dt) {
-                if (this.state !== 'PLAYING') return;
-                
-                this.elapsedTime = (Date.now() - this.startTime) / 1000;
-                
-                this.entities.forEach(e => {
-                    if (e.update) e.update(dt);
-                });
-                
-                this.particles = this.particles.filter(p => {
-                    p.update(dt);
-                    return p.life > 0;
-                });
-                
-                gameManager.updateCombo(dt);
-                this.checkCollisions();
-            }
-            
-            render() {
-                this.ctx.save();
-                
-                // Background
-                this.ctx.fillStyle = '#000';
-                this.ctx.fillRect(0, 0, 800, 800);
-                
-                // Screenshake
-                if (this.shake > 0) {
-                    this.ctx.translate(
-                        (Math.random() - 0.5) * this.shake,
-                        (Math.random() - 0.5) * this.shake
-                    );
-                    this.shake *= 0.85;
-                }
-                
-                // Render map
-                if (levelManager.currentLevel) {
-                    levelManager.renderMap(this.ctx);
-                }
-                
-                // Render entities
-                this.entities.forEach(e => {
-                    if (e.render) e.render(this.ctx);
-                });
-                
-                // Render particles
-                this.particles.forEach(p => p.render(this.ctx));
-                
-                this.ctx.restore();
-            }
-            
-            triggerShake(intensity = 5) {
-                this.shake = Math.max(this.shake, intensity);
-            }
-            
-            triggerFreeze(duration = 0.05) {
-                this.freeze = duration;
-            }
-            
-            checkCollisions() {
-                if (!player) return;
-                
-                // Player vs Items
-                this.entities.filter(e => e.type === 'ITEM').forEach(item => {
-                    if (this.distance(player, item) < 35) {
-                        gameManager.collectItem(item);
-                        this.removeEntity(item);
-                    }
-                });
-                
-                // Player vs Enemies
-                this.entities.filter(e => e.type === 'ENEMY').forEach(enemy => {
-                    if (this.distance(player, enemy) < 30) {
-                        if (!player.invincible) {
-                            this.playerHit();
-                        }
-                    }
-                });
-                
-                // Player vs Powerups
-                this.entities.filter(e => e.type === 'POWERUP').forEach(powerup => {
-                    if (this.distance(player, powerup) < 35) {
-                        powerup.activate();
-                        this.removeEntity(powerup);
-                    }
-                });
-                
-                // Player vs Exit
-                const exit = levelManager.currentLevel?.exit;
-                if (exit && gameManager.itemsCollected >= gameManager.itemsTotal) {
-                    if (Math.abs(player.gridX - exit.x) < 1 && Math.abs(player.gridY - exit.y) < 1) {
-                        levelManager.nextLevel();
-                    }
-                }
-            }
-            
-            distance(a, b) {
-                const dx = a.x - b.x;
-                const dy = a.y - b.y;
-                return Math.sqrt(dx * dx + dy * dy);
-            }
-            
-            removeEntity(entity) {
-                const index = this.entities.indexOf(entity);
-                if (index > -1) {
-                    this.entities.splice(index, 1);
-                }
-            }
-            
-            playerHit() {
-                player.takeDamage();
-                this.triggerShake(15);
-                this.triggerFreeze(0.1);
-                audioManager.play('hit');
-                
-                // Death particles
-                for (let i = 0; i < 30; i++) {
-                    const angle = (Math.PI * 2 * i) / 30;
-                    this.particles.push(new Particle(
-                        player.x, player.y,
-                        Math.cos(angle) * 5,
-                        Math.sin(angle) * 5,
-                        '#EF4444',
-                        1
-                    ));
-                }
-                
-                if (player.lives <= 0) {
-                    this.gameOver();
-                }
-            }
-            
-            gameOver() {
-                this.state = 'GAMEOVER';
-                document.getElementById('hud').classList.remove('active');
-                
-                setTimeout(() => {
-                    document.getElementById('gameover-title').textContent = 'GAME OVER';
-                    document.getElementById('final-score').textContent = gameManager.score;
-                    document.getElementById('final-combo').textContent = `x${gameManager.bestCombo}`;
-                    document.getElementById('final-time').textContent = this.formatTime(this.elapsedTime);
-                    document.getElementById('gameover-screen').classList.add('show');
-                }, 500);
-            }
-            
-            victory() {
-                this.state = 'VICTORY';
-                document.getElementById('hud').classList.remove('active');
-                audioManager.play('victory');
-                
-                // Victory particles
-                for (let i = 0; i < 100; i++) {
-                    setTimeout(() => {
-                        const x = Math.random() * 800;
-                        const y = Math.random() * 800;
-                        for (let j = 0; j < 10; j++) {
-                            const angle = (Math.PI * 2 * j) / 10;
-                            this.particles.push(new Particle(
-                                x, y,
-                                Math.cos(angle) * 3,
-                                Math.sin(angle) * 3,
-                                ['#FFD700', '#FF006E', '#00F5FF', '#8B5CF6'][Math.floor(Math.random() * 4)],
-                                2
-                            ));
-                        }
-                    }, i * 20);
-                }
-                
-                setTimeout(() => {
-                    document.getElementById('gameover-title').textContent = 'MISSION ACCOMPLIE!';
-                    document.getElementById('final-score').textContent = gameManager.score;
-                    document.getElementById('final-combo').textContent = `x${gameManager.bestCombo}`;
-                    document.getElementById('final-time').textContent = this.formatTime(this.elapsedTime);
-                    document.getElementById('gameover-screen').classList.add('show');
-                }, 2000);
-            }
-            
-            formatTime(seconds) {
-                const mins = Math.floor(seconds / 60);
-                const secs = Math.floor(seconds % 60);
-                return `${mins}:${secs.toString().padStart(2, '0')}`;
-            }
-        }
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const TILE_SIZE = 40;
+        const GRID_SIZE = 20;
 
-        // ===========================
-        // 🧩 ENTITY SYSTEM
-        // ===========================
-
-        class Entity {
-            constructor(x, y, type) {
-                this.x = x;
-                this.y = y;
-                this.type = type;
-                this.vx = 0;
-                this.vy = 0;
-            }
-            
-            update(dt) {
-                this.x += this.vx * dt;
-                this.y += this.vy * dt;
-            }
-        }
-
-        class Player extends Entity {
-            constructor(x, y) {
-                super(x, y, 'PLAYER');
-                this.gridX = Math.floor(x / 40);
-                this.gridY = Math.floor(y / 40);
-                this.speed = 250;
-                this.moveDelay = 0.15;
-                this.moveTimer = 0;
-                this.lives = 3;
-                this.invincible = false;
-                this.invincibleTimer = 0;
-                this.powerups = {};
-            }
-            
-            update(dt) {
-                super.update(dt);
-                
-                this.moveTimer -= dt;
-                
-                // Update powerups
-                Object.keys(this.powerups).forEach(key => {
-                    this.powerups[key] -= dt;
-                    if (this.powerups[key] <= 0) {
-                        delete this.powerups[key];
-                        if (key === 'SPEED') this.speed = 250;
-                    }
-                });
-                
-                // Invincibility
-                if (this.invincibleTimer > 0) {
-                    this.invincibleTimer -= dt;
-                    this.invincible = this.invincibleTimer > 0;
-                }
-            }
-            
-            move(dx, dy) {
-                if (this.moveTimer > 0) return;
-                
-                const newGridX = this.gridX + dx;
-                const newGridY = this.gridY + dy;
-                
-                // Check bounds
-                if (newGridX < 0 || newGridX >= 20 || newGridY < 0 || newGridY >= 20) return;
-                
-                // Check collision
-                const tile = levelManager.currentLevel.map[newGridY][newGridX];
-                if (tile === 1) {
-                    audioManager.play('bump');
-                    game.triggerShake(3);
-                    return;
-                }
-                
-                this.gridX = newGridX;
-                this.gridY = newGridY;
-                this.x = this.gridX * 40 + 20;
-                this.y = this.gridY * 40 + 20;
-                
-                this.moveTimer = this.powerups.SPEED ? 0.05 : this.moveDelay;
-                
-                // Trail particles
-                for (let i = 0; i < 3; i++) {
-                    game.particles.push(new Particle(
-                        this.x + (Math.random() - 0.5) * 20,
-                        this.y + (Math.random() - 0.5) * 20,
-                        (Math.random() - 0.5) * 2,
-                        (Math.random() - 0.5) * 2,
-                        this.powerups.SPEED ? '#3498db' : 'rgba(52, 152, 219, 0.5)',
-                        0.3
-                    ));
-                }
-                
-                audioManager.play('move');
-            }
-            
-            takeDamage() {
-                if (this.invincible) return;
-                
-                this.lives--;
-                this.invincible = true;
-                this.invincibleTimer = 2;
-                
-                showNotification('💔 -1 VIE');
-            }
-            
-            render(ctx) {
-                ctx.save();
-                
-                // Invincibility flash
-                if (this.invincible && Math.floor(Date.now() / 100) % 2 === 0) {
-                    ctx.globalAlpha = 0.5;
-                }
-                
-                // Shield effect
-                if (this.powerups.SHIELD) {
-                    ctx.strokeStyle = '#F59E0B';
-                    ctx.lineWidth = 3;
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, 25 + Math.sin(Date.now() / 100) * 3, 0, Math.PI * 2);
-                    ctx.stroke();
-                }
-                
-                // Speed effect
-                if (this.powerups.SPEED) {
-                    ctx.shadowColor = '#3498db';
-                    ctx.shadowBlur = 30;
-                }
-                
-                // Body
-                ctx.fillStyle = '#3498db';
-                ctx.fillRect(this.x - 10, this.y - 8, 20, 16);
-                
-                // Head
-                ctx.fillStyle = '#F1C40F';
-                ctx.beginPath();
-                ctx.arc(this.x, this.y - 6, 9, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Eyes
-                ctx.fillStyle = '#000';
-                ctx.fillRect(this.x - 4, this.y - 8, 3, 3);
-                ctx.fillRect(this.x + 1, this.y - 8, 3, 3);
-                
-                ctx.restore();
-            }
-        }
-
-        class Enemy extends Entity {
-            constructor(x, y, pattern = 'HORIZONTAL') {
-                super(x * 40 + 20, y * 40 + 20, 'ENEMY');
-                this.gridX = x;
-                this.gridY = y;
-                this.pattern = pattern;
-                this.speed = 80 + Math.random() * 40;
-                this.direction = Math.random() > 0.5 ? 1 : -1;
-                this.animOffset = Math.random() * Math.PI * 2;
-                this.moveTimer = 0;
-                this.moveDelay = 0.5 + Math.random() * 0.5;
-            }
-            
-            update(dt) {
-                this.moveTimer -= dt;
-                
-                if (this.moveTimer <= 0) {
-                    this.moveTimer = this.moveDelay;
-                    
-                    switch(this.pattern) {
-                        case 'HORIZONTAL':
-                            this.moveHorizontal();
-                            break;
-                        case 'VERTICAL':
-                            this.moveVertical();
-                            break;
-                        case 'RANDOM':
-                            this.moveRandom();
-                            break;
-                    }
-                }
-                
-                // Smooth movement
-                const targetX = this.gridX * 40 + 20;
-                const targetY = this.gridY * 40 + 20;
-                this.x += (targetX - this.x) * 0.2;
-                this.y += (targetY - this.y) * 0.2;
-            }
-            
-            moveHorizontal() {
-                const newX = this.gridX + this.direction;
-                if (newX >= 0 && newX < 20 && levelManager.currentLevel.map[this.gridY][newX] !== 1) {
-                    this.gridX = newX;
-                } else {
-                    this.direction *= -1;
-                }
-            }
-            
-            moveVertical() {
-                const newY = this.gridY + this.direction;
-                if (newY >= 0 && newY < 20 && levelManager.currentLevel.map[newY][this.gridX] !== 1) {
-                    this.gridY = newY;
-                } else {
-                    this.direction *= -1;
-                }
-            }
-            
-            moveRandom() {
-                const moves = [
-                    {dx: 1, dy: 0}, {dx: -1, dy: 0},
-                    {dx: 0, dy: 1}, {dx: 0, dy: -1}
-                ];
-                const move = moves[Math.floor(Math.random() * moves.length)];
-                const newX = this.gridX + move.dx;
-                const newY = this.gridY + move.dy;
-                
-                if (newX >= 0 && newX < 20 && newY >= 0 && newY < 20 &&
-                    levelManager.currentLevel.map[newY][newX] !== 1) {
-                    this.gridX = newX;
-                    this.gridY = newY;
-                }
-            }
-            
-            render(ctx) {
-                const bounce = Math.sin(Date.now() / 200 + this.animOffset) * 3;
-                
-                ctx.save();
-                ctx.shadowColor = '#7f8c8d';
-                ctx.shadowBlur = 10;
-                
-                // Body
-                ctx.fillStyle = '#95a5a6';
-                ctx.beginPath();
-                ctx.arc(this.x, this.y + bounce, 12, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Wing
-                ctx.fillStyle = '#7f8c8d';
-                ctx.beginPath();
-                ctx.ellipse(this.x - 8, this.y + bounce, 6, 3, Math.sin(Date.now() / 100) * 0.3, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Eye
-                ctx.fillStyle = 'white';
-                ctx.beginPath();
-                ctx.arc(this.x + 4, this.y - 4 + bounce, 3, 0, Math.PI * 2);
-                ctx.fill();
-                
-                ctx.fillStyle = 'black';
-                ctx.beginPath();
-                ctx.arc(this.x + 5, this.y - 4 + bounce, 1.5, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Beak
-                ctx.fillStyle = '#e67e22';
-                ctx.beginPath();
-                ctx.moveTo(this.x + 10, this.y + bounce);
-                ctx.lineTo(this.x + 15, this.y + bounce);
-                ctx.lineTo(this.x + 10, this.y + 3 + bounce);
-                ctx.fill();
-                
-                ctx.restore();
-            }
-        }
-
-        class Item extends Entity {
-            constructor(x, y, itemType) {
-                super(x * 40 + 20, y * 40 + 20, 'ITEM');
-                this.gridX = x;
-                this.gridY = y;
-                this.itemType = itemType;
-                this.animOffset = Math.random() * Math.PI * 2;
-            }
-            
-            render(ctx) {
-                const float = Math.sin(Date.now() / 300 + this.animOffset) * 5;
-                const pulse = 1 + Math.sin(Date.now() / 200 + this.animOffset) * 0.1;
-                
-                ctx.save();
-                ctx.translate(this.x, this.y + float);
-                ctx.scale(pulse, pulse);
-                
-                ctx.shadowColor = '#FFD700';
-                ctx.shadowBlur = 20;
-                
-                switch(this.itemType) {
-                    case 'TICKET':
-                        ctx.fillStyle = '#FFD700';
-                        ctx.fillRect(-8, -12, 16, 24);
-                        ctx.fillStyle = '#000';
-                        ctx.font = 'bold 12px Arial';
-                        ctx.textAlign = 'center';
-                        ctx.fillText('🎫', 0, 4);
-                        break;
-                    case 'PHOTO':
-                        ctx.fillStyle = '#ECF0F1';
-                        ctx.fillRect(-10, -10, 20, 20);
-                        ctx.fillStyle = '#3498db';
-                        ctx.fillRect(-6, -6, 12, 12);
-                        break;
-                    case 'ADDRESS':
-                        ctx.fillStyle = '#fff';
-                        ctx.fillRect(-10, -8, 20, 16);
-                        ctx.strokeStyle = '#000';
-                        ctx.strokeRect(-10, -8, 20, 16);
-                        ctx.fillStyle = '#000';
-                        ctx.fillRect(-7, -5, 14, 2);
-                        ctx.fillRect(-7, -1, 14, 2);
-                        ctx.fillRect(-7, 3, 14, 2);
-                        break;
-                }
-                
-                ctx.restore();
-            }
-        }
-
-        class PowerUp extends Entity {
-            constructor(x, y, powerType) {
-                super(x * 40 + 20, y * 40 + 20, 'POWERUP');
-                this.gridX = x;
-                this.gridY = y;
-                this.powerType = powerType;
-                this.animOffset = Math.random() * Math.PI * 2;
-            }
-            
-            activate() {
-                audioManager.play('powerup');
-                game.triggerShake(5);
-                
-                switch(this.powerType) {
-                    case 'SPEED':
-                        player.powerups.SPEED = 5;
-                        player.speed = 400;
-                        showNotification('⚡ VITESSE AUGMENTÉE!');
-                        break;
-                    case 'SHIELD':
-                        player.powerups.SHIELD = 8;
-                        player.invincible = true;
-                        player.invincibleTimer = 8;
-                        showNotification('🛡️ BOUCLIER ACTIVÉ!');
-                        break;
-                    case 'MAGNET':
-                        player.powerups.MAGNET = 6;
-                        showNotification('🧲 AIMANT ACTIVÉ!');
-                        // Auto-collect nearby items
-                        game.entities.filter(e => e.type === 'ITEM').forEach(item => {
-                            if (game.distance(player, item) < 150) {
-                                gameManager.collectItem(item);
-                                game.removeEntity(item);
-                            }
-                        });
-                        break;
-                }
-                
-                // Activation particles
-                for (let i = 0; i < 20; i++) {
-                    const angle = (Math.PI * 2 * i) / 20;
-                    game.particles.push(new Particle(
-                        this.x, this.y,
-                        Math.cos(angle) * 4,
-                        Math.sin(angle) * 4,
-                        ['#3498db', '#F59E0B', '#9b59b6'][['SPEED', 'SHIELD', 'MAGNET'].indexOf(this.powerType)],
-                        1
-                    ));
-                }
-            }
-            
-            render(ctx) {
-                const float = Math.sin(Date.now() / 300 + this.animOffset) * 8;
-                const pulse = 1 + Math.sin(Date.now() / 150 + this.animOffset) * 0.2;
-                const rotate = Date.now() / 1000;
-                
-                ctx.save();
-                ctx.translate(this.x, this.y + float);
-                ctx.rotate(rotate);
-                ctx.scale(pulse, pulse);
-                
-                const colors = {
-                    SPEED: '#3498db',
-                    SHIELD: '#F59E0B',
-                    MAGNET: '#9b59b6'
-                };
-                
-                ctx.shadowColor = colors[this.powerType];
-                ctx.shadowBlur = 25;
-                
-                ctx.fillStyle = colors[this.powerType];
-                ctx.beginPath();
-                for (let i = 0; i < 6; i++) {
-                    const angle = (Math.PI * 2 * i) / 6;
-                    const r = i % 2 === 0 ? 15 : 8;
-                    const x = Math.cos(angle) * r;
-                    const y = Math.sin(angle) * r;
-                    if (i === 0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                }
-                ctx.closePath();
-                ctx.fill();
-                
-                const icons = { SPEED: '⚡', SHIELD: '🛡️', MAGNET: '🧲' };
-                ctx.fillStyle = '#fff';
-                ctx.font = 'bold 16px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(icons[this.powerType], 0, 0);
-                
-                ctx.restore();
-            }
-        }
-
-        // ===========================
-        // 💥 PARTICLE SYSTEM
-        // ===========================
-
-        class Particle {
-            constructor(x, y, vx, vy, color, life) {
-                this.x = x;
-                this.y = y;
-                this.vx = vx;
-                this.vy = vy;
-                this.color = color;
-                this.life = life;
-                this.maxLife = life;
-                this.size = 2 + Math.random() * 3;
-            }
-            
-            update(dt) {
-                this.x += this.vx * dt * 60;
-                this.y += this.vy * dt * 60;
-                this.vy += 9.8 * dt * 60; // Gravity
-                this.vx *= 0.98;
-                this.life -= dt;
-            }
-            
-            render(ctx) {
-                const alpha = Math.max(0, this.life / this.maxLife);
-                ctx.save();
-                ctx.globalAlpha = alpha;
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            }
-        }
-
-        class FloatingText {
-            constructor(text, x, y, color) {
-                this.text = text;
-                this.x = x;
-                this.y = y;
-                this.color = color;
-                this.life = 1.5;
-                this.maxLife = 1.5;
-            }
-            
-            update(dt) {
-                this.y -= 50 * dt;
-                this.life -= dt;
-                if (this.life <= 0) {
-                    game.removeEntity(this);
-                }
-            }
-            
-            render(ctx) {
-                const alpha = Math.max(0, this.life / this.maxLife);
-                const scale = 1 + (1 - this.life / this.maxLife) * 0.5;
-                
-                ctx.save();
-                ctx.globalAlpha = alpha;
-                ctx.font = `bold ${20 * scale}px Arial`;
-                ctx.fillStyle = this.color;
-                ctx.strokeStyle = '#000';
-                ctx.lineWidth = 3;
-                ctx.textAlign = 'center';
-                ctx.strokeText(this.text, this.x, this.y);
-                ctx.fillText(this.text, this.x, this.y);
-                ctx.restore();
-            }
-        }
+        let gameState = 'INTRO'; // INTRO, PLAYING, GAMEOVER, VICTORY
+        let lastTime = 0;
+        let player = null;
+        let audioManager = null;
+        let levelManager = null;
+        let gameManager = null;
 
         // ===========================
         // 🎵 AUDIO MANAGER
@@ -1464,10 +797,8 @@
         class AudioManager {
             constructor() {
                 this.sounds = {};
-                this.music = null;
                 this.enabled = true;
                 
-                // Create Web Audio context
                 try {
                     this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 } catch(e) {
@@ -1536,6 +867,478 @@
         }
 
         // ===========================
+        // 🎨 PARTICLE SYSTEM
+        // ===========================
+
+        class Particle {
+            constructor(x, y, vx, vy, color, life) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.color = color;
+                this.life = life;
+                this.maxLife = life;
+                this.size = 2 + Math.random() * 3;
+            }
+            
+            update(dt) {
+                this.x += this.vx * dt * 60;
+                this.y += this.vy * dt * 60;
+                this.vy += 0.3; // Gravity
+                this.vx *= 0.98;
+                this.life -= dt;
+            }
+            
+            render(ctx) {
+                const alpha = Math.max(0, this.life / this.maxLife);
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+            
+            isDead() {
+                return this.life <= 0;
+            }
+        }
+
+        class FloatingText {
+            constructor(text, x, y, color) {
+                this.text = text;
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.life = 1.5;
+                this.maxLife = 1.5;
+            }
+            
+            update(dt) {
+                this.y -= 50 * dt;
+                this.life -= dt;
+            }
+            
+            render(ctx) {
+                const alpha = Math.max(0, this.life / this.maxLife);
+                const scale = 1 + (1 - this.life / this.maxLife) * 0.5;
+                
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.font = `bold ${Math.floor(20 * scale)}px Arial`;
+                ctx.fillStyle = this.color;
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 3;
+                ctx.textAlign = 'center';
+                ctx.strokeText(this.text, this.x, this.y);
+                ctx.fillText(this.text, this.x, this.y);
+                ctx.restore();
+            }
+            
+            isDead() {
+                return this.life <= 0;
+            }
+        }
+
+        // ===========================
+        // 👤 PLAYER CLASS
+        // ===========================
+
+        class Player {
+            constructor(gridX, gridY) {
+                this.gridX = gridX;
+                this.gridY = gridY;
+                this.x = gridX * TILE_SIZE + TILE_SIZE / 2;
+                this.y = gridY * TILE_SIZE + TILE_SIZE / 2;
+                this.speed = 200;
+                this.moving = false;
+                this.targetX = this.x;
+                this.targetY = this.y;
+                this.invincible = false;
+                this.invincibleTimer = 0;
+                this.powerups = {
+                    SPEED: 0,
+                    SHIELD: 0,
+                    MAGNET: 0
+                };
+            }
+            
+            move(dx, dy) {
+                if (this.moving) return false;
+                
+                const newGridX = this.gridX + dx;
+                const newGridY = this.gridY + dy;
+                
+                // Check bounds
+                if (newGridX < 0 || newGridX >= GRID_SIZE || newGridY < 0 || newGridY >= GRID_SIZE) {
+                    audioManager.play('bump');
+                    game.triggerShake(3);
+                    return false;
+                }
+                
+                // Check walls
+                const currentLevel = levelManager.currentLevel;
+                if (currentLevel.map[newGridY][newGridX] === 1) {
+                    audioManager.play('bump');
+                    game.triggerShake(3);
+                    return false;
+                }
+                
+                // Valid move
+                this.gridX = newGridX;
+                this.gridY = newGridY;
+                this.targetX = newGridX * TILE_SIZE + TILE_SIZE / 2;
+                this.targetY = newGridY * TILE_SIZE + TILE_SIZE / 2;
+                this.moving = true;
+                
+                audioManager.play('move');
+                
+                return true;
+            }
+            
+            update(dt) {
+                // Update powerups
+                Object.keys(this.powerups).forEach(key => {
+                    if (this.powerups[key] > 0) {
+                        this.powerups[key] -= dt;
+                        if (this.powerups[key] <= 0) {
+                            this.powerups[key] = 0;
+                            if (key === 'SPEED') this.speed = 200;
+                            if (key === 'SHIELD') this.invincible = false;
+                        }
+                    }
+                });
+                
+                // Move towards target
+                if (this.moving) {
+                    const dx = this.targetX - this.x;
+                    const dy = this.targetY - this.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 2) {
+                        this.x = this.targetX;
+                        this.y = this.targetY;
+                        this.moving = false;
+                        
+                        // Check for item collection
+                        gameManager.checkItemCollection();
+                        
+                        // Check for powerup collection
+                        gameManager.checkPowerupCollection();
+                        
+                        // Check for exit
+                        gameManager.checkExit();
+                    } else {
+                        this.x += (dx / distance) * this.speed * dt;
+                        this.y += (dy / distance) * this.speed * dt;
+                    }
+                }
+            }
+            
+            render(ctx) {
+                // Invincibility effect
+                if (this.invincible && Math.floor(Date.now() / 100) % 2 === 0) {
+                    ctx.save();
+                    ctx.shadowColor = '#F59E0B';
+                    ctx.shadowBlur = 20;
+                }
+                
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                
+                // Body
+                ctx.fillStyle = '#FF006E';
+                ctx.beginPath();
+                ctx.arc(0, 0, 14, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Face direction indicator
+                ctx.fillStyle = '#FFF';
+                ctx.beginPath();
+                ctx.arc(4, -4, 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(4, 4, 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+                
+                if (this.invincible) ctx.restore();
+            }
+        }
+
+        // ===========================
+        // 👾 ENEMY CLASS
+        // ===========================
+
+        class Enemy {
+            constructor(gridX, gridY, pattern) {
+                this.gridX = gridX;
+                this.gridY = gridY;
+                this.x = gridX * TILE_SIZE + TILE_SIZE / 2;
+                this.y = gridY * TILE_SIZE + TILE_SIZE / 2;
+                this.pattern = pattern; // HORIZONTAL, VERTICAL, RANDOM
+                this.speed = 80;
+                this.moveTimer = 0;
+                this.moveDelay = 0.8;
+                this.direction = Math.random() < 0.5 ? 1 : -1;
+            }
+            
+            update(dt) {
+                this.moveTimer += dt;
+                
+                if (this.moveTimer >= this.moveDelay) {
+                    this.moveTimer = 0;
+                    
+                    const currentLevel = levelManager.currentLevel;
+                    let newGridX = this.gridX;
+                    let newGridY = this.gridY;
+                    
+                    switch(this.pattern) {
+                        case 'HORIZONTAL':
+                            newGridX += this.direction;
+                            if (newGridX < 1 || newGridX >= GRID_SIZE - 1 || 
+                                currentLevel.map[newGridY][newGridX] === 1) {
+                                this.direction *= -1;
+                                newGridX = this.gridX;
+                            }
+                            break;
+                        case 'VERTICAL':
+                            newGridY += this.direction;
+                            if (newGridY < 1 || newGridY >= GRID_SIZE - 1 || 
+                                currentLevel.map[newGridY][newGridX] === 1) {
+                                this.direction *= -1;
+                                newGridY = this.gridY;
+                            }
+                            break;
+                        case 'RANDOM':
+                            const moves = [[1,0],[-1,0],[0,1],[0,-1]];
+                            const move = moves[Math.floor(Math.random() * moves.length)];
+                            newGridX += move[0];
+                            newGridY += move[1];
+                            if (newGridX < 1 || newGridX >= GRID_SIZE - 1 || 
+                                newGridY < 1 || newGridY >= GRID_SIZE - 1 ||
+                                currentLevel.map[newGridY][newGridX] === 1) {
+                                newGridX = this.gridX;
+                                newGridY = this.gridY;
+                            }
+                            break;
+                    }
+                    
+                    this.gridX = newGridX;
+                    this.gridY = newGridY;
+                    this.x = newGridX * TILE_SIZE + TILE_SIZE / 2;
+                    this.y = newGridY * TILE_SIZE + TILE_SIZE / 2;
+                }
+                
+                // Check collision with player
+                if (this.gridX === player.gridX && this.gridY === player.gridY) {
+                    if (!player.invincible) {
+                        gameManager.playerHit();
+                    }
+                }
+            }
+            
+            render(ctx) {
+                const bounce = Math.sin(Date.now() / 200) * 3;
+                
+                ctx.save();
+                ctx.translate(this.x, this.y + bounce);
+                
+                ctx.shadowColor = '#7f8c8d';
+                ctx.shadowBlur = 10;
+                
+                // Body
+                ctx.fillStyle = '#95a5a6';
+                ctx.beginPath();
+                ctx.arc(0, 0, 12, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Wing
+                ctx.fillStyle = '#7f8c8d';
+                ctx.beginPath();
+                ctx.ellipse(-8, 0, 6, 3, Math.sin(Date.now() / 100) * 0.3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Eye
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(4, -4, 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(5, -4, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Beak
+                ctx.fillStyle = '#e67e22';
+                ctx.beginPath();
+                ctx.moveTo(10, 0);
+                ctx.lineTo(15, 0);
+                ctx.lineTo(10, 3);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+
+        // ===========================
+        // 🎁 ITEM CLASS
+        // ===========================
+
+        class Item {
+            constructor(gridX, gridY, itemType) {
+                this.gridX = gridX;
+                this.gridY = gridY;
+                this.x = gridX * TILE_SIZE + TILE_SIZE / 2;
+                this.y = gridY * TILE_SIZE + TILE_SIZE / 2;
+                this.itemType = itemType;
+                this.animOffset = Math.random() * Math.PI * 2;
+                this.collected = false;
+            }
+            
+            render(ctx) {
+                if (this.collected) return;
+                
+                const float = Math.sin(Date.now() / 300 + this.animOffset) * 5;
+                const pulse = 1 + Math.sin(Date.now() / 200 + this.animOffset) * 0.1;
+                
+                ctx.save();
+                ctx.translate(this.x, this.y + float);
+                ctx.scale(pulse, pulse);
+                
+                ctx.shadowColor = '#FFD700';
+                ctx.shadowBlur = 20;
+                
+                switch(this.itemType) {
+                    case 'TICKET':
+                        ctx.fillStyle = '#FFD700';
+                        ctx.fillRect(-8, -12, 16, 24);
+                        ctx.fillStyle = '#000';
+                        ctx.font = 'bold 12px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('🎫', 0, 4);
+                        break;
+                    case 'PHOTO':
+                        ctx.fillStyle = '#ECF0F1';
+                        ctx.fillRect(-10, -10, 20, 20);
+                        ctx.fillStyle = '#3498db';
+                        ctx.fillRect(-6, -6, 12, 12);
+                        break;
+                    case 'ADDRESS':
+                        ctx.fillStyle = '#fff';
+                        ctx.fillRect(-10, -8, 20, 16);
+                        ctx.strokeStyle = '#000';
+                        ctx.strokeRect(-10, -8, 20, 16);
+                        ctx.fillStyle = '#000';
+                        ctx.fillRect(-7, -5, 14, 2);
+                        ctx.fillRect(-7, -1, 14, 2);
+                        ctx.fillRect(-7, 3, 14, 2);
+                        break;
+                }
+                
+                ctx.restore();
+            }
+        }
+
+        // ===========================
+        // ⚡ POWERUP CLASS
+        // ===========================
+
+        class PowerUp {
+            constructor(gridX, gridY, powerType) {
+                this.gridX = gridX;
+                this.gridY = gridY;
+                this.x = gridX * TILE_SIZE + TILE_SIZE / 2;
+                this.y = gridY * TILE_SIZE + TILE_SIZE / 2;
+                this.powerType = powerType;
+                this.animOffset = Math.random() * Math.PI * 2;
+                this.collected = false;
+            }
+            
+            activate() {
+                audioManager.play('powerup');
+                game.triggerShake(5);
+                
+                switch(this.powerType) {
+                    case 'SPEED':
+                        player.powerups.SPEED = 5;
+                        player.speed = 400;
+                        showNotification('⚡ VITESSE AUGMENTÉE!');
+                        break;
+                    case 'SHIELD':
+                        player.powerups.SHIELD = 8;
+                        player.invincible = true;
+                        showNotification('🛡️ BOUCLIER ACTIVÉ!');
+                        break;
+                    case 'MAGNET':
+                        player.powerups.MAGNET = 6;
+                        showNotification('🧲 AIMANT ACTIVÉ!');
+                        break;
+                }
+                
+                // Activation particles
+                for (let i = 0; i < 20; i++) {
+                    const angle = (Math.PI * 2 * i) / 20;
+                    game.particles.push(new Particle(
+                        this.x, this.y,
+                        Math.cos(angle) * 4,
+                        Math.sin(angle) * 4,
+                        ['#3498db', '#F59E0B', '#9b59b6'][['SPEED', 'SHIELD', 'MAGNET'].indexOf(this.powerType)],
+                        1
+                    ));
+                }
+            }
+            
+            render(ctx) {
+                if (this.collected) return;
+                
+                const float = Math.sin(Date.now() / 300 + this.animOffset) * 8;
+                const pulse = 1 + Math.sin(Date.now() / 150 + this.animOffset) * 0.2;
+                const rotate = Date.now() / 1000;
+                
+                ctx.save();
+                ctx.translate(this.x, this.y + float);
+                ctx.rotate(rotate);
+                ctx.scale(pulse, pulse);
+                
+                const colors = {
+                    SPEED: '#3498db',
+                    SHIELD: '#F59E0B',
+                    MAGNET: '#9b59b6'
+                };
+                
+                ctx.shadowColor = colors[this.powerType];
+                ctx.shadowBlur = 25;
+                
+                ctx.fillStyle = colors[this.powerType];
+                ctx.beginPath();
+                for (let i = 0; i < 6; i++) {
+                    const angle = (Math.PI * 2 * i) / 6;
+                    const r = i % 2 === 0 ? 15 : 8;
+                    const x = Math.cos(angle) * r;
+                    const y = Math.sin(angle) * r;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.fill();
+                
+                const icons = { SPEED: '⚡', SHIELD: '🛡️', MAGNET: '🧲' };
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(icons[this.powerType], 0, 0);
+                
+                ctx.restore();
+            }
+        }
+
+        // ===========================
         // 🗺️ LEVEL MANAGER
         // ===========================
 
@@ -1550,7 +1353,6 @@
                 return [
                     {
                         name: 'Jardin des Vosges',
-                        map: this.generateMap(1),
                         theme: 'park',
                         colors: {
                             ground: '#2d5016',
@@ -1558,6 +1360,7 @@
                             wall: '#1a3a0f'
                         },
                         exit: { x: 18, y: 18 },
+                        map: this.generateParkMap(),
                         enemies: 3,
                         items: [
                             { type: 'TICKET', x: 5, y: 5 },
@@ -1567,7 +1370,6 @@
                     },
                     {
                         name: 'Pigalle',
-                        map: this.generateMap(2),
                         theme: 'city',
                         colors: {
                             ground: '#1a1a2e',
@@ -1575,6 +1377,7 @@
                             wall: '#0f0f1e'
                         },
                         exit: { x: 18, y: 1 },
+                        map: this.generateCityMap(),
                         enemies: 5,
                         items: [
                             { type: 'TICKET', x: 3, y: 10 },
@@ -1585,13 +1388,13 @@
                 ];
             }
             
-            generateMap(level) {
+            generateParkMap() {
                 const map = [];
-                for (let y = 0; y < 20; y++) {
+                for (let y = 0; y < GRID_SIZE; y++) {
                     map[y] = [];
-                    for (let x = 0; x < 20; x++) {
+                    for (let x = 0; x < GRID_SIZE; x++) {
                         // Borders
-                        if (x === 0 || x === 19 || y === 0 || y === 19) {
+                        if (x === 0 || x === GRID_SIZE - 1 || y === 0 || y === GRID_SIZE - 1) {
                             map[y][x] = 1;
                         } else {
                             map[y][x] = 0;
@@ -1599,96 +1402,68 @@
                     }
                 }
                 
-                if (level === 1) {
-                    // Vosges - Garden paths
-                    for (let i = 4; i < 16; i++) {
-                        map[10][i] = 2;
-                        map[i][10] = 2;
-                    }
-                } else {
-                    // Pigalle - Buildings
-                    const buildings = [
-                        {x: 3, y: 3, w: 4, h: 4},
-                        {x: 13, y: 3, w: 4, h: 4},
-                        {x: 3, y: 13, w: 4, h: 4},
-                        {x: 13, y: 13, w: 4, h: 4}
-                    ];
-                    
-                    buildings.forEach(b => {
-                        for (let y = b.y; y < b.y + b.h; y++) {
-                            for (let x = b.x; x < b.x + b.w; x++) {
-                                if (y < 20 && x < 20) {
-                                    map[y][x] = 1;
-                                }
-                            }
-                        }
-                    });
+                // Garden paths
+                for (let i = 4; i < 16; i++) {
+                    map[10][i] = 2;
+                    map[i][10] = 2;
                 }
                 
                 return map;
             }
             
-            renderMap(ctx) {
-                // Background du niveau
-                ctx.fillStyle = this.currentLevel.colors.ground;
-                ctx.fillRect(0, 0, 800, 800);
-
-                // Grid/Tiles rendering
-                for (let y = 0; y < 20; y++) {
-                    for (let x = 0; x < 20; x++) {
-                        const tile = this.currentLevel.map[y][x];
-                        const posX = x * 40;
-                        const posY = y * 40;
-
-                        if (tile === 1) { // Wall
-                            ctx.fillStyle = this.currentLevel.colors.wall;
-                            ctx.fillRect(posX, posY, 40, 40);
-                            ctx.strokeStyle = '#000';
-                            ctx.strokeRect(posX, posY, 40, 40);
-                            
-                            // Neon edge for walls
-                            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-                            ctx.fillRect(posX + 5, posY + 5, 30, 30);
-                        } else if (tile === 2) { // Path
-                            ctx.fillStyle = this.currentLevel.colors.path;
-                            ctx.fillRect(posX, posY, 40, 40);
+            generateCityMap() {
+                const map = [];
+                for (let y = 0; y < GRID_SIZE; y++) {
+                    map[y] = [];
+                    for (let x = 0; x < GRID_SIZE; x++) {
+                        // Borders
+                        if (x === 0 || x === GRID_SIZE - 1 || y === 0 || y === GRID_SIZE - 1) {
+                            map[y][x] = 1;
+                        } else {
+                            map[y][x] = 0;
                         }
                     }
                 }
-
-                // Render Exit
-                if (gameManager.itemsCollected >= gameManager.itemsTotal) {
-                    const exit = this.currentLevel.exit;
-                    ctx.fillStyle = '#00F5FF';
-                    ctx.shadowColor = '#00F5FF';
-                    ctx.shadowBlur = 20;
-                    ctx.fillRect(exit.x * 40 + 10, exit.y * 40 + 10, 20, 20);
-                    ctx.shadowBlur = 0;
-                }
+                
+                // Buildings
+                const buildings = [
+                    {x: 3, y: 3, w: 4, h: 4},
+                    {x: 13, y: 3, w: 4, h: 4},
+                    {x: 3, y: 13, w: 4, h: 4},
+                    {x: 13, y: 13, w: 4, h: 4}
+                ];
+                
+                buildings.forEach(b => {
+                    for (let y = b.y; y < b.y + b.h; y++) {
+                        for (let x = b.x; x < b.x + b.w; x++) {
+                            if (y < GRID_SIZE && x < GRID_SIZE) {
+                                map[y][x] = 1;
+                            }
+                        }
+                    }
+                });
+                
+                return map;
             }
-
+            
             loadLevel(index) {
                 this.currentLevelIndex = index;
                 this.currentLevel = this.levels[index];
                 
-                // Clear entities
-                game.entities = [];
-                
                 // Create player
-                player = new Player(1 * 40 + 20, 1 * 40 + 20);
-                game.entities.push(player);
+                player = new Player(1, 1);
+                game.entities = [player];
                 
                 // Create enemies
-                const enemyPatterns = ['HORIZONTAL', 'VERTICAL', 'RANDOM'];
+                const patterns = ['HORIZONTAL', 'VERTICAL', 'RANDOM'];
                 for (let i = 0; i < this.currentLevel.enemies; i++) {
                     let x, y;
                     do {
-                        x = 2 + Math.floor(Math.random() * 16);
-                        y = 2 + Math.floor(Math.random() * 16);
+                        x = 2 + Math.floor(Math.random() * (GRID_SIZE - 4));
+                        y = 2 + Math.floor(Math.random() * (GRID_SIZE - 4));
                     } while (this.currentLevel.map[y][x] === 1 || (x === 1 && y === 1));
                     
-                    const pattern = enemyPatterns[i % enemyPatterns.length];
-                    game.entities.push(new Enemy(x, y, pattern));
+                    game.entities.push(new Enemy(x, y, patterns[i % patterns.length]));
                 }
                 
                 // Create items
@@ -1696,24 +1471,22 @@
                     game.entities.push(new Item(item.x, item.y, item.type));
                 });
                 
-                // Spawn random powerup
-                if (Math.random() < 0.5) {
+                // Spawn powerup
+                if (Math.random() < 0.7) {
                     let x, y;
                     do {
-                        x = 2 + Math.floor(Math.random() * 16);
-                        y = 2 + Math.floor(Math.random() * 16);
+                        x = 2 + Math.floor(Math.random() * (GRID_SIZE - 4));
+                        y = 2 + Math.floor(Math.random() * (GRID_SIZE - 4));
                     } while (this.currentLevel.map[y][x] === 1);
                     
                     const types = ['SPEED', 'SHIELD', 'MAGNET'];
-                    const type = types[Math.floor(Math.random() * types.length)];
-                    game.entities.push(new PowerUp(x, y, type));
+                    game.entities.push(new PowerUp(x, y, types[Math.floor(Math.random() * types.length)]));
                 }
                 
                 // Update HUD
                 document.getElementById('level-value').textContent = index + 1;
                 gameManager.itemsCollected = 0;
-                gameManager.itemsTotal = this.currentLevel.items.length;
-                this.updateItemSlots();
+                gameManager.updateItemSlots();
                 
                 showNotification(`📍 ${this.currentLevel.name}`);
                 audioManager.play('levelup');
@@ -1741,14 +1514,108 @@
                         this.loadLevel(this.currentLevelIndex + 1);
                     }, 2000);
                 } else {
-                    game.victory();
+                    gameManager.victory();
+                }
+            }
+        }
+
+        // ===========================
+        // 🎯 GAME MANAGER
+        // ===========================
+
+        class GameManager {
+            constructor() {
+                this.score = 0;
+                this.combo = 0;
+                this.maxCombo = 0;
+                this.comboTimer = 0;
+                this.comboDuration = 3;
+                this.itemsCollected = 0;
+                this.itemsTotal = 3;
+                this.startTime = 0;
+            }
+            
+            checkItemCollection() {
+                game.entities.forEach(entity => {
+                    if (entity instanceof Item && !entity.collected) {
+                        if (entity.gridX === player.gridX && entity.gridY === player.gridY) {
+                            this.collectItem(entity);
+                        }
+                    }
+                });
+            }
+            
+            collectItem(item) {
+                item.collected = true;
+                this.itemsCollected++;
+                this.combo++;
+                this.comboTimer = this.comboDuration;
+                
+                if (this.combo > this.maxCombo) {
+                    this.maxCombo = this.combo;
+                }
+                
+                const points = 100 * this.combo;
+                this.score += points;
+                
+                // Update UI
+                document.getElementById('score-value').textContent = this.score;
+                document.getElementById('combo-value').textContent = `x${this.combo}`;
+                document.getElementById('combo-panel').classList.add('active');
+                this.updateItemSlots();
+                
+                // Floating text
+                game.floatingTexts.push(new FloatingText(`+${points}`, item.x, item.y, '#FFD700'));
+                
+                // Particles
+                for (let i = 0; i < 15; i++) {
+                    const angle = (Math.PI * 2 * i) / 15;
+                    game.particles.push(new Particle(
+                        item.x, item.y,
+                        Math.cos(angle) * 3,
+                        Math.sin(angle) * 3,
+                        '#FFD700',
+                        1
+                    ));
+                }
+                
+                // Sound
+                if (this.combo > 3) {
+                    audioManager.play('combo_high');
+                } else {
+                    audioManager.play('collect');
+                }
+                
+                game.triggerShake(3);
+            }
+            
+            checkPowerupCollection() {
+                game.entities.forEach(entity => {
+                    if (entity instanceof PowerUp && !entity.collected) {
+                        if (entity.gridX === player.gridX && entity.gridY === player.gridY) {
+                            entity.collected = true;
+                            entity.activate();
+                        }
+                    }
+                });
+            }
+            
+            checkExit() {
+                const exit = levelManager.currentLevel.exit;
+                if (player.gridX === exit.x && player.gridY === exit.y) {
+                    if (this.itemsCollected >= this.itemsTotal) {
+                        levelManager.nextLevel();
+                    } else {
+                        showNotification(`❌ Il manque ${this.itemsTotal - this.itemsCollected} indice(s)!`);
+                        audioManager.play('bump');
+                    }
                 }
             }
             
             updateItemSlots() {
                 for (let i = 0; i < 3; i++) {
                     const slot = document.getElementById(`item-slot-${i}`);
-                    if (i < gameManager.itemsCollected) {
+                    if (i < this.itemsCollected) {
                         slot.classList.add('collected');
                         slot.textContent = '✓';
                     } else {
@@ -1757,110 +1624,43 @@
                     }
                 }
             }
-        }
-
-        // ===========================
-        // 🚀 BOOTSTRAP & UTILS (AJOUTÉ)
-        // ===========================
-
-        function showNotification(text) {
-            const notif = document.getElementById('notification');
-            notif.textContent = text;
-            notif.classList.add('show');
-            setTimeout(() => {
-                notif.classList.remove('show');
-            }, 2500);
-        }
-
-        // Initialisation des globales
-        const game = new GameEngine();
-        const audioManager = new AudioManager();
-        const gameManager = new GameManager(); // Nouvelle instance
-        const levelManager = new LevelManager();
-        let player = null;
-
-        // Gestion du Chat au démarrage
-        const messages = [
-            { text: "Agent Samuel, me recevez-vous ?", sender: "QG", delay: 500 },
-            { text: "Affirmatif. En position.", sender: "SAMUEL", delay: 1500, self: true },
-            { text: "Votre mission : Récupérer les 3 indices cachés dans Paris.", sender: "QG", delay: 2500 },
-            { text: "Attention aux agents ennemis. Bonne chance.", sender: "QG", delay: 4000 }
-        ];
-
-        function startChat() {
-            const chatBody = document.getElementById('chat-body');
-            let totalDelay = 0;
-
-            messages.forEach(msg => {
-                totalDelay += msg.delay;
-                setTimeout(() => {
-                    const div = document.createElement('div');
-                    div.className = `msg ${msg.self ? 'right' : 'left'}`;
-                    div.innerHTML = `<span class="sender">${msg.sender}</span>${msg.text}`;
-                    chatBody.appendChild(div);
-                    chatBody.scrollTop = chatBody.scrollHeight;
-                    audioManager.createBeep(800, 0.05); // Bip chat
-                }, totalDelay);
-            });
-
-            setTimeout(() => {
-                const btn = document.getElementById('btn-start');
-                btn.style.display = 'block';
-                btn.style.animation = 'fadeInUp 0.5s ease forwards';
-            }, totalDelay + 1000);
-        }
-
-        // Démarrage du jeu
-        document.getElementById('btn-start').addEventListener('click', () => {
-            document.getElementById('phone-container').style.opacity = '0';
-            document.getElementById('title-screen').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('phone-container').style.display = 'none';
-                document.getElementById('title-screen').style.display = 'none';
-                document.getElementById('game-container').style.display = 'flex';
-                document.getElementById('hud').classList.add('active');
+            
+            playerHit() {
+                audioManager.play('hit');
+                game.triggerShake(10);
                 
-                game.state = 'PLAYING';
-                game.startTime = Date.now();
-                levelManager.loadLevel(0);
-                game.init();
-                
-                // Activer l'audio après interaction utilisateur
-                if(audioManager.audioContext.state === 'suspended') {
-                    audioManager.audioContext.resume();
+                // Particles
+                for (let i = 0; i < 20; i++) {
+                    const angle = (Math.PI * 2 * i) / 20;
+                    game.particles.push(new Particle(
+                        player.x, player.y,
+                        Math.cos(angle) * 5,
+                        Math.sin(angle) * 5,
+                        '#EF4444',
+                        1
+                    ));
                 }
-            }, 1000);
-        });
-
-        // Contrôles Clavier (AJOUTÉ)
-        window.addEventListener('keydown', (e) => {
-            if (game.state !== 'PLAYING' || !player) return;
-
-            switch(e.key) {
-                case 'ArrowUp':
-                case 'z':
-                case 'w':
-                    player.move(0, -1);
-                    break;
-                case 'ArrowDown':
-                case 's':
-                    player.move(0, 1);
-                    break;
-                case 'ArrowLeft':
-                case 'q':
-                case 'a':
-                    player.move(-1, 0);
-                    break;
-                case 'ArrowRight':
-                case 'd':
-                    player.move(1, 0);
-                    break;
+                
+                showNotification('💀 TOUCHÉ PAR UN PIGEON!');
+                
+                setTimeout(() => {
+                    this.gameOver(false);
+                }, 1000);
             }
-        });
-
-        // Lancer la séquence d'intro après 5 secondes (temps de l'anim titre)
-        setTimeout(startChat, 5000);
-
-    </script>
-</body>
-</html>
+            
+            victory() {
+                audioManager.play('victory');
+                this.gameOver(true);
+            }
+            
+            gameOver(isVictory) {
+                gameState = 'GAMEOVER';
+                
+                const screen = document.getElementById('gameover-screen');
+                const title = document.getElementById('gameover-title');
+                const playTime = Math.floor((Date.now() - this.startTime) / 1000);
+                
+                if (isVictory) {
+                    title.textContent = 'MISSION ACCOMPLIE!';
+                    title.style.background = 'linear-gradient(135deg, #10B981, #00F5FF)';
+                } else
