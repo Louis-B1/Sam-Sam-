@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission Samuel à Paris — Neo Edition</title>
+    <title>Mission Samuel — Paris By Night</title>
     <style>
         /* ===========================
            🎨 DESIGN SYSTEM NEO-PARIS
@@ -94,6 +94,8 @@
             -webkit-text-fill-color: transparent;
             text-shadow: 0 0 60px var(--neo-cyan);
             animation: titlePulse 2s ease-in-out infinite;
+            text-align: center;
+            line-height: 1;
         }
 
         #title-subtitle {
@@ -102,7 +104,8 @@
             font-weight: 700;
             color: var(--neo-yellow);
             text-shadow: 0 0 40px var(--neo-yellow);
-            margin-top: 10px;
+            margin-top: 15px;
+            text-align: center;
         }
 
         @keyframes titlePulse {
@@ -664,20 +667,17 @@
 <body>
     <div class="scanlines"></div>
 
-    <!-- TITLE SCREEN -->
     <div id="title-screen">
-        <div id="title-main">MISSION</div>
-        <div id="title-subtitle">SAMUEL</div>
+        <div id="title-main">PARIS</div>
+        <div id="title-subtitle">BY NIGHT !</div>
     </div>
 
-    <!-- PHONE INTRO -->
     <div id="phone-container">
         <div id="chat-header">Les Chipies (4)</div>
         <div id="chat-body"></div>
         <div id="btn-start">🔫 SAUVER LE SOLDAT SAMUEL</div>
     </div>
 
-    <!-- GAME -->
     <div id="game-container">
         <canvas id="game-canvas" width="800" height="800"></canvas>
         
@@ -694,7 +694,6 @@
         </div>
     </div>
 
-    <!-- METRO TRANSITION -->
     <div id="metro-transition">
         <div class="metro-screen">
             <div class="metro-tunnel"></div>
@@ -704,7 +703,6 @@
         </div>
     </div>
 
-    <!-- END SCREEN -->
     <div id="end-screen">
         <h1>🎉 MISSION ACCOMPLIE ! 🎉</h1>
         <img id="samuel-img" src="https://i.pravatar.cc/280?img=12" alt="Samuel">
@@ -736,7 +734,7 @@
         // --- MESSAGES CHAT ---
         const chatMessages = [
             {s: 'SAMUEL', t: 'Oh les gars ! C\'est chaud là !'},
-            {s: 'SAMUEL', t: 'La police me coursent !!'},
+            {s: 'SAMUEL', t: 'La police me course !!'},
             {s: 'INÈS', t: 'Mdr arrête Sam, t\'as encore bu avaué 😂'},
             {s: 'SAMUEL', t: 'Non ! J\'étais Place des Vosges, puis j\'ai fui vers Pigalle.'},
             {s: 'LILY', t: 'Encore...'},
@@ -1115,7 +1113,7 @@
                     showPopup(`<h3>✅ TROUVÉ !</h3><p>${item.name}</p>`, 2000);
                 }
                 
-                // FIX: Délai avant d'afficher le message de sortie
+                // Message de sortie quand on a tout
                 if(score === 3) {
                     const exitName = levels[currentLevel].exitName;
                     setTimeout(() => {
@@ -1373,7 +1371,7 @@
             chatBody.scrollTop = chatBody.scrollHeight;
             
             msgIndex++;
-            setTimeout(playChat, 1200);
+            setTimeout(playChat, 1000); // Vitesse un peu accélérée
         }
 
         // --- INPUTS ---
@@ -1431,16 +1429,15 @@
             // Player prêt
         }
 
-        // --- INIT ---
-        window.onload = () => {
-            setTimeout(playChat, 4000);
-        };
-        
+        // --- INIT FIXE ---
+        // Suppression de window.onload pour éviter les blocages si une ressource (ex: YT) charge mal
         document.getElementById('btn-start').addEventListener('click', startGame);
+
+        // Lancement forcé du chat après 3.8s (laisse le temps à l'intro de se jouer)
+        setTimeout(playChat, 3800);
 
     </script>
     
-    <!-- YouTube API -->
     <script src="https://www.youtube.com/iframe_api"></script>
 </body>
 </html>
