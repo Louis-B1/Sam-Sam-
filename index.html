@@ -2,475 +2,566 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mission: Samuel à Paris</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Samuel: Paris Neon Edition</title>
     <style>
+        /* ===========================
+           🎨 STYLE NEON / ULTIMATE
+           =========================== */
         :root {
-            --neon-pink: #FF006E; --neon-blue: #00F5FF; --neon-purple: #8B5CF6; --neon-green: #10B981;
-            --bg: #0A0E27; --surface: #1A1F3A; --gold: #FFD700; --text: #F9FAFB;
+            --neon-pink: #FF006E;
+            --neon-blue: #00F5FF;
+            --neon-purple: #8B5CF6;
+            --neon-green: #10B981;
+            --bg-dark: #050505;
+            --surface: #1a1a1a;
+            --text-main: #F9FAFB;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
-        body {
-            background: radial-gradient(circle, var(--surface), var(--bg));
-            font-family: 'Segoe UI', sans-serif; color: var(--text);
-            overflow: hidden; width: 100vw; height: 100vh;
-            display: flex; justify-content: center; align-items: center;
+
+        body { 
+            background: radial-gradient(circle at center, #1a1b26 0%, #000000 100%);
+            margin: 0; overflow: hidden; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            color: var(--text-main); 
+            display: flex; justify-content: center; align-items: center; height: 100vh;
+            user-select: none;
         }
-        /* Scanlines */
+
+        /* Scanlines subtiles pour garder un peu de texture */
         .scanlines {
-            position: fixed; inset: 0; pointer-events: none; z-index: 999;
+            position: fixed; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999;
             background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, transparent 1px, transparent 2px);
-            background-size: 100% 4px; animation: scan 10s linear infinite;
-        }
-        @keyframes scan { from { background-position: 0 0; } to { background-position: 0 100%; } }
-
-        /* UI Elements */
-        #title-screen, #gameover-screen {
-            position: fixed; inset: 0; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 1000;
-            background: rgba(5, 8, 22, 0.95); transition: opacity 0.5s;
-        }
-        .hidden { opacity: 0; pointer-events: none; }
-        h1 {
-            font-size: clamp(40px, 8vw, 70px); text-transform: uppercase;
-            text-shadow: 0 0 20px var(--neon-purple); animation: glitch 3s infinite;
-        }
-        @keyframes glitch {
-            0%, 100% { text-shadow: 2px 2px var(--neon-pink), -2px -2px var(--neon-blue); }
-            50% { text-shadow: -2px 2px var(--neon-blue), 2px -2px var(--neon-pink); }
+            background-size: 100% 4px;
         }
 
-        /* Phone & Chat */
+        /* --- ÉCRAN TITRE --- */
+        #title-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 300; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            animation: fadeOut 1s ease-in-out 3s forwards; pointer-events: none;
+        }
+        #title-main { 
+            font-size: 70px; font-weight: 900; letter-spacing: 5px;
+            color: #fff; text-shadow: 0 0 20px var(--neon-purple), 0 0 40px var(--neon-pink);
+            animation: glitch 3s infinite;
+        }
+        @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+        @keyframes glitch { 
+            0%, 100% { transform: translate(0); } 
+            20% { transform: translate(-2px, 2px); } 
+            40% { transform: translate(2px, -2px); } 
+        }
+
+        /* --- TÉLÉPHONE MODERNE --- */
         #phone-container {
-            width: min(380px, 95vw); height: min(750px, 90vh);
-            background: #111; border: 10px solid #222; border-radius: 30px;
+            position: absolute; width: 380px; height: 750px;
+            background: #000; border: 12px solid #222; border-radius: 45px;
             display: flex; flex-direction: column; overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8); z-index: 500;
-            opacity: 0; transform: translateY(50px); transition: 0.5s;
+            z-index: 200; box-shadow: 0 0 60px rgba(139, 92, 246, 0.3);
+            opacity: 0; animation: fadeIn 1s ease-out 3.5s forwards;
         }
-        #phone-container.visible { opacity: 1; transform: translateY(0); }
-        #chat-body { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #000; }
-        .msg {
-            max-width: 80%; padding: 10px 15px; border-radius: 15px; font-size: 14px;
-            animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .left { background: #333; align-self: flex-start; border-bottom-left-radius: 2px; }
-        .right { background: var(--neon-purple); align-self: flex-end; border-bottom-right-radius: 2px; }
-        .sender { font-size: 10px; opacity: 0.7; display: block; margin-bottom: 2px; }
+        @keyframes fadeIn { to { opacity: 1; } }
         
-        button {
-            padding: 15px; background: linear-gradient(90deg, var(--neon-pink), var(--neon-purple));
-            border: none; color: white; font-weight: bold; font-size: 16px;
-            cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
+        #chat-header { 
+            background: linear-gradient(90deg, #222, #111); 
+            padding: 25px; text-align: center; border-bottom: 1px solid #333; 
+            font-weight: bold; font-size: 18px; letter-spacing: 1px;
         }
-        button:hover { filter: brightness(1.2); }
-
-        /* Game & HUD */
-        #game-container { position: fixed; inset: 0; display: none; justify-content: center; align-items: center; z-index: 100; }
-        canvas { border: 2px solid var(--neon-purple); border-radius: 8px; box-shadow: 0 0 30px rgba(139, 92, 246, 0.3); background: #000; max-width: 100vw; max-height: 100vw; }
+        #chat-body { 
+            flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 15px; 
+            background: #050505; overflow-y: auto; 
+        }
+        .msg { 
+            max-width: 80%; padding: 14px 18px; border-radius: 20px; font-size: 14px; 
+            line-height: 1.4; animation: slideUp 0.3s ease-out; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        #hud {
-            position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
-            display: none; gap: 15px; z-index: 200;
+        .left { background: #2d2d2d; align-self: flex-start; border-bottom-left-radius: 4px; color: #eee; }
+        .right { 
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink)); 
+            align-self: flex-end; border-bottom-right-radius: 4px; color: #fff; 
         }
-        .hud-panel {
-            background: rgba(26, 31, 58, 0.9); padding: 8px 15px; border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.1); text-align: center;
+        .sender { font-size: 11px; opacity: 0.7; margin-bottom: 4px; display: block; font-weight: bold; text-transform: uppercase; }
+        
+        #btn-start { 
+            margin: 20px; padding: 20px; border-radius: 30px; border: none;
+            background: linear-gradient(90deg, var(--neon-green), #059669); 
+            color: #fff; font-weight: bold; font-size: 18px; cursor: pointer; 
+            display: none; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+            transition: transform 0.2s;
         }
-        .hud-val { display: block; font-size: 20px; font-weight: bold; color: var(--gold); }
-        .hud-lbl { font-size: 10px; color: #999; text-transform: uppercase; }
-        .items { display: flex; gap: 5px; margin-top: 5px; }
-        .slot { width: 25px; height: 25px; background: rgba(0,0,0,0.5); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-        .slot.got { background: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
+        #btn-start:hover { transform: scale(1.05); }
 
-        /* Notification */
-        #notif {
-            position: fixed; top: 80px; left: 50%; transform: translate(-50%, -20px);
-            background: rgba(0,0,0,0.9); border: 1px solid var(--neon-pink);
-            padding: 10px 20px; border-radius: 20px; font-weight: bold;
-            opacity: 0; transition: 0.3s; z-index: 900; pointer-events: none;
+        /* --- JEU & CANVAS --- */
+        #game-container { position: relative; display: none; }
+        
+        canvas { 
+            background: #050810; border-radius: 12px;
+            border: 4px solid var(--neon-purple); 
+            box-shadow: 0 0 80px rgba(139, 92, 246, 0.2); 
+            /* image-rendering: pixelated; On retire pour un look plus lisse "néon" */
         }
-        #notif.show { transform: translate(-50%, 0); opacity: 1; }
+        
+        #game-ui {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 20px; z-index: 10;
+        }
+        .hud-box {
+            background: rgba(20, 20, 30, 0.8); backdrop-filter: blur(10px);
+            padding: 10px 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        .ui-label { font-size: 12px; color: #aaa; text-transform: uppercase; display: block; }
+        .ui-value { font-size: 20px; font-weight: bold; color: var(--neon-blue); }
+        
+        #msg-popup { 
+            position: absolute; bottom: 30px; width: 100%; text-align: center;
+            color: var(--neon-pink); font-weight: bold; font-size: 18px; 
+            text-shadow: 0 0 10px rgba(255,0,110,0.5);
+            height: 30px; 
+        }
 
-        @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+        /* --- POPUPS STYLÉS --- */
+        #main-popup {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(10, 10, 20, 0.95); color: #fff; padding: 30px; 
+            border: 2px solid var(--neon-blue); border-radius: 15px;
+            z-index: 100; display: none; text-align: center; 
+            box-shadow: 0 0 50px rgba(0, 245, 255, 0.3); min-width: 320px;
+        }
+        #main-popup h3 { margin-top: 0; color: var(--neon-blue); text-transform: uppercase; letter-spacing: 2px; }
+        
+        #letter-popup {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #fff; color: #111; padding: 40px; 
+            z-index: 101; display: none; text-align: center; 
+            box-shadow: 0 0 100px rgba(255,255,255,0.5); transform: translate(-50%, -50%) rotate(-2deg);
+            border-radius: 2px; font-family: 'Courier New', cursive; min-width: 300px;
+        }
+        #letter-popup h3 { color: #d63031; border-bottom: 2px solid #d63031; display: inline-block; }
+
+        /* --- FIN --- */
+        #end-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5,5,10,0.98); z-index: 400; display: none;
+            flex-direction: column; justify-content: center; align-items: center; text-align: center;
+        }
+        .end-text-box { 
+            background: linear-gradient(135deg, #222, #111); 
+            padding: 30px; border-radius: 20px; max-width: 500px; 
+            border: 1px solid #333; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            margin-top: 20px;
+        }
+        #samuel-img { 
+            width: 200px; height: 200px; object-fit: cover; border-radius: 50%; 
+            border: 4px solid var(--neon-green); margin: 20px; 
+            box-shadow: 0 0 30px var(--neon-green);
+        }
     </style>
 </head>
 <body>
+
     <div class="scanlines"></div>
+    <div id="youtube-audio" style="position:absolute; top:-9999px;"></div>
 
     <div id="title-screen">
-        <h1>MISSION: SAMUEL</h1>
-        <p style="letter-spacing: 5px; color: #888;">À PARIS</p>
+        <div id="title-main" data-text="PARIS">PARIS</div>
+        <div style="font-size: 24px; color: var(--neon-purple); letter-spacing: 10px; margin-top: 20px; text-transform: uppercase;">By Night</div>
     </div>
 
     <div id="phone-container">
-        <div style="background: #222; padding: 15px; text-align: center; font-weight: bold;">💬 MESSAGE</div>
+        <div id="chat-header">💬 Les Chipies (4)</div>
         <div id="chat-body"></div>
-        <button id="btn-start" style="display:none;">🚀 PARTIR EN MISSION</button>
+        <button id="btn-start">🚀 SAUVER SAMUEL</button>
     </div>
 
-    <div id="game-container"><canvas id="canvas" width="800" height="800"></canvas></div>
-    
-    <div id="hud">
-        <div class="hud-panel"><span class="hud-lbl">Score</span><span class="hud-val" id="score">0</span></div>
-        <div class="hud-panel">
-            <span class="hud-lbl">Indices</span>
-            <div class="items"><div class="slot" id="s0"></div><div class="slot" id="s1"></div><div class="slot" id="s2"></div></div>
+    <div id="game-container">
+        
+        <div id="game-ui">
+            <div class="hud-box">
+                <span class="ui-label">Lieu</span>
+                <span class="ui-value" id="level-name">VOSGES</span>
+            </div>
+            <div class="hud-box">
+                <span class="ui-label">Indices</span>
+                <span class="ui-value" id="score">0/3</span>
+            </div>
         </div>
-        <div class="hud-panel"><span class="hud-lbl">Niveau</span><span class="hud-val" id="level">1</span></div>
+        
+        <div id="msg-popup"></div>
+        <div id="main-popup"></div>
+        
+        <div id="letter-popup">
+            <h3>💌 Lettre d'Alexis 💌</h3>
+            <p>"Mon Sam chéri, rejoins-moi vite. Le Kebab refroidit... Je t'attends." <br><br>- Ton Alex</p>
+        </div>
+
+        <canvas id="gameCanvas" width="800" height="800"></canvas>
     </div>
 
-    <div id="notif"></div>
-
-    <div id="gameover-screen" class="hidden">
-        <h1 id="go-title">GAME OVER</h1>
-        <div style="margin: 20px; font-size: 20px;">Score: <span id="final-score" style="color:var(--gold)">0</span></div>
-        <button onclick="location.reload()">🔄 REJOUER</button>
+    <div id="end-screen">
+        <h1 style="color: var(--neon-green); font-size: 40px; text-shadow: 0 0 20px var(--neon-green);">SAMUEL RETROUVÉ !</h1>
+        <img id="samuel-img" src="samuel.jpg" alt="Samuel" onerror="this.src='https://via.placeholder.com/200/000000/FFFFFF/?text=SAM'">
+        <div class="end-text-box">
+            <p style="font-size: 18px; color: #ccc;">"Wesh l'équipe... J'ai plus de batterie."</p>
+            <p style="font-size: 16px; color: #888;">"Je dormais sur un banc. C'était pas la police, juste des pigeons qui m'attaquaient."</p>
+            <p style="color: var(--neon-purple); font-weight: bold; margin-top: 15px;">#ParisLife</p>
+        </div>
+        <button onclick="location.reload()" style="margin-top: 30px; padding: 15px 40px; background: transparent; border: 2px solid var(--neon-green); color: var(--neon-green); font-weight: bold; cursor: pointer; border-radius: 25px;">REJOUER</button>
     </div>
 
     <script>
-        // --- CONSTANTS ---
-        const TILE = 40, GRID = 20;
+        const TILE = 40; 
+        const GRID_SIZE = 20;
         
-        // --- AUDIO ---
-        const audio = {
-            ctx: null,
-            init() { 
-                if(!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); 
-                if(this.ctx.state === 'suspended') this.ctx.resume();
-            },
-            play(type) {
-                if(!this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.connect(gain); gain.connect(this.ctx.destination);
-                
-                const now = this.ctx.currentTime;
-                if(type === 'msg') {
-                    osc.frequency.setValueAtTime(600, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                    osc.start(); osc.stop(now + 0.1);
-                } else if(type === 'item') {
-                    osc.frequency.setValueAtTime(800, now);
-                    osc.frequency.linearRampToValueAtTime(1200, now + 0.1);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                    osc.start(); osc.stop(now + 0.2);
-                } else if(type === 'bump') {
-                    osc.type = 'square'; osc.frequency.value = 150;
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                    osc.start(); osc.stop(now + 0.1);
-                } else if(type === 'win') {
-                    osc.type = 'triangle';
-                    [523, 659, 784].forEach((f, i) => {
-                        const o = this.ctx.createOscillator();
-                        const g = this.ctx.createGain();
-                        o.connect(g); g.connect(this.ctx.destination);
-                        o.frequency.value = f;
-                        g.gain.setValueAtTime(0.1, now + i*0.1);
-                        g.gain.linearRampToValueAtTime(0, now + i*0.1 + 0.3);
-                        o.start(now + i*0.1); o.stop(now + i*0.1 + 0.3);
-                    });
-                } else if(type === 'hit') {
-                    osc.type = 'sawtooth'; osc.frequency.value = 100;
-                    gain.gain.linearRampToValueAtTime(0, now + 0.3);
-                    osc.start(); osc.stop(now + 0.3);
-                }
-            }
-        };
-
-        // --- GAME ENGINE ---
-        class Game {
-            constructor() {
-                this.canvas = document.getElementById('canvas');
-                this.ctx = this.canvas.getContext('2d');
-                this.entities = [];
-                this.state = 'MENU';
-                this.score = 0;
-                this.levelIdx = 0;
-                this.itemsCollected = 0;
-                this.itemsTotal = 3;
-                this.lastTime = 0;
-                
-                this.player = { x: 1, y: 1, px: 60, py: 60, tx: 60, ty: 60, moving: false };
-                this.map = [];
-                
-                // Inputs
-                window.addEventListener('keydown', e => this.handleInput(e));
-                
-                // Touch
-                let tsX, tsY;
-                this.canvas.addEventListener('touchstart', e => { tsX = e.touches[0].clientX; tsY = e.touches[0].clientY; });
-                this.canvas.addEventListener('touchend', e => {
-                    const dx = e.changedTouches[0].clientX - tsX;
-                    const dy = e.changedTouches[0].clientY - tsY;
-                    if(Math.abs(dx) > Math.abs(dy)) this.move(dx > 0 ? 1 : -1, 0);
-                    else this.move(0, dy > 0 ? 1 : -1);
-                });
-            }
-
-            init() {
-                this.state = 'PLAYING';
-                document.getElementById('game-container').style.display = 'flex';
-                document.getElementById('hud').style.display = 'flex';
-                document.getElementById('phone-container').style.display = 'none';
-                this.loadLevel();
-                requestAnimationFrame(t => this.loop(t));
-            }
-
-            loadLevel() {
-                // Generate simple map
-                this.map = [];
-                for(let y=0; y<GRID; y++) {
-                    this.map[y] = [];
-                    for(let x=0; x<GRID; x++) {
-                        // Borders and random blocks
-                        this.map[y][x] = (x===0 || x===GRID-1 || y===0 || y===GRID-1 || (Math.random()<0.1 && x>2 && y>2)) ? 1 : 0;
-                    }
-                }
-                
-                // Clear start/end area
-                this.map[1][1] = 0; this.map[18][18] = 0;
-                
-                this.player.x = 1; this.player.y = 1;
-                this.syncPlayerPos();
-                
-                // Spawn Items
-                this.entities = [];
-                for(let i=0; i<3; i++) this.spawnEntity('item');
-                // Spawn Enemies
-                const enemyCount = 3 + this.levelIdx;
-                for(let i=0; i<enemyCount; i++) this.spawnEntity('enemy');
-
-                this.itemsCollected = 0;
-                this.updateHud();
-                this.notify(`NIVEAU ${this.levelIdx + 1}`);
-            }
-
-            spawnEntity(type) {
-                let ex, ey;
-                do {
-                    ex = Math.floor(Math.random() * (GRID-2)) + 1;
-                    ey = Math.floor(Math.random() * (GRID-2)) + 1;
-                } while(this.map[ey][ex] === 1 || (ex<4 && ey<4));
-                this.entities.push({ type, x: ex, y: ey, px: ex*TILE+20, py: ey*TILE+20 });
-            }
-
-            handleInput(e) {
-                if(this.state !== 'PLAYING' || this.player.moving) return;
-                if(e.key.startsWith('Arrow')) {
-                    const dx = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0;
-                    const dy = e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0;
-                    this.move(dx, dy);
-                }
-            }
-
-            move(dx, dy) {
-                const nx = this.player.x + dx, ny = this.player.y + dy;
-                if(this.map[ny][nx] === 0) {
-                    this.player.x = nx; this.player.y = ny;
-                    this.player.tx = nx * TILE + 20; this.player.ty = ny * TILE + 20;
-                    this.player.moving = true;
-                } else {
-                    audio.play('bump');
-                }
-            }
-
-            update(dt) {
-                // Player lerp
-                if(this.player.moving) {
-                    const dx = this.player.tx - this.player.px;
-                    const dy = this.player.ty - this.player.py;
-                    if(Math.sqrt(dx*dx + dy*dy) < 2) {
-                        this.syncPlayerPos();
-                        this.player.moving = false;
-                        this.checkCollision();
-                    } else {
-                        this.player.px += dx * 10 * dt;
-                        this.player.py += dy * 10 * dt;
-                    }
-                }
-
-                // Enemy AI
-                this.entities.filter(e => e.type === 'enemy').forEach(e => {
-                    e.t = (e.t || 0) + dt;
-                    if(e.t > 0.5) { // Slow movement
-                         e.px += (Math.random()-0.5) * 2; // Shake effect
-                         e.py += (Math.random()-0.5) * 2;
-                         if(Math.random() < 0.05) { // Move randomly
-                             const dirs = [[0,1],[0,-1],[1,0],[-1,0]];
-                             const d = dirs[Math.floor(Math.random()*4)];
-                             if(this.map[e.y+d[1]] && this.map[e.y+d[1]][e.x+d[0]] === 0) {
-                                 e.x += d[0]; e.y += d[1];
-                                 e.px = e.x * TILE + 20; e.py = e.y * TILE + 20;
-                             }
-                         }
-                         e.t = 0;
-                    }
-                    // Simple collision with player
-                    if(Math.round(e.x) === this.player.x && Math.round(e.y) === this.player.y) {
-                        this.gameOver();
-                    }
-                });
-            }
-
-            checkCollision() {
-                // Collect Items
-                const itemIdx = this.entities.findIndex(e => e.type === 'item' && e.x === this.player.x && e.y === this.player.y);
-                if(itemIdx !== -1) {
-                    this.entities.splice(itemIdx, 1);
-                    this.itemsCollected++;
-                    this.score += 100;
-                    audio.play('item');
-                    this.updateHud();
-                    this.notify("INDICE RÉCUPÉRÉ !");
-                }
-
-                // Exit
-                if(this.player.x === 18 && this.player.y === 18) {
-                    if(this.itemsCollected === 3) {
-                        audio.play('win');
-                        if(this.levelIdx < 1) {
-                            this.levelIdx++;
-                            this.loadLevel();
-                        } else {
-                            this.endGame(true);
-                        }
-                    } else {
-                        this.notify("IL MANQUE DES INDICES !");
-                    }
-                }
-            }
-
-            syncPlayerPos() {
-                this.player.px = this.player.x * TILE + 20;
-                this.player.py = this.player.y * TILE + 20;
-            }
-
-            draw() {
-                this.ctx.fillStyle = '#050816';
-                this.ctx.fillRect(0, 0, 800, 800);
-
-                // Map
-                for(let y=0; y<GRID; y++) {
-                    for(let x=0; x<GRID; x++) {
-                        if(this.map[y][x]===1) {
-                            this.ctx.fillStyle = '#1A1F3A';
-                            this.ctx.fillRect(x*TILE, y*TILE, TILE, TILE);
-                            this.ctx.strokeStyle = '#2d2d2d';
-                            this.ctx.strokeRect(x*TILE, y*TILE, TILE, TILE);
-                        }
-                    }
-                }
-
-                // Exit
-                this.ctx.fillStyle = this.itemsCollected===3 ? '#00F5FF' : '#555';
-                this.ctx.beginPath(); this.ctx.arc(18*TILE+20, 18*TILE+20, 15, 0, Math.PI*2); this.ctx.fill();
-                this.ctx.fillStyle = '#000'; this.ctx.fillText("EXIT", 18*TILE+8, 18*TILE+24);
-
-                // Entities
-                this.entities.forEach(e => {
-                    if(e.type === 'item') {
-                        this.ctx.fillStyle = '#FFD700';
-                        this.ctx.font = '20px Arial';
-                        this.ctx.fillText('📄', e.px-10, e.py+8);
-                    } else if(e.type === 'enemy') {
-                        this.ctx.fillStyle = '#FF006E';
-                        this.ctx.beginPath(); this.ctx.arc(e.px, e.py, 12, 0, Math.PI*2); this.ctx.fill();
-                        this.ctx.fillText('🐦', e.px-10, e.py+5);
-                    }
-                });
-
-                // Player
-                this.ctx.fillStyle = '#00F5FF';
-                this.ctx.shadowBlur = 15; this.ctx.shadowColor = '#00F5FF';
-                this.ctx.beginPath(); this.ctx.arc(this.player.px, this.player.py, 10, 0, Math.PI*2); this.ctx.fill();
-                this.ctx.shadowBlur = 0;
-            }
-
-            loop(t) {
-                if(this.state !== 'PLAYING') return;
-                const dt = (t - this.lastTime) / 1000 || 0;
-                this.lastTime = t;
-                this.update(dt);
-                this.draw();
-                requestAnimationFrame(t2 => this.loop(t2));
-            }
-
-            updateHud() {
-                document.getElementById('score').innerText = this.score;
-                for(let i=0; i<3; i++) {
-                    const el = document.getElementById(`s${i}`);
-                    if(i < this.itemsCollected) { el.classList.add('got'); el.innerHTML = '✓'; }
-                    else { el.classList.remove('got'); el.innerHTML = ''; }
-                }
-                document.getElementById('level').innerText = this.levelIdx + 1;
-            }
-
-            notify(msg) {
-                const n = document.getElementById('notif');
-                n.innerText = msg; n.classList.add('show');
-                setTimeout(() => n.classList.remove('show'), 2000);
-            }
-
-            gameOver() {
-                audio.play('hit');
-                this.endGame(false);
-            }
-
-            endGame(win) {
-                this.state = 'GAMEOVER';
-                const scr = document.getElementById('gameover-screen');
-                scr.classList.remove('hidden');
-                document.getElementById('go-title').innerText = win ? "SAMUEL RETROUVÉ !" : "ECHEC MISSION";
-                document.getElementById('go-title').style.color = win ? "#10B981" : "#FF006E";
-                document.getElementById('final-score').innerText = this.score;
-            }
+        /* --- AUDIO --- */
+        var player;
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('youtube-audio', {
+                height: '0', width: '0', videoId: 'Vol9dZ-t93s', // Synthwave Music
+                playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': 'Vol9dZ-t93s' }
+            });
         }
 
-        // --- SCENARIO & CHAT ---
-        const chat = [
-            { s: "Samuel", t: "Mec, t'es où ?!", self: false },
-            { s: "Moi", t: "J'arrive à Paris ! T'es à Pigalle ?", self: true },
-            { s: "Samuel", t: "Ouais, mais j'ai perdu mes papiers...", self: false },
-            { s: "Samuel", t: "J'ai laissé 3 indices dans le parc, mais y'a des pigeons agressifs !", self: false },
-            { s: "Moi", t: "Des pigeons ? T'es sérieux ? 😅", self: true },
-            { s: "System", t: "MISSION : Collecte les indices. Évite les pigeons.", self: false }
+        /* --- DONNÉES DU JEU (TRAME ORIGINALE) --- */
+        const chatMessages = [
+            { s: 'Mathis', t: 'Il est passé où Samuel ?' },
+            { s: 'Samuel', t: 'Oh les gars ! C’est Chaud là !' },
+            { s: 'Samuel', t: 'La police me course !!' },
+            { s: 'Inès', t: 'Mdr arrête Sam, t\'as encore bu avoue ?' },
+            { s: 'Samuel', t: 'Non ! J\'étais Place des Vosges, puis j\'ai fui vers Pigalle.' },
+            { s: 'Lily', t: 'Encore...' },
+            { s: 'Samuel', t: 'J\'ai paumé mes affaires. Attention aux pigeons, ils sont violents.' },
+            { s: 'Moi', t: 'Ok j\'arrive.' }
         ];
 
-        const game = new Game();
-        let msgIdx = 0;
+        let currentLevel = 1;
+        let map = [];
+        let items = [];
+        let enemies = [];
+        let playerPos = {x: 0, y: 0};
+        let score = 0;
+        let gameActive = false;
+        let animTimer = 0;
 
-        function nextMsg() {
-            if(msgIdx >= chat.length) {
-                document.getElementById('btn-start').style.display = 'block';
-                return;
+        /* CONFIGURATION DES NIVEAUX (Couleurs mises à jour pour le style Néon) */
+        const levels = {
+            1: {
+                name: "PLACE DES VOSGES",
+                colorWall: "#380e0e", // Sombre pour le contraste
+                colorGround: "#0a1f0a", // Vert très sombre
+                colorPath: "#143314", // Chemin un peu plus clair
+                neonColor: "#27ae60", // Couleur de lueur
+                items: [
+                    {x: 4, y: 4, type: 'card', name: 'Carte Bancaire'},
+                    {x: 15, y: 4, type: 'kebab', name: 'Kebab Sauce Blanche'},
+                    {x: 4, y: 15, type: 'cap', name: 'Casquette Mbappé'}
+                ],
+                enemies: [{x: 8, y: 8, dx: 1}, {x: 12, y: 12, dx: -1}], 
+                start: {x: 10, y: 18}, exit: {x: 10, y: 0}, exitName: "MÉTRO"
+            },
+            2: {
+                name: "PIGALLE (LA NUIT)",
+                colorWall: "#0f0f1a", 
+                colorGround: "#050505", 
+                colorPath: "#111",
+                neonColor: "#d63031", // Rouge/Rose néon
+                items: [
+                    {x: 3, y: 3, type: 'letter', name: "Lettre d'amour d'Alexis"},
+                    {x: 16, y: 3, type: 'key', name: "Clé d'Angèle"},
+                    {x: 16, y: 16, type: 'foodbag', name: "Sac de nourriture"}
+                ],
+                enemies: [{x: 5, y: 5, dx: 1}, {x: 15, y: 15, dx: -1}, {x: 5, y: 15, dx: 1}, {x: 10, y: 10, dx: 1}],
+                start: {x: 10, y: 18}, exit: {x: 10, y: 9}, exitName: "SAMUEL"
             }
-            const m = chat[msgIdx];
-            const d = document.createElement('div');
-            d.className = `msg ${m.self ? 'right' : 'left'}`;
-            d.innerHTML = `<span class="sender">${m.s}</span>${m.t}`;
-            document.getElementById('chat-body').appendChild(d);
-            document.getElementById('chat-body').scrollTop = 9999;
-            audio.play('msg');
-            msgIdx++;
-            setTimeout(nextMsg, m.self ? 1000 : 1500);
+        };
+
+        const ctx = document.getElementById('gameCanvas').getContext('2d');
+
+        // Fonction pour dessiner avec effet de lueur (Glow)
+        function drawGlowRect(ctx, x, y, w, h, color, blur = 10) {
+            ctx.shadowBlur = blur;
+            ctx.shadowColor = color;
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, w, h);
+            ctx.shadowBlur = 0; // Reset
         }
 
-        // --- INIT ---
-        setTimeout(() => {
-            document.getElementById('title-screen').style.opacity = 0;
-            setTimeout(() => {
-                document.getElementById('title-screen').style.display = 'none';
-                document.getElementById('phone-container').classList.add('visible');
-                setTimeout(nextMsg, 500);
-            }, 500);
-        }, 2000);
+        function drawSprite(ctx, type, x, y) {
+            const px = x * TILE; const py = y * TILE;
+            const cx = px + TILE/2; const cy = py + TILE/2;
 
-        document.getElementById('btn-start').onclick = () => {
-            audio.init(); // Important for browser policy
-            audio.play('win'); // Start sound
-            game.init();
-        };
+            if (type === 'card') {
+                drawGlowRect(ctx, px+8, py+12, 24, 16, '#00F5FF', 10);
+                ctx.fillStyle = '#000'; ctx.fillRect(px+8, py+14, 24, 4); 
+            } else if (type === 'kebab') {
+                drawGlowRect(ctx, px+10, py+10, 20, 20, '#FFD700', 10); // Or
+                ctx.fillStyle = '#fff'; ctx.fillRect(px+15, py+15, 10, 10);
+            } else if (type === 'cap') {
+                ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+                ctx.fillStyle = '#0033cc'; ctx.fill();
+                ctx.shadowBlur = 10; ctx.shadowColor = '#0033cc';
+                ctx.fillStyle = '#fff'; ctx.font="10px Arial"; ctx.fillText("P", cx-3, cy+3);
+                ctx.shadowBlur = 0;
+            } else if (type === 'key') {
+                drawGlowRect(ctx, px+15, py+10, 10, 20, '#F59E0B', 15);
+            } else if (type === 'foodbag') {
+                 drawGlowRect(ctx, px+10, py+15, 20, 20, '#8B5CF6', 10); // Violet
+                 ctx.fillStyle = '#fff'; ctx.fillText("🛍️", px+10, py+30);
+            } else if (type === 'letter') {
+                drawGlowRect(ctx, px+8, py+12, 24, 16, '#fff', 10);
+                ctx.fillStyle = '#FF006E'; ctx.fillText("❤️", px+12, py+24);
+            } else if (type === 'pigeon') {
+                // Ennemi rougeoyant agressif
+                let bounce = Math.sin(animTimer) * 3;
+                ctx.shadowBlur = 15; ctx.shadowColor = '#FF0000';
+                ctx.fillStyle = '#555'; ctx.beginPath(); ctx.arc(cx, cy+bounce, 12, 0, Math.PI*2); ctx.fill();
+                // Yeux rouges
+                ctx.fillStyle = '#FF0000'; ctx.beginPath(); ctx.arc(cx-4, cy-2+bounce, 3, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(cx+4, cy-2+bounce, 3, 0, Math.PI*2); ctx.fill();
+                ctx.shadowBlur = 0;
+            } else if (type === 'player') {
+                // Joueur = Point Bleu Néon
+                ctx.shadowBlur = 20; ctx.shadowColor = '#00F5FF';
+                ctx.fillStyle = '#00F5FF'; 
+                ctx.beginPath(); ctx.arc(cx, cy, 10, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI*2); ctx.fill();
+                ctx.shadowBlur = 0;
+            } else if (type === 'flower') {
+                ctx.fillStyle = '#10B981'; ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI*2); ctx.fill();
+            } else if (type === 'metroExit') {
+                 drawGlowRect(ctx, px, py, TILE, TILE, '#00F5FF', 5);
+                 ctx.fillStyle = '#000'; ctx.font="bold 20px Arial"; ctx.fillText("M", px+12, py+28);
+            }
+        }
+
+        function loadLevel(lvlIdx) {
+            currentLevel = lvlIdx;
+            const data = levels[lvlIdx];
+            map = [];
+            // GÉNÉRATION MAP
+            for(let y=0; y<GRID_SIZE; y++) {
+                let row = [];
+                for(let x=0; x<GRID_SIZE; x++) {
+                    let type = 0; // Sol
+                    if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) type = 1; // Murs
+                    
+                    if (lvlIdx === 1) { // VOSGES
+                        if (x === 10 && y === 0) type = 2; // Metro
+                        else if (x===2 || x===GRID_SIZE-3 || y===2 || y===GRID_SIZE-3) type = 2;
+                        else if (x===GRID_SIZE/2 || y===GRID_SIZE/2) type = 2;
+                        if ((x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) && !(x===10 && y===0)) type = 1;
+                    } 
+                    else if (lvlIdx === 2) { // PIGALLE
+                        if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) type = 1;
+                        else if (x===2 || x===GRID_SIZE-3 || y===2 || y===GRID_SIZE-3 || x===GRID_SIZE/2 || y===GRID_SIZE/2) type = 2;
+                        else type = 0;
+                    }
+                    row.push(type);
+                }
+                map.push(row);
+            }
+
+            items = JSON.parse(JSON.stringify(data.items));
+            enemies = JSON.parse(JSON.stringify(data.enemies));
+            playerPos = {...data.start};
+            score = 0;
+            
+            document.getElementById('level-name').innerText = data.name;
+            document.getElementById('score').innerText = "0/3";
+            if(lvlIdx === 2) showMsg("Sam est à Pigalle !");
+        }
+
+        function startGame() {
+            document.getElementById('phone-container').style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
+            if(player && player.playVideo) { player.unMute(); player.setVolume(50); player.playVideo(); }
+            gameActive = true;
+            loadLevel(1);
+            drawGame();
+            gameLoop();
+        }
+
+        function gameLoop() {
+            if(!gameActive) return;
+            updateEnemies();
+            drawGame();
+            animTimer += 0.2;
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateEnemies() {
+            if (Math.floor(animTimer) % 10 !== 0) return;
+            enemies.forEach(e => {
+                let nextX = e.x + e.dx;
+                if (nextX <= 0 || nextX >= GRID_SIZE || map[e.y][nextX] === 1) e.dx *= -1; 
+                else e.x += e.dx;
+
+                if (e.x === playerPos.x && e.y === playerPos.y) {
+                    if(score > 0) {
+                        score--; document.getElementById('score').innerText = score + "/3";
+                        showMsg("Le pigeon a volé un indice !");
+                        const originalItems = levels[currentLevel].items;
+                        const randomItem = originalItems[Math.floor(Math.random() * originalItems.length)];
+                        items.push({x: 10, y: 10, type: randomItem.type, name: randomItem.name});
+                    } else { showMsg("Aïe ! Sale pigeon !"); }
+                    
+                    let backX = playerPos.x - e.dx * 2;
+                    if(backX > 1 && backX < GRID_SIZE-1 && map[playerPos.y][backX] !== 1) playerPos.x = backX;
+                }
+            });
+        }
+
+        let popupTimeout;
+        function showPopup(html, duration = 3000) {
+            const popup = document.getElementById('main-popup');
+            popup.innerHTML = html; popup.style.display = 'block';
+            clearTimeout(popupTimeout);
+            popupTimeout = setTimeout(() => { popup.style.display = 'none'; }, duration);
+        }
+
+        function showLoveLetter() {
+            const popup = document.getElementById('letter-popup');
+            popup.style.display = 'block';
+            setTimeout(() => { popup.style.display = 'none'; }, 5000);
+        }
+
+        function movePlayer(dx, dy) {
+            if(!gameActive) return;
+            let nx = playerPos.x + dx; let ny = playerPos.y + dy;
+            
+            // Collision murs (sauf sortie Niveau 1)
+            if(map[ny][nx] === 1 && !(currentLevel===1 && nx===10 && ny===0)) return;
+            
+            playerPos.x = nx; playerPos.y = ny;
+
+            // Ramassage Item
+            let idx = items.findIndex(i => i.x === nx && i.y === ny);
+            if(idx !== -1) {
+                score++;
+                document.getElementById('score').innerText = score + "/3";
+                const item = items[idx];
+                
+                if(item.type === 'letter') showLoveLetter();
+                else {
+                    let desc = "Indice trouvé !";
+                    if(item.type === 'card') desc = "La carte de Sam ! Il l'a encore paumée...";
+                    if(item.type === 'kebab') desc = "Le dîner de Sam. Il y a un mot d'Alexis dessus.";
+                    if(item.type === 'cap') desc = "Il ne sort jamais sans.";
+                    if(item.type === 'key') desc = "Pourquoi il a les clés d'Angèle ? Bizarre...";
+                    if(item.type === 'foodbag') desc = "Il a fait des courses avant de s'endormir.";
+                    showPopup(`<h3>${item.name}</h3><p>${desc}</p>`, 3500); 
+                }
+                items.splice(idx, 1);
+
+                if(score === 3) {
+                    const exitName = levels[currentLevel].exitName;
+                    setTimeout(() => showPopup(`<h3>✅ MISSION ACCOMPLIE ✅</h3><p>Fonce vers <b>${exitName}</b> !</p>`, 4000), 100);
+                }
+            }
+
+            // Sortie
+            const exit = levels[currentLevel].exit;
+            if(nx === exit.x && ny === exit.y) {
+                if(score >= 3) {
+                    if(currentLevel === 1) loadLevel(2);
+                    else { 
+                        gameActive = false; 
+                        document.getElementById('game-container').style.display='none'; 
+                        document.getElementById('end-screen').style.display='flex'; 
+                    }
+                } else {
+                    showMsg("Il te manque des objets !");
+                    playerPos.y += (currentLevel===1 ? 1 : -1); 
+                }
+            }
+        }
+
+        function showMsg(txt) {
+            const el = document.getElementById('msg-popup'); el.innerText = txt;
+            setTimeout(() => el.innerText = "", 2500);
+        }
+
+        /* --- DESSIN DU JEU (Style NOUVEAU JEU) --- */
+        function drawGame() {
+            ctx.clearRect(0, 0, 800, 800);
+            const conf = levels[currentLevel];
+
+            for(let y=0; y<GRID_SIZE; y++) {
+                for(let x=0; x<GRID_SIZE; x++) {
+                    let t = map[y][x]; let px = x*TILE; let py = y*TILE;
+                    
+                    // Style Néon pour les sols et murs
+                    if (t===1) { 
+                        // MURS
+                        ctx.fillStyle = conf.colorWall; 
+                        ctx.fillRect(px,py,TILE,TILE);
+                        // Bordure néon
+                        ctx.strokeStyle = conf.neonColor;
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(px+2, py+2, TILE-4, TILE-4);
+                        // Lueur sur les murs
+                        if((x+y)%2===0) {
+                            ctx.fillStyle = "rgba(255,255,255,0.05)";
+                            ctx.fillRect(px,py,TILE,TILE);
+                        }
+                    } else { 
+                        // SOL
+                        ctx.fillStyle = (t===2) ? conf.colorPath : conf.colorGround; 
+                        ctx.fillRect(px,py,TILE,TILE);
+                        
+                        // Grille subtile
+                        ctx.strokeStyle = "rgba(255,255,255,0.03)";
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(px,py,TILE,TILE);
+
+                        // Décorations subtiles
+                        if(currentLevel === 1 && t===0 && (x+y)%5===0) {
+                             ctx.fillStyle = "rgba(39, 174, 96, 0.3)";
+                             ctx.beginPath(); ctx.arc(px+20, py+20, 2, 0, Math.PI*2); ctx.fill();
+                        }
+                    }
+                }
+            }
+
+            items.forEach(i => drawSprite(ctx, i.type, i.x, i.y));
+            enemies.forEach(e => drawSprite(ctx, 'pigeon', e.x, e.y));
+            drawSprite(ctx, 'player', playerPos.x, playerPos.y);
+
+            const ex = levels[currentLevel].exit;
+            if(currentLevel === 1) {
+                drawSprite(ctx, 'metroExit', ex.x, ex.y);
+            } else {
+                ctx.shadowBlur = 20; ctx.shadowColor = '#fff';
+                ctx.fillStyle = '#fff'; ctx.fillRect(ex.x*TILE+10, ex.y*TILE+10, 20, 20); 
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        let msgIndex = 0;
+        function playChat() {
+            if (msgIndex >= chatMessages.length) { document.getElementById('btn-start').style.display = 'block'; return; }
+            const m = chatMessages[msgIndex];
+            const div = document.createElement('div'); div.className = `msg ${m.s === 'Moi' ? 'right' : 'left'}`;
+            div.innerHTML = `<span class="sender">${m.s}</span>${m.t}`;
+            const chatBody = document.getElementById('chat-body');
+            chatBody.appendChild(div); 
+            chatBody.scrollTop = chatBody.scrollHeight; // Scroll auto
+            msgIndex++; setTimeout(playChat, 1200);
+        }
+        window.onload = () => { setTimeout(playChat, 4000); };
+        document.getElementById('btn-start').addEventListener('click', startGame);
+        window.addEventListener('keydown', e => {
+            if(e.key.includes('Arrow')) { e.preventDefault(); 
+                if(e.key==='ArrowUp') movePlayer(0,-1); if(e.key==='ArrowDown') movePlayer(0,1);
+                if(e.key==='ArrowLeft') movePlayer(-1,0); if(e.key==='ArrowRight') movePlayer(1,0);
+            }
+        });
     </script>
 </body>
 </html>
