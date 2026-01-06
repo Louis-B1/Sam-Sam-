@@ -1,1012 +1,433 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission Samuel — Paris By Night</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
-        :root {
-            --neo-cyan: #00F5FF;
-            --neo-magenta: #FF006E;
-            --neo-yellow: #FFBE0B;
-            --neo-purple: #8B5CF6;
-            --dark-1: #0A0E27;
-            --dark-2: #1A1F3A;
-            --dark-3: #2E3856;
-            --success: #39FF14;
-            --danger: #FF003C;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+!DOCTYPE html
+html lang=fr
+head
+    meta charset=UTF-8
+    meta name=viewport content=width=device-width, initial-scale=1.0
+    titleMission Samuel à Paris (Final Stable)title
+    style
+         --- STYLE RETRO --- 
         body { 
-            background: linear-gradient(270deg, #0A0E27, #1A1F3A, #2E3856, #1A1F3A);
-            background-size: 400% 400%;
-            animation: bg-shift 20s ease infinite;
-            margin: 0; overflow: hidden; 
-            font-family: 'Rajdhani', 'Courier New', monospace; 
-            color: white; 
-            display: flex; justify-content: center; align-items: center; 
-            height: 100vh;
-            user-select: none;
-            position: relative;
-        }
-        @keyframes bg-shift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            background-color #050505; margin 0; overflow hidden; 
+            font-family 'Courier New', monospace; color white; 
+            display flex; justify-content center; align-items center; height 100vh;
+            user-select none;
         }
         .scanlines {
-            position: fixed; left: 0; top: 0; width: 100%; height: 100%; 
-            pointer-events: none; z-index: 999;
-            background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15) 1px, transparent 1px, transparent 2px);
-            animation: scanline-anim 8s linear infinite;
+            position fixed; left 0; top 0; width 100%; height 100%; pointer-events none; z-index 999;
+            background linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size 100% 4px;
         }
-        @keyframes scanline-anim {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(10px); }
-        }
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.7) 100%);
-            pointer-events: none;
-            z-index: 998;
-        }
+
+         --- TITLE --- 
         #title-screen {
-            position: absolute;
-            z-index: 300;
-            text-align: center;
-            animation: titleFadeOut 1s ease-out 3s forwards;
+            position absolute; top 0; left 0; width 100%; height 100%;
+            background #000; z-index 300; display flex; flex-direction column; justify-content center; align-items center;
+            animation fadeOut 1.5s ease-in-out 3s forwards; pointer-events none;
         }
-        #title-main {
-            font-family: 'Orbitron', monospace;
-            font-size: 120px;
-            font-weight: 900;
-            background: linear-gradient(45deg, var(--neo-cyan), var(--neo-magenta), var(--neo-yellow));
-            background-size: 200% 200%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradient-shift 3s ease infinite;
-            text-shadow: 0 0 80px rgba(0, 245, 255, 0.8);
-            letter-spacing: 10px;
-        }
-        #title-subtitle {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 32px;
-            font-weight: 700;
-            color: var(--neo-yellow);
-            margin-top: 10px;
-            letter-spacing: 8px;
-            text-shadow: 0 0 20px var(--neo-yellow);
-        }
-        @keyframes gradient-shift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        @keyframes titleFadeOut { 
-            to { opacity: 0; visibility: hidden; } 
-        }
+        #title-main { font-size 80px; font-weight bold; text-shadow 6px 6px 0 #d43737; }
+        @keyframes fadeOut { to { opacity 0; visibility hidden; } }
+
+         --- PHONE --- 
         #phone-container {
-            position: absolute; 
-            width: 380px; 
-            height: 750px;
-            background: linear-gradient(135deg, #1a1f3a, #2e3856);
-            border: 14px solid #0a0e27;
-            border-radius: 45px;
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden;
-            z-index: 200; 
-            box-shadow: 0 0 80px rgba(0, 245, 255, 0.6), 0 0 120px rgba(255, 0, 110, 0.4), inset 0 0 60px rgba(0, 0, 0, 0.8);
-            opacity: 0; 
-            animation: phoneFadeIn 1s ease-out 3.5s forwards;
+            position absolute; width 360px; height 720px;
+            background #111; border 12px solid #222; border-radius 40px;
+            display flex; flex-direction column; overflow hidden;
+            z-index 200; box-shadow 0 0 50px rgba(0,0,0,0.8);
+            opacity 0; animation fadeIn 1s ease-out 3.5s forwards;
         }
-        @keyframes phoneFadeIn { 
-            to { opacity: 1; } 
-        }
-        #phone-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 150px;
-            height: 30px;
-            background: #000;
-            border-radius: 0 0 20px 20px;
-            z-index: 10;
-        }
-        #chat-header { 
-            background: linear-gradient(135deg, var(--dark-2), var(--dark-3));
-            padding: 45px 20px 20px 20px; 
-            text-align: center; 
-            border-bottom: 2px solid var(--neo-cyan);
-            font-weight: 700;
-            font-size: 18px;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px var(--neo-cyan);
-            position: relative;
-            flex-shrink: 0;
-        }
-        #chat-header::after {
-            content: '●';
-            position: absolute;
-            top: 50px;
-            right: 20px;
-            color: var(--success);
-            font-size: 14px;
-            animation: blink 1.5s infinite;
-        }
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-        #chat-body { 
-            flex: 1; 
-            padding: 20px 20px 120px 20px;
-            display: flex; 
-            flex-direction: column; 
-            gap: 14px; 
-            background: var(--dark-1);
-            overflow-y: auto; 
-            overflow-x: hidden;
-        }
-        #chat-body::-webkit-scrollbar { width: 6px; }
-        #chat-body::-webkit-scrollbar-track { background: var(--dark-2); }
-        #chat-body::-webkit-scrollbar-thumb { 
-            background: var(--neo-cyan); 
-            border-radius: 10px; 
-        }
-        .msg {
-            padding: 12px 16px;
-            border-radius: 18px;
-            max-width: 75%;
-            word-wrap: break-word;
-            line-height: 1.5;
-            font-size: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-            animation: msgSlide 0.4s ease-out;
-        }
-        @keyframes msgSlide {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .msg.left {
-            background: linear-gradient(135deg, var(--dark-3), var(--dark-2));
-            border: 1px solid var(--neo-cyan);
-            align-self: flex-start;
-        }
-        .msg.right {
-            background: linear-gradient(135deg, var(--neo-magenta), #c0006e);
-            border: 1px solid var(--neo-magenta);
-            align-self: flex-end;
-            text-align: right;
-        }
-        .sender {
-            display: block;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-            opacity: 0.8;
-            letter-spacing: 1px;
-        }
-        #btn-start {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 16px 30px;
-            background: linear-gradient(135deg, var(--danger), #e74c3c);
-            color: white;
-            font-weight: 900;
-            font-size: 16px;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            box-shadow: 0 6px 30px rgba(255, 0, 60, 0.8);
-            transition: all 0.3s ease;
-            display: none;
-            z-index: 20;
-        }
-        #btn-start:hover {
-            transform: translateX(-50%) translateY(-3px);
-            box-shadow: 0 10px 40px rgba(255, 0, 60, 1);
-        }
-        #game-container {
-            display: none;
-            position: relative;
-            z-index: 100;
-        }
-        canvas { 
-            background: #000;
-            border: 6px solid var(--dark-3);
-            border-radius: 20px;
-            box-shadow: 0 0 60px rgba(0, 245, 255, 0.5), 0 0 100px rgba(255, 0, 110, 0.3), inset 0 0 100px rgba(0, 0, 0, 0.8);
-            image-rendering: pixelated;
-        }
+        @keyframes fadeIn { to { opacity 1; } }
+        #chat-header { background #202020; padding 20px; text-align center; border-bottom 1px solid #333; font-weight bold; }
+        #chat-body { flex 1; padding 15px; display flex; flex-direction column; gap 12px; background #000; overflow-y auto; }
+        .msg { max-width 80%; padding 12px; border-radius 18px; font-size 13px; animation slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform translateY(10px); opacity 0; } to { transform translateY(0); opacity 1; } }
+        .left { background #333; align-self flex-start; color #ddd; }
+        .right { background #007aff; align-self flex-end; }
+        .sender { font-size 10px; color #888; margin-bottom 4px; display block; font-weight bold; text-transform uppercase; }
+        #btn-start { padding 25px; background #27ae60; text-align center; cursor pointer; font-weight bold; font-size 18px; display none; border-top 2px solid #2ecc71; }
+
+         --- JEU --- 
+        #game-container { position relative; display none; }
+        canvas { background #111; border 8px solid #444; box-shadow 0 0 60px rgba(0,0,0,1); image-rendering pixelated; }
+        
         #game-ui {
-            position: absolute; 
-            top: 20px; 
-            right: 20px;
-            background: rgba(10, 14, 39, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 20px 25px;
-            border-radius: 20px;
-            border: 2px solid var(--neo-cyan);
-            min-width: 240px;
-            z-index: 10;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-            animation: hud-slide-in 0.6s ease-out;
+            position absolute; bottom 20px; left 20px;
+            background rgba(0, 0, 0, 0.9); padding 15px; border-radius 8px; border 2px solid #fff;
+            min-width 250px; z-index 10;
         }
-        @keyframes hud-slide-in {
-            from { transform: translateX(100px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        .ui-level {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--neo-yellow);
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            text-shadow: 0 0 10px var(--neo-yellow);
-        }
-        .ui-score {
-            font-size: 20px;
-            font-weight: 900;
-            color: var(--success);
-            text-shadow: 0 0 15px var(--success);
-        }
-        #msg-popup {
-            margin-top: 15px;
-            padding: 12px;
-            background: rgba(255, 190, 11, 0.2);
-            border: 2px solid var(--neo-yellow);
-            border-radius: 12px;
-            font-size: 14px;
-            text-align: center;
-            display: none;
-            animation: popup-bounce 0.5s ease-out;
-        }
-        @keyframes popup-bounce {
-            0% { transform: scale(0.8); opacity: 0; }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); opacity: 1; }
-        }
+        .ui-level { color #f1c40f; font-weight bold; font-size 14px; margin-bottom 5px; text-transform uppercase; }
+        .ui-score { font-size 20px; font-weight bold;}
+        #msg-popup { margin-top 10px; color #e74c3c; font-weight bold; height 20px; font-size 14px; }
+
+         --- POPUPS --- 
         #main-popup {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, rgba(26, 31, 58, 0.98), rgba(46, 56, 86, 0.98));
-            backdrop-filter: blur(15px);
-            padding: 40px;
-            border: 4px solid var(--neo-cyan);
-            border-radius: 20px;
-            z-index: 100;
-            display: none;
-            text-align: center;
-            box-shadow: 0 0 60px var(--neo-cyan), inset 0 0 80px rgba(0, 0, 0, 0.5);
-            animation: popup-enter 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            min-width: 400px;
+            position absolute; top 50%; left 50%; transform translate(-50%, -50%);
+            background rgba(0,0,0,0.95); color #fff; padding 25px; border 4px solid #f1c40f;
+            z-index 100; display none; text-align center; box-shadow 0 0 30px #f1c40f;
+            border-radius 10px; min-width 300px;
         }
-        @keyframes popup-enter {
-            from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-        }
-        #main-popup h3 {
-            font-size: 28px;
-            margin-bottom: 20px;
-            color: var(--neo-cyan);
-            text-shadow: 0 0 20px var(--neo-cyan);
-        }
-        #main-popup p {
-            font-size: 16px;
-            line-height: 1.6;
-        }
+        #main-popup h3 { margin-top 0; color #f1c40f; }
+        #main-popup p { font-size 16px; line-height 1.4; color #ddd; }
+
         #letter-popup {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.95), rgba(100, 50, 200, 0.95));
-            backdrop-filter: blur(15px);
-            padding: 40px;
-            border: 4px solid var(--neo-magenta);
-            border-radius: 20px;
-            z-index: 150;
-            display: none;
-            text-align: center;
-            box-shadow: 0 0 60px var(--neo-magenta), inset 0 0 80px rgba(0, 0, 0, 0.5);
-            animation: popup-enter 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            min-width: 400px;
+            position absolute; top 50%; left 50%; transform translate(-50%, -50%);
+            background #fff; color #000; padding 30px; border 6px double #e74c3c;
+            z-index 101; display none; text-align center; box-shadow 0 0 50px #e74c3c;
+            border-radius 5px; font-family 'Courier New', cursive; min-width 350px;
         }
-        #letter-popup h3 {
-            font-size: 28px;
-            margin-bottom: 20px;
-            color: var(--neo-magenta);
-            text-shadow: 0 0 20px var(--neo-magenta);
-        }
-        #letter-popup p {
-            font-size: 18px;
-            line-height: 1.8;
-            font-style: italic;
-            color: #fff;
-        }
-        #metro-transition {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            z-index: 500;
-            overflow: hidden;
-        }
-        .metro-screen {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        .metro-tunnel {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: repeating-linear-gradient(90deg, #1a1a1a 0px, #333 10px, #1a1a1a 20px);
-            animation: tunnel-move 1s linear infinite;
-        }
-        @keyframes tunnel-move {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(20px); }
-        }
-        .metro-train {
-            position: absolute;
-            width: 200px;
-            height: 100px;
-            background: linear-gradient(135deg, var(--dark-2), var(--dark-3));
-            border: 4px solid var(--neo-cyan);
-            border-radius: 20px;
-            box-shadow: 0 0 40px var(--neo-cyan);
-            animation: train-shake 0.1s infinite;
-        }
-        @keyframes train-shake {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(2px); }
-        }
-        .metro-text {
-            position: absolute;
-            top: 30%;
-            font-size: 48px;
-            font-weight: 900;
-            color: var(--neo-cyan);
-            text-shadow: 0 0 30px var(--neo-cyan);
-            letter-spacing: 4px;
-            z-index: 10;
-        }
-        .metro-station {
-            position: absolute;
-            bottom: 20%;
-            font-size: 24px;
-            color: var(--neo-yellow);
-            text-shadow: 0 0 20px var(--neo-yellow);
-            z-index: 10;
-        }
+        #letter-popup h3 { margin-top 0; color #e74c3c; font-size 24px; text-decoration underline; }
+        #letter-popup p { font-size 18px; font-weight bold; font-style italic; }
+
+         --- FIN --- 
         #end-screen {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, var(--dark-1), var(--dark-2));
-            z-index: 600;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 40px;
-            animation: fadeIn 1s ease-out;
+            position absolute; top 0; left 0; width 100%; height 100%;
+            background rgba(5,5,5,0.98); z-index 400; display none;
+            flex-direction column; justify-content center; align-items center; text-align center;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        #end-screen h1 {
-            font-size: 56px;
-            margin-bottom: 30px;
-            background: linear-gradient(45deg, var(--neo-cyan), var(--neo-magenta), var(--neo-yellow));
-            background-size: 200% 200%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradient-shift 3s ease infinite;
-            text-shadow: 0 0 40px rgba(0, 245, 255, 0.6);
-        }
-        #samuel-img {
-            width: 280px;
-            height: 280px;
-            border-radius: 50%;
-            border: 6px solid var(--neo-cyan);
-            box-shadow: 0 0 60px var(--neo-cyan);
-            margin-bottom: 30px;
-            animation: float 3s ease-in-out infinite;
-        }
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-        .end-text-box { 
-            background: linear-gradient(135deg, var(--dark-2), var(--dark-3));
-            backdrop-filter: blur(10px);
-            padding: 30px 40px;
-            border-radius: 20px;
-            border: 2px solid var(--neo-cyan);
-            max-width: 650px;
-            font-size: 20px;
-            line-height: 1.8;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
-            animation: slideUpBox 0.8s ease-out 0.5s backwards;
-        }
-        @keyframes slideUpBox { 
-            from { opacity: 0; transform: translateY(50px); } 
-            to { opacity: 1; transform: translateY(0); } 
-        }
-        button.replay-btn {
-            padding: 18px 45px;
-            font-size: 20px;
-            font-weight: 900;
-            cursor: pointer;
-            background: linear-gradient(135deg, var(--danger), #e74c3c);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            box-shadow: 0 6px 30px rgba(255, 0, 60, 0.6);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        button.replay-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-        button.replay-btn:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-        button.replay-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 40px rgba(255, 0, 60, 0.8);
-        }
-    </style>
-</head>
-<body>
-    <div class="scanlines"></div>
-    <div id="title-screen">
-        <div id="title-main">PARIS</div>
-        <div id="title-subtitle">BY NIGHT !</div>
-    </div>
-    <div id="phone-container">
-        <div id="chat-header">Les Chipies (4)</div>
-        <div id="chat-body"></div>
-        <div id="btn-start">🔫 SAUVER LE SOLDAT SAMUEL</div>
-    </div>
-    <div id="game-container">
-        <canvas id="game-canvas" width="800" height="800"></canvas>
-        <div id="game-ui">
-            <div class="ui-level" id="level-name">PLACE DES VOSGES</div>
-            <div class="ui-score">Indices : <span id="score">0</span> / 3</div>
-            <div id="msg-popup"></div>
-        </div>
-        <div id="main-popup"></div>
-        <div id="letter-popup">
-            <h3>💌 Lettre d'Amour</h3>
-            <p><em>"Mon Alexis,<br>Tu me manques déjà...<br>Bisous, Samuel 💕"</em></p>
-        </div>
-    </div>
-    <div id="metro-transition">
-        <div class="metro-screen">
-            <div class="metro-tunnel"></div>
-            <div class="metro-train"></div>
-            <div class="metro-text">EN ROUTE VERS PIGALLE</div>
-            <div class="metro-station">Prochaine station ➜ Pigalle</div>
-        </div>
-    </div>
-    <div id="end-screen">
-        <h1>🎉 MISSION ACCOMPLIE ! 🎉</h1>
-        <img id="samuel-img" src="https://i.pravatar.cc/280?img=12" alt="Samuel">
-        <div class="end-text-box">
-            <p><strong>Félicitations !</strong> Grâce à toi, Samuel a récupéré toutes ses affaires et a pu rejoindre Alexis à temps ! 💕</p>
-            <p>Les Chipies te remercient pour ton aide précieuse ! 🙌</p>
-        </div>
-        <button class="replay-btn" onclick="location.reload()">🔄 REJOUER</button>
-    </div>
-    <div id="yt-audio"></div>
-    <script>
-        const canvas = document.getElementById('game-canvas');
-        const ctx = canvas.getContext('2d');
+        #samuel-img { width 250px; height 250px; object-fit cover; border 5px solid #27ae60; margin 20px; background #222; animation pulseSam 2s infinite ease-in-out; }
+        @keyframes pulseSam { 0% { transform scale(1); box-shadow 0 0 20px #27ae60; } 50% { transform scale(1.05); box-shadow 0 0 40px #2ecc71; } 100% { transform scale(1); box-shadow 0 0 20px #27ae60; } }
+        .end-text-box { background#222; padding20px; border-radius10px; max-width600px; font-size18px; line-height1.5; animation slideUpBox 0.8s ease-out 0.3s backwards; }
+        @keyframes slideUpBox { from { opacity 0; transform translateY(30px); } to { opacity 1; transform translateY(0); } }
+    style
+head
+body
+
+    div class=scanlinesdiv
+    div id=youtube-audio style=positionabsolute; top-9999px;div
+
+    div id=title-screen
+        div id=title-mainPARISdiv
+        div style=font-size 40px; color #d43737; letter-spacing 7px; margin-top 10px;BY NIGHTdiv
+    div
+
+    div id=phone-container
+        div id=chat-headerLes Chipies (4)div
+        div id=chat-bodydiv
+        div id=btn-startSAUVER LE SOLDAT SAMUELdiv
+    div
+
+    div id=game-container
+        div id=game-ui
+            div class=ui-level id=level-nameNIVEAU 1div
+            div class=ui-scoreIndices  span id=score style=color#2ecc710span  3div
+            div id=msg-popupdiv
+        div
+        div id=main-popupdiv
+        div id=letter-popup
+            h3💌 Lettre d'Alexis 💌h3
+            pMon Sam chéri, rejoins-moi vite. Le Kebab refroidit... Je t'attends. 3p
+        div
+        canvas id=gameCanvas width=800 height=800canvas
+    div
+
+    div id=end-screen
+        h1 style=color#27ae60; text-shadow 0 0 10px #27ae60;SAMUEL RETROUVÉ !h1
+        img id=samuel-img src=samuel.jpg alt=Samuel onerror=this.style.display='none';
+        div class=end-text-box 
+            Wesh l'équipe... J'ai plus de batterie.br
+            Je dormais sur un banc.br
+            C'était pas la police, juste des pigeons qui m'attaquaient.br
+            bParis be like !b
+        div
+        br
+        button onclick=location.reload() style=padding15px 30px; font-size18px; cursorpointer; background#d43737; colorwhite; bordernone; border-radius5px;REJOUERbutton
+    div
+
+    script
+        const TILE = 40; 
         const GRID_SIZE = 20;
-        const TILE = 40;
+        
+         --- AUDIO ---
+        var player;
+        var tag = document.createElement('script');
+        tag.src = httpswww.youtube.comiframe_api;
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('youtube-audio', {
+                height '0', width '0', videoId 'Vol9dZ-t93s',
+                playerVars { 'autoplay' 0, 'controls' 0, 'loop' 1, 'playlist' 'Vol9dZ-t93s' }
+            });
+        }
+
+         --- DONNEES ---
+        const chatMessages = [
+            { s 'Mathis', t Il est passé où Samuel  },
+            { s 'Samuel', t Oh les gars ! C’est Chaud là ! },
+            { s 'Samuel', t La police me coursent !! },
+            { s 'Inès', t Mdr arrête Sam, t'as encore bu avoue  },
+            { s 'Samuel', t Non ! J'étais Place des Vosges, puis j'ai fui vers Pigalle. },
+            { s 'Lily', t Encore... },
+            { s 'Samuel', t J'ai paumé mes affaires. Attention aux pigeons, ils sont violents. },
+            { s 'Moi', t Ok j'arrive. }
+        ];
+
         let currentLevel = 1;
         let map = [];
-        let playerPos = {x: 10, y: 18};
         let items = [];
         let enemies = [];
+        let playerPos = {x 0, y 0};
         let score = 0;
         let gameActive = false;
         let animTimer = 0;
-        let msgIndex = 0;
-        const chatMessages = [
-            {s: 'SAMUEL', t: 'Oh les gars ! C\'est chaud là !'},
-            {s: 'SAMUEL', t: 'La police me course !!'},
-            {s: 'INÈS', t: 'Mdr arrête Sam, t\'as encore bu avaué 😂'},
-            {s: 'SAMUEL', t: 'Non ! J\'étais Place des Vosges, puis j\'ai fui vers Pigalle.'},
-            {s: 'LILY', t: 'Encore...'},
-            {s: 'SAMUEL', t: 'J\'ai paumé mes affaires. Attention aux pigeons, ils sont violents.'}
-        ];
+
+         CONFIG NIVEAUX
         const levels = {
-            1: {
-                name: "🏛️ PLACE DES VOSGES",
-                exitName: "le Métro",
-                colorWall: '#8b0000',
-                colorPath: '#c0c0c0',
-                colorGround: '#2ecc71',
-                items: [
-                    {x: 4, y: 5, type: 'card', name: "💳 Carte Bancaire"},
-                    {x: 15, y: 4, type: 'kebab', name: "🥙 Kebab Froid"},
-                    {x: 5, y: 15, type: 'cap', name: "🧢 Casquette"}
+            1 {
+                name PLACE DES VOSGES,
+                colorWall #a52a2a, colorGround #27ae60, colorPath #ecf0f1,
+                items [
+                    {x 4, y 4, type card, name Carte Bancaire},
+                    {x 15, y 4, type kebab, name Kebab Sauce Blanche},
+                    {x 4, y 15, type cap, name Casquette Mbappé}
                 ],
-                enemies: [
-                    {x:6, y:6, dx:1}, 
-                    {x:13, y:13, dx:-1}, 
-                    {x:6, y:13, dx:1}, 
-                    {x:12, y:5, dx:-1}
-                ],
-                start: {x: 10, y: 18},
-                exit: {x: 10, y: 1}
+                enemies [{x 8, y 8, dx 1}, {x 12, y 12, dx -1}], 
+                start {x 10, y 18}, exit {x 10, y 0}, exitName MÉTRO
             },
-            2: {
-                name: "🌃 PIGALLE (LA NUIT)",
-                exitName: "Samuel",
-                colorWall: '#1a1a2e',
-                colorPath: '#2c2c3e',
-                colorGround: '#0f0f1e',
-                items: [
-                    {x: 2, y: 4, type: 'letter', name: "💌 Lettre d'Amour"},
-                    {x: 17, y: 4, type: 'key', name: "🔑 Clé Mystère"},
-                    {x: 10, y: 10, type: 'foodbag', name: "🛍️ Sac de Courses"}
+            2 {
+                name PIGALLE (LA NUIT),
+                colorWall #2c2c2c, colorGround #1a1a1a, colorPath #333,
+                items [
+                    {x 3, y 3, type letter, name Lettre d'amour d'Alexis},
+                    {x 16, y 3, type key, name Clé d'Angèle},
+                    {x 16, y 16, type foodbag, name Sac de nourriture}
                 ],
-                enemies: [
-                    {x:5, y:8, dx:1}, 
-                    {x:14, y:8, dx:-1}, 
-                    {x:5, y:12, dx:1}, 
-                    {x:14, y:12, dx:-1},
-                    {x:10, y:15, dx:1}
-                ],
-                start: {x: 10, y: 18},
-                exit: {x: 10, y: 10}
+                enemies [{x 5, y 5, dx 1}, {x 15, y 15, dx -1}, {x 5, y 15, dx 1}, {x 10, y 10, dx 1}],
+                start {x 10, y 18}, exit {x 10, y 9}, exitName SAMUEL
             }
         };
-        function generateMaze() {
-            map = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(1));
-            const stack = [];
-            const startX = 1, startY = 1;
-            map[startY][startX] = 0;
-            stack.push({x: startX, y: startY});
-            const dirs = [[0,-2],[2,0],[0,2],[-2,0]];
-            while(stack.length > 0) {
-                const current = stack[stack.length - 1];
-                const neighbors = [];
-                dirs.forEach(([dx, dy]) => {
-                    const nx = current.x + dx, ny = current.y + dy;
-                    if(nx > 0 && nx < GRID_SIZE-1 && ny > 0 && ny < GRID_SIZE-1 && map[ny][nx] === 1) {
-                        neighbors.push({x: nx, y: ny, mx: current.x + dx/2, my: current.y + dy/2});
-                    }
-                });
-                if(neighbors.length > 0) {
-                    const next = neighbors[Math.floor(Math.random() * neighbors.length)];
-                    map[next.my][next.mx] = 0;
-                    map[next.y][next.x] = 0;
-                    stack.push({x: next.x, y: next.y});
-                } else {
-                    stack.pop();
-                }
-            }
-        }
-        function loadLevel(lvl) {
-            currentLevel = lvl;
-            const level = levels[lvl];
-            generateMaze();
-            playerPos = {...level.start};
-            items = level.items.map(i => ({...i}));
-            enemies = level.enemies.map(e => ({...e}));
-            score = 0;
-            updateScore();
-            document.getElementById('level-name').textContent = level.name;
-        }
-        function updateScore() {
-            document.getElementById('score').textContent = score;
-        }
-        function showMsg(text) {
-            const msgEl = document.getElementById('msg-popup');
-            msgEl.textContent = text;
-            msgEl.style.display = 'block';
-            setTimeout(() => { msgEl.style.display = 'none'; }, 2500);
-        }
-        function showPopup(title, text, callback) {
-            const popup = document.getElementById('main-popup');
-            popup.innerHTML = `<h3>${title}</h3><p>${text}</p>`;
-            popup.style.display = 'block';
-            setTimeout(() => {
-                popup.style.display = 'none';
-                if(callback) callback();
-            }, 3000);
-        }
-        function showLetterPopup() {
-            const popup = document.getElementById('letter-popup');
-            popup.style.display = 'block';
-            setTimeout(() => { popup.style.display = 'none'; }, 4000);
-        }
-        function movePlayer(dx, dy) {
-            if(!gameActive) return;
-            const newX = playerPos.x + dx;
-            const newY = playerPos.y + dy;
-            if(newX < 0 || newX >= GRID_SIZE || newY < 0 || newY >= GRID_SIZE) return;
-            if(map[newY][newX] === 1) return;
-            playerPos.x = newX;
-            playerPos.y = newY;
-            const itemIndex = items.findIndex(i => i.x === newX && i.y === newY);
-            if(itemIndex !== -1) {
-                const item = items[itemIndex];
-                score++;
-                updateScore();
-                showMsg(`✅ ${item.name} récupéré !`);
-                if(item.type === 'letter') {
-                    showLetterPopup();
-                }
-                items.splice(itemIndex, 1);
-            }
-            const ex = levels[currentLevel].exit;
-            if(newX === ex.x && newY === ex.y) {
-                if(score === 3) {
-                    if(currentLevel === 1) {
-                        gameActive = false;
-                        showPopup("🚇 Métro !", "Direction Pigalle !", () => {
-                            showMetroTransition(() => {
-                                loadLevel(2);
-                                gameActive = true;
-                            });
-                        });
-                    } else {
-                        gameActive = false;
-                        showEndScreen();
-                    }
-                } else {
-                    showMsg(`⚠️ Il te manque ${3 - score} indice(s) !`);
-                }
-            }
-        }
-        function showMetroTransition(callback) {
-            const metro = document.getElementById('metro-transition');
-            metro.style.display = 'block';
-            setTimeout(() => {
-                metro.style.display = 'none';
-                if(callback) callback();
-            }, 3000);
-        }
-        function showEndScreen() {
-            document.getElementById('game-container').style.display = 'none';
-            document.getElementById('end-screen').style.display = 'flex';
-            if(window.player && window.player.pauseVideo) {
-                window.player.pauseVideo();
-            }
-        }
+
+        const ctx = document.getElementById('gameCanvas').getContext('2d');
+
         function drawSprite(ctx, type, x, y) {
-            const px = x * TILE, py = y * TILE;
-            ctx.shadowBlur = 0;
-            switch(type) {
-                case 'player':
-                    const bounce = Math.sin(animTimer * 8) * 2;
-                    ctx.fillStyle = '#FFD700';
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = '#FFD700';
-                    ctx.beginPath();
-                    ctx.arc(px+20, py+15-bounce, 8, 0, Math.PI*2);
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-                    ctx.fillStyle = '#FF6B6B';
-                    ctx.fillRect(px+12, py+20-bounce, 16, 18);
-                    ctx.fillStyle = '#4ECDC4';
-                    ctx.fillRect(px+10, py+38-bounce, 8, 10);
-                    ctx.fillRect(px+22, py+38-bounce, 8, 10);
-                    break;
-                case 'pigeon':
-                    const flapOffset = Math.sin(animTimer * 10) * 3;
-                    ctx.fillStyle = '#7f8c8d';
-                    ctx.fillRect(px+16, py+20, 8, 12);
-                    ctx.fillStyle = '#95a5a6';
-                    ctx.fillRect(px+18, py+18, 4, 6);
-                    ctx.fillStyle = '#34495e';
-                    ctx.fillRect(px+8, py+22+flapOffset, 8, 3);
-                    ctx.fillRect(px+24, py+22+flapOffset, 8, 3);
-                    ctx.fillStyle = '#e67e22';
-                    ctx.fillRect(px+19, py+24, 2, 3);
-                    break;
-                case 'card':
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = '#00F5FF';
-                    ctx.fillStyle = '#00F5FF';
-                    ctx.fillRect(px+10, py+15, 20, 14);
-                    ctx.shadowBlur = 0;
-                    ctx.fillStyle = '#FFD700';
-                    ctx.fillRect(px+12, py+17, 16, 2);
-                    ctx.fillRect(px+12, py+21, 10, 2);
-                    break;
-                case 'kebab':
-                    ctx.fillStyle = '#f39c12';
-                    ctx.fillRect(px+14, py+12, 12, 20);
-                    ctx.fillStyle = '#27ae60';
-                    ctx.fillRect(px+16, py+15, 8, 3);
-                    ctx.fillStyle = '#e74c3c';
-                    ctx.fillRect(px+16, py+20, 8, 3);
-                    ctx.fillStyle = '#8B4513';
-                    ctx.fillRect(px+17, py+10, 6, 3);
-                    break;
-                case 'cap':
-                    ctx.fillStyle = '#e74c3c';
-                    ctx.fillRect(px+10, py+18, 20, 8);
-                    ctx.fillRect(px+8, py+22, 24, 4);
-                    ctx.fillStyle = '#fff';
-                    ctx.fillRect(px+16, py+20, 8, 2);
-                    break;
-                case 'letter':
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = '#FF006E';
-                    ctx.fillStyle = '#fff';
-                    ctx.fillRect(px+12, py+16, 16, 14);
-                    ctx.shadowBlur = 0;
-                    ctx.fillStyle = '#FF006E';
-                    ctx.fillRect(px+14, py+19, 12, 1);
-                    ctx.fillRect(px+14, py+22, 12, 1);
-                    ctx.fillRect(px+14, py+25, 8, 1);
-                    break;
-                case 'key':
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = '#FFBE0B';
-                    ctx.fillStyle = '#FFBE0B';
-                    ctx.beginPath();
-                    ctx.arc(px+15, py+20, 4, 0, Math.PI*2);
-                    ctx.fill();
-                    ctx.fillRect(px+18, py+19, 10, 2);
-                    ctx.fillRect(px+26, py+17, 2, 2);
-                    ctx.fillRect(px+26, py+20, 2, 2);
-                    ctx.shadowBlur = 0;
-                    break;
-                case 'foodbag':
-                    ctx.fillStyle = '#8B4513';
-                    ctx.fillRect(px+10, py+14, 20, 18);
-                    ctx.fillStyle = '#A0522D';
-                    ctx.fillRect(px+14, py+10, 4, 6);
-                    ctx.fillRect(px+22, py+10, 4, 6);
-                    ctx.fillStyle = '#fff';
-                    ctx.fillRect(px+16, py+20, 3, 3);
-                    ctx.fillRect(px+21, py+20, 3, 3);
-                    break;
-                case 'metro':
-                    ctx.shadowBlur = 20;
-                    ctx.shadowColor = '#00F5FF';
-                    ctx.fillStyle = '#00F5FF';
-                    ctx.fillRect(px+8, py+8, 24, 24);
-                    ctx.shadowBlur = 0;
-                    ctx.fillStyle = '#0A0E27';
-                    ctx.font = 'bold 20px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('M', px+20, py+28);
-                    ctx.textAlign = 'start';
-                    break;
-                case 'samuel':
-                    ctx.fillStyle = '#FFD700';
-                    ctx.shadowBlur = 20;
-                    ctx.shadowColor = '#FFD700';
-                    ctx.beginPath();
-                    ctx.arc(px+20, py+15, 10, 0, Math.PI*2);
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-                    ctx.fillStyle = '#3498db';
-                    ctx.fillRect(px+10, py+25, 20, 20);
-                    ctx.fillStyle = '#2c3e50';
-                    ctx.fillRect(px+8, py+45, 10, 12);
-                    ctx.fillRect(px+22, py+45, 10, 12);
-                    break;
+            const px = x  TILE; const py = y  TILE;
+            if (type === 'card') {
+                ctx.fillStyle = #2980b9; ctx.fillRect(px+8, py+10, 24, 16); ctx.fillStyle = #f1c40f; ctx.fillRect(px+10, py+14, 6, 5); ctx.fillStyle = #000; ctx.fillRect(px+8, py+12, 24, 2); 
+            } else if (type === 'kebab') {
+                ctx.fillStyle = #e67e22; ctx.beginPath(); ctx.ellipse(px+20, py+20, 10, 14, 0.2, 0, Math.PI2); ctx.fill(); ctx.fillStyle = #ecf0f1; ctx.fillRect(px+16, py+10, 8, 10); ctx.fillStyle = #c0392b; ctx.fillRect(px+18, py+20, 4, 4);
+            } else if (type === 'cap') {
+                ctx.fillStyle = #000; ctx.beginPath(); ctx.arc(px+20, py+18, 10, 0, Math.PI, true); ctx.fill(); ctx.fillStyle = #e74c3c; ctx.fillRect(px+18, py+18, 15, 4); ctx.fillStyle = #fff; ctx.font=8px Arial; ctx.fillText(PSG, px+14, py+16);
+            } else if (type === 'key') {
+                ctx.fillStyle = #f1c40f; ctx.fillRect(px+15, py+10, 10, 10); ctx.fillRect(px+18, py+20, 4, 15); ctx.fillRect(px+22, py+30, 6, 4);
+            } else if (type === 'foodbag') {
+                 ctx.fillStyle = #8e44ad; ctx.fillRect(px+10, py+15, 20, 20); ctx.fillStyle = #2ecc71; ctx.fillRect(px+12, py+10, 5, 5); ctx.fillStyle = #e74c3c; ctx.fillRect(px+20, py+10, 5, 5); ctx.strokeStyle = #6c3483; ctx.strokeRect(px+10, py+15, 20, 20);
+            } else if (type === 'letter') {
+                ctx.fillStyle = #fff; ctx.fillRect(px+8, py+12, 24, 16); ctx.strokeStyle = #e74c3c; ctx.lineWidth = 1; ctx.strokeRect(px+8, py+12, 24, 16); ctx.fillStyle = #e74c3c; ctx.beginPath(); ctx.moveTo(px+15, py+20); ctx.lineTo(px+20, py+25); ctx.lineTo(px+25, py+20); ctx.fill();
+            } else if (type === 'pigeon') {
+                let bounce = Math.sin(animTimer)  3;
+                ctx.fillStyle = #7f8c8d; ctx.beginPath(); ctx.arc(px+20, py+20+bounce, 10, 0, Math.PI2); ctx.fill(); ctx.fillStyle = #bdc3c7; ctx.beginPath(); ctx.arc(px+20, py+20+bounce, 6, 0, Math.PI2); ctx.fill(); ctx.fillStyle = #f39c12; ctx.beginPath(); ctx.moveTo(px+28, py+18+bounce); ctx.lineTo(px+34, py+22+bounce); ctx.lineTo(px+28, py+24+bounce); ctx.fill(); ctx.fillStyle = white; ctx.beginPath(); ctx.arc(px+24, py+16+bounce, 3, 0, Math.PI2); ctx.fill(); ctx.fillStyle = black; ctx.beginPath(); ctx.arc(px+25, py+16+bounce, 1, 0, Math.PI2); ctx.fill();
+            } else if (type === 'player') {
+                ctx.fillStyle = #3498db; ctx.fillRect(px+10, py+12, 20, 16); ctx.fillStyle = #f1c40f; ctx.beginPath(); ctx.arc(px+20, py+14, 9, 0, Math.PI2); ctx.fill();
+            } else if (type === 'flower') {
+                ctx.fillStyle = #2ecc71; ctx.fillRect(px+19, py+22, 2, 8); ctx.fillStyle = (x+y)%2===0  #e74c3c  #fff; ctx.beginPath(); ctx.arc(px+20, py+20, 6, 0, Math.PI2); ctx.fill(); ctx.fillStyle = #f1c40f; ctx.beginPath(); ctx.arc(px+20, py+20, 2, 0, Math.PI2); ctx.fill();
+            } else if (type === 'bench') {
+                 ctx.fillStyle = #8B4513; ctx.fillRect(px+5, py+10, 30, 10); ctx.fillStyle = #A0522D; ctx.fillRect(px+5, py+12, 30, 2); ctx.fillRect(px+5, py+16, 30, 2);
+            } else if (type === 'metroExit') {
+                 ctx.fillStyle = #2c3e50; ctx.fillRect(px, py+15, TILE, TILE-15); ctx.fillStyle = #34495e; for(let i=0; i3; i++) ctx.fillRect(px, py+15 + i6, TILE, 2);
+                 ctx.fillStyle = #7f8c8d; ctx.fillRect(px+30, py, 5, 20); ctx.fillStyle = #f1c40f; ctx.beginPath(); ctx.arc(px+32, py, 12, 0, Math.PI2); ctx.fill(); ctx.strokeStyle = #f39c12; ctx.lineWidth=2; ctx.stroke(); ctx.fillStyle = #2980b9; ctx.font=bold 16px Arial; ctx.textAlign = center; ctx.fillText(M, px+32, py+5); ctx.textAlign = start; 
             }
         }
-        function updateEnemies() {
-            enemies.forEach(e => {
-                const nextX = e.x + e.dx;
-                if(nextX < 1 || nextX >= GRID_SIZE-1 || map[e.y][nextX] === 1) {
-                    e.dx *= -1;
-                } else {
-                    e.x = nextX;
-                }
-                if(e.x === playerPos.x && e.y === playerPos.y) {
-                    if(score > 0) {
-                        score--;
-                        updateScore();
-                        showMsg("🦅 Le pigeon a volé un indice !");
-                        const originalItems = levels[currentLevel].items;
-                        const randomItem = originalItems[Math.floor(Math.random() * originalItems.length)];
-                        let respawnX, respawnY;
-                        do {
-                            respawnX = Math.floor(Math.random() * (GRID_SIZE-4)) + 2;
-                            respawnY = Math.floor(Math.random() * (GRID_SIZE-4)) + 2;
-                        } while(map[respawnY][respawnX] === 1);
-                        items.push({x: respawnX, y: respawnY, type: randomItem.type, name: randomItem.name});
-                    } else {
-                        showMsg("💥 Aïe ! Sale pigeon !");
+
+        function loadLevel(lvlIdx) {
+            currentLevel = lvlIdx;
+            const data = levels[lvlIdx];
+            map = [];
+             INIT MAP (Safe mode)
+            for(let y=0; yGRID_SIZE; y++) {
+                let row = [];
+                for(let x=0; xGRID_SIZE; x++) {
+                    let type = 0;  Sol
+                    if (x===0  x===GRID_SIZE-1  y===0  y===GRID_SIZE-1) type = 1;  Murs
+                    
+                    if (lvlIdx === 1) {  VOSGES
+                        if (x === 10 && y === 0) type = 2;  Metro
+                        else if (x===2  x===GRID_SIZE-3  y===2  y===GRID_SIZE-3) type = 2;
+                        else if (x===GRID_SIZE2  y===GRID_SIZE2) type = 2;
+                        if ((x===0  x===GRID_SIZE-1  y===0  y===GRID_SIZE-1) && !(x===10 && y===0)) type = 1;
+                    } 
+                    else if (lvlIdx === 2) {  PIGALLE (Avec Néons)
+                        if (x===0  x===GRID_SIZE-1  y===0  y===GRID_SIZE-1) type = 1;
+                        else if (x===2  x===GRID_SIZE-3  y===2  y===GRID_SIZE-3  x===GRID_SIZE2  y===GRID_SIZE2) type = 2;
+                        else type = 0;
                     }
-                    let backX = playerPos.x - e.dx * 2;
-                    if(backX > 1 && backX < GRID_SIZE-1 && map[playerPos.y][backX] !== 1) {
-                        playerPos.x = backX;
-                    }
+                    row.push(type);
                 }
-            });
-        }
-        function draw() {
-            if(!gameActive) return;
-            animTimer += 0.016;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const level = levels[currentLevel];
-            for(let y = 0; y < GRID_SIZE; y++) {
-                for(let x = 0; x < GRID_SIZE; x++) {
-                    if(map[y][x] === 1) {
-                        ctx.fillStyle = level.colorWall;
-                        ctx.fillRect(x*TILE, y*TILE, TILE, TILE);
-                        ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-                        ctx.strokeRect(x*TILE, y*TILE, TILE, TILE);
-                    } else {
-                        ctx.fillStyle = level.colorPath;
-                        ctx.fillRect(x*TILE, y*TILE, TILE, TILE);
-                    }
-                }
+                map.push(row);
             }
-            const ex = level.exit;
-            if(currentLevel === 1) {
-                drawSprite(ctx, 'metro', ex.x, ex.y);
-            } else {
-                drawSprite(ctx, 'samuel', ex.x, ex.y);
-                ctx.fillStyle = '#FFD700';
-                ctx.font = 'bold 12px Arial';
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = '#FFD700';
-                ctx.textAlign = 'center';
-                ctx.fillText('SAM', ex.x*TILE+20, ex.y*TILE+48);
-                ctx.textAlign = 'start';
-                if(score === 3) {
-                    const arrowBounce = Math.sin(animTimer * 4) * 5;
-                    ctx.fillStyle = '#39FF14';
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = '#39FF14';
-                    ctx.beginPath();
-                    ctx.moveTo(ex.x*TILE+20, ex.y*TILE-10-arrowBounce);
-                    ctx.lineTo(ex.x*TILE+15, ex.y*TILE-20-arrowBounce);
-                    ctx.lineTo(ex.x*TILE+25, ex.y*TILE-20-arrowBounce);
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-                }
-            }
-            items.forEach(i => drawSprite(ctx, i.type, i.x, i.y));
-            enemies.forEach(e => drawSprite(ctx, 'pigeon', e.x, e.y));
-            drawSprite(ctx, 'player', playerPos.x, playerPos.y);
-            updateEnemies();
-            requestAnimationFrame(draw);
+
+            items = JSON.parse(JSON.stringify(data.items));
+            enemies = JSON.parse(JSON.stringify(data.enemies));
+            playerPos = {...data.start};
+            score = 0;
+            
+            document.getElementById('level-name').innerText = data.name;
+            document.getElementById('score').innerText = 0;
+            if(lvlIdx === 2) showMsg(Sam est à Pigalle !);
         }
+
         function startGame() {
             document.getElementById('phone-container').style.display = 'none';
             document.getElementById('game-container').style.display = 'block';
-            loadLevel(1);
+            if(player && player.playVideo) { player.unMute(); player.setVolume(70); player.playVideo(); }
             gameActive = true;
-            draw();
-            if(window.player && window.player.playVideo) {
-                window.player.playVideo();
-            }
+            loadLevel(1);
+            drawGame();
+            gameLoop();
         }
-        document.addEventListener('keydown', e => {
+
+        function gameLoop() {
             if(!gameActive) return;
-            switch(e.key) {
-                case 'ArrowUp': case 'z': case 'w': movePlayer(0, -1); break;
-                case 'ArrowDown': case 's': movePlayer(0, 1); break;
-                case 'ArrowLeft': case 'q': case 'a': movePlayer(-1, 0); break;
-                case 'ArrowRight': case 'd': movePlayer(1, 0); break;
-            }
-        });
-        let touchStartX = 0, touchStartY = 0;
-        document.addEventListener('touchstart', e => {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-        }, {passive: true});
-        document.addEventListener('touchend', e => {
-            if(!gameActive) return;
-            const dx = e.changedTouches[0].clientX - touchStartX;
-            const dy = e.changedTouches[0].clientY - touchStartY;
-            if(Math.abs(dx) > Math.abs(dy)) {
-                movePlayer(dx > 0 ? 1 : -1, 0);
-            } else {
-                movePlayer(0, dy > 0 ? 1 : -1);
-            }
-        }, {passive: true});
-        var player;
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('yt-audio', {
-                height: '0',
-                width: '0',
-                videoId: 'jfKfPfyJRdk',
-                playerVars: {
-                    'autoplay': 0,
-                    'loop': 1,
-                    'playlist': 'jfKfPfyJRdk',
-                    'controls': 0
-                },
-                events: {
-                    'onReady': onPlayerReady
+            updateEnemies();
+            drawGame();
+            animTimer += 0.2;
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateEnemies() {
+            if (Math.floor(animTimer) % 10 !== 0) return;
+            enemies.forEach(e = {
+                let nextX = e.x + e.dx;
+                if (nextX  0  nextX = GRID_SIZE  map[e.y][nextX] === 1) e.dx = -1; 
+                else e.x += e.dx;
+
+                if (e.x === playerPos.x && e.y === playerPos.y) {
+                    if(score  0) {
+                        score--; document.getElementById('score').innerText = score;
+                        showMsg(Le pigeon a volé un indice !);
+                        const originalItems = levels[currentLevel].items;
+                        const randomItem = originalItems[Math.floor(Math.random()  originalItems.length)];
+                        items.push({x 10, y 10, type randomItem.type, name randomItem.name});
+                    } else { showMsg(Aïe ! Sale pigeon !); }
+                    
+                    let backX = playerPos.x - e.dx  2;
+                    if(backX  1 && backX  GRID_SIZE-1 && map[playerPos.y][backX] !== 1) playerPos.x = backX;
                 }
             });
         }
-        function onPlayerReady(event) {}
-        document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                playChat();
-            }, 1500);
-            const btnStart = document.getElementById('btn-start');
-            if(btnStart) {
-                btnStart.addEventListener('click', startGame);
+
+        let popupTimeout;
+        function showPopup(html, duration = 3000) {
+            const popup = document.getElementById('main-popup');
+            popup.innerHTML = html; popup.style.display = 'block';
+            clearTimeout(popupTimeout);
+            popupTimeout = setTimeout(() = { popup.style.display = 'none'; }, duration);
+        }
+
+        function showLoveLetter() {
+            const popup = document.getElementById('letter-popup');
+            popup.style.display = 'block';
+            setTimeout(() = { popup.style.display = 'none'; }, 5000);
+        }
+
+        function movePlayer(dx, dy) {
+            if(!gameActive) return;
+            let nx = playerPos.x + dx; let ny = playerPos.y + dy;
+            
+            if(map[ny][nx] === 1 && !(currentLevel===1 && nx===10 && ny===0)) return;
+            
+            playerPos.x = nx; playerPos.y = ny;
+
+            let idx = items.findIndex(i = i.x === nx && i.y === ny);
+            if(idx !== -1) {
+                score++;
+                document.getElementById('score').innerText = score;
+                const item = items[idx];
+                
+                if(item.type === 'letter') showLoveLetter();
+                else {
+                    let desc = Indice trouvé !;
+                    if(item.type === 'card') desc = La carte de Sam ! Il l'a encore paumée...;
+                    if(item.type === 'kebab') desc = Le dîner de Sam. Il y a un mot d'Alexis dessus.;
+                    if(item.type === 'cap') desc = Il ne sort jamais sans.;
+                    if(item.type === 'key') desc = Pourquoi il a les clés d'Angèle  Bizarre...;
+                    if(item.type === 'foodbag') desc = Il a fait des courses avant de s'endormir.;
+                    showPopup(`h3${item.name}h3p${desc}p`, 3500); 
+                }
+                items.splice(idx, 1);
+
+                if(score === 3) {
+                    const exitName = levels[currentLevel].exitName;
+                    setTimeout(() = showPopup(`h3✅ MISSION ACCOMPLIE ✅h3pFonce vers  b${exitName}b !p`, 4000), 100);
+                }
+            }
+
+            const exit = levels[currentLevel].exit;
+            if(nx === exit.x && ny === exit.y) {
+                if(score = 3) {
+                    if(currentLevel === 1) loadLevel(2);
+                    else { gameActive = false; document.getElementById('game-container').style.display='none'; document.getElementById('end-screen').style.display='flex'; }
+                } else {
+                    showMsg(Il te manque des objets !);
+                    playerPos.y += (currentLevel===1  1  -1); 
+                }
+            }
+        }
+
+        function showMsg(txt) {
+            const el = document.getElementById('msg-popup'); el.innerText = txt;
+            setTimeout(() = el.innerText = , 2500);
+        }
+
+        function drawGame() {
+            ctx.clearRect(0, 0, 800, 800);
+            const conf = levels[currentLevel];
+
+            for(let y=0; yGRID_SIZE; y++) {
+                for(let x=0; xGRID_SIZE; x++) {
+                    let t = map[y][x]; let px = xTILE; let py = yTILE;
+                    
+                    if(currentLevel === 1) {  VOSGES
+                        if (t===1) { ctx.fillStyle = conf.colorWall; ctx.fillRect(px,py,TILE,TILE); ctx.strokeStyle = rgba(0,0,0,0.2); ctx.strokeRect(px,py,TILE,TILE); }
+                        else if (t===2) { ctx.fillStyle = conf.colorPath; ctx.fillRect(px,py,TILE,TILE); }
+                        else { 
+                            ctx.fillStyle = conf.colorGround; ctx.fillRect(px,py,TILE,TILE); 
+                            if((x+y)%9 === 0 && x%3 !== 0 && x2 && x17 && y2 && y17 && t===0) drawSprite(ctx, 'flower', x, y);
+                            if((x === 3  x === 16) && y%4 === 0 && y2 && y17) drawSprite(ctx, 'bench', x, y);
+                        }
+                    } else {  PIGALLE (Le Beau Design Réintégré)
+                        if (t===1) {
+                            ctx.fillStyle = conf.colorWall; ctx.fillRect(px,py,TILE,TILE); ctx.strokeStyle = #111; ctx.strokeRect(px,py,TILE,TILE);
+                            if((x%3===0  y%3===0)) {
+                                 ctx.fillStyle = (x+y)%2===0  #ff00cc  #00ccff; 
+                                 if(Math.sin(animTimer2)  0) ctx.fillRect(px+5, py+5, TILE-10, TILE-10);
+                            }
+                        } else if (t===2) {
+                            ctx.fillStyle = conf.colorPath; ctx.fillRect(px,py,TILE,TILE); 
+                        } else {
+                            ctx.fillStyle = conf.colorGround; ctx.fillRect(px,py,TILE,TILE); 
+                            ctx.strokeStyle = #222; ctx.strokeRect(px,py,TILE,TILE); 
+                        }
+                    }
+                }
+            }
+
+            items.forEach(i = drawSprite(ctx, i.type, i.x, i.y));
+            enemies.forEach(e = drawSprite(ctx, 'pigeon', e.x, e.y));
+            drawSprite(ctx, 'player', playerPos.x, playerPos.y);
+
+            const ex = levels[currentLevel].exit;
+            if(currentLevel === 1) {
+                drawSprite(ctx, 'metroExit', ex.x, ex.y);
+            } else {
+                ctx.fillStyle = #e74c3c; ctx.fillRect(ex.xTILE+10, ex.yTILE+10, 20, 20); ctx.fillStyle=white; ctx.fillText(SAM, ex.xTILE+8, ex.yTILE+24);
+            }
+        }
+
+        let msgIndex = 0;
+        function playChat() {
+            if (msgIndex = chatMessages.length) { document.getElementById('btn-start').style.display = 'block'; return; }
+            const m = chatMessages[msgIndex];
+            const div = document.createElement('div'); div.className = `msg ${m.s === 'Moi'  'right'  'left'}`;
+            div.innerHTML = `span class=sender${m.s}span${m.t}`;
+            document.getElementById('chat-body').appendChild(div); msgIndex++; setTimeout(playChat, 1200);
+        }
+        window.onload = () = { setTimeout(playChat, 4000); };
+        document.getElementById('btn-start').addEventListener('click', startGame);
+        window.addEventListener('keydown', e = {
+            if(e.key.includes('Arrow')) { e.preventDefault(); 
+                if(e.key===ArrowUp) movePlayer(0,-1); if(e.key===ArrowDown) movePlayer(0,1);
+                if(e.key===ArrowLeft) movePlayer(-1,0); if(e.key===ArrowRight) movePlayer(1,0);
             }
         });
-        function scrollToBottom() {
-            const chatBody = document.getElementById('chat-body');
-            chatBody.scrollTop = chatBody.scrollHeight;
-        }
-        function playChat() {
-            if(msgIndex >= chatMessages.length) { 
-                const btn = document.getElementById('btn-start');
-                if(btn) btn.style.display = 'block'; 
-                scrollToBottom();
-                return; 
-            }
-            const m = chatMessages[msgIndex];
-            const div = document.createElement('div'); 
-            div.className = `msg ${m.s === 'SAMUEL' ? 'right' : 'left'}`;
-            div.innerHTML = `<span class="sender">${m.s}</span>${m.t}`;
-            const chatBody = document.getElementById('chat-body');
-            if(chatBody) {
-                chatBody.appendChild(div);
-                scrollToBottom();
-            }
-            msgIndex++;
-            setTimeout(playChat, 1200); 
-        }
-    </script>
-    <script src="https://www.youtube.com/iframe_api"></script>
-</body>
-</html>
+    script
+body
+html
