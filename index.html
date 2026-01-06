@@ -1,138 +1,1012 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mission Samuel — Paris By Night</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
-<style>
-:root{
---neo-cyan:#00F5FF;--neo-magenta:#FF006E;--neo-yellow:#FFBE0B;--neo-purple:#8B5CF6;
---dark-1:#0A0E27;--dark-2:#1A1F3A;--dark-3:#2E3856;
---success:#39FF14;--danger:#FF003C}
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-height:100vh;overflow:hidden;display:flex;justify-content:center;align-items:center;
-font-family:Rajdhani,Courier New,monospace;color:#fff;
-background:linear-gradient(270deg,#0A0E27,#1A1F3A,#2E3856,#1A1F3A);
-background-size:400% 400%;animation:bg 20s ease infinite}
-@keyframes bg{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-.scanlines{
-position:fixed;inset:0;pointer-events:none;z-index:999;
-background:repeating-linear-gradient(0deg,rgba(0,0,0,.15),rgba(0,0,0,.15) 1px,transparent 1px,transparent 2px);
-animation:scan 8s linear infinite}
-@keyframes scan{to{transform:translateY(10px)}}
-#phone-container{
-width:380px;height:750px;position:absolute;
-background:linear-gradient(135deg,#1a1f3a,#2e3856);
-border:14px solid #0a0e27;border-radius:45px;
-display:flex;flex-direction:column;overflow:hidden;
-box-shadow:0 0 80px rgba(0,245,255,.6),0 0 120px rgba(255,0,110,.4),inset 0 0 60px rgba(0,0,0,.8);
-opacity:0;animation:fade 1s ease-out 3.5s forwards}
-@keyframes fade{to{opacity:1}}
-#phone-container::before{
-content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
-width:150px;height:30px;background:#000;border-radius:0 0 20px 20px;z-index:10}
-#chat-header{
-padding:45px 20px 20px;text-align:center;
-background:linear-gradient(135deg,var(--dark-2),var(--dark-3));
-border-bottom:2px solid var(--neo-cyan);
-font-weight:700;letter-spacing:2px;text-shadow:0 0 10px var(--neo-cyan)}
-#chat-body{
-flex:1;padding:20px 20px 120px;background:var(--dark-1);
-display:flex;flex-direction:column;gap:14px;overflow-y:auto}
-.msg{max-width:80%;padding:12px 16px;border-radius:18px;font-size:15px;line-height:1.4}
-.left{align-self:flex-start;background:#222}
-.right{align-self:flex-end;background:var(--neo-purple)}
-.sender{display:block;font-size:11px;opacity:.7;margin-bottom:4px}
-#btn-start{
-margin:15px;background:var(--danger);color:#fff;font-weight:900;
-border:none;border-radius:30px;padding:16px;cursor:pointer;display:none}
-#game-container{display:none;position:relative}
-canvas{
-background:#000;border:6px solid var(--dark-3);border-radius:20px;
-image-rendering:pixelated;
-box-shadow:0 0 60px rgba(0,245,255,.5),0 0 100px rgba(255,0,110,.3),inset 0 0 100px rgba(0,0,0,.8)}
-#game-ui{
-position:absolute;top:20px;right:20px;
-background:rgba(10,14,39,.95);
-padding:20px;border-radius:20px;border:2px solid var(--neo-cyan);
-min-width:240px}
-.ui-level{color:var(--neo-yellow);font-weight:700}
-.ui-score{color:var(--success);font-weight:900;font-size:20px}
-#end-screen{
-display:none;flex-direction:column;align-items:center;text-align:center}
-.replay-btn{
-margin-top:20px;padding:18px 45px;font-size:20px;font-weight:900;
-background:linear-gradient(135deg,var(--danger),#e74c3c);
-border:none;border-radius:50px;color:#fff;cursor:pointer}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Samuel — Paris By Night</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
+        :root {
+            --neo-cyan: #00F5FF;
+            --neo-magenta: #FF006E;
+            --neo-yellow: #FFBE0B;
+            --neo-purple: #8B5CF6;
+            --dark-1: #0A0E27;
+            --dark-2: #1A1F3A;
+            --dark-3: #2E3856;
+            --success: #39FF14;
+            --danger: #FF003C;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            background: linear-gradient(270deg, #0A0E27, #1A1F3A, #2E3856, #1A1F3A);
+            background-size: 400% 400%;
+            animation: bg-shift 20s ease infinite;
+            margin: 0; overflow: hidden; 
+            font-family: 'Rajdhani', 'Courier New', monospace; 
+            color: white; 
+            display: flex; justify-content: center; align-items: center; 
+            height: 100vh;
+            user-select: none;
+            position: relative;
+        }
+        @keyframes bg-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .scanlines {
+            position: fixed; left: 0; top: 0; width: 100%; height: 100%; 
+            pointer-events: none; z-index: 999;
+            background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15) 1px, transparent 1px, transparent 2px);
+            animation: scanline-anim 8s linear infinite;
+        }
+        @keyframes scanline-anim {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(10px); }
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.7) 100%);
+            pointer-events: none;
+            z-index: 998;
+        }
+        #title-screen {
+            position: absolute;
+            z-index: 300;
+            text-align: center;
+            animation: titleFadeOut 1s ease-out 3s forwards;
+        }
+        #title-main {
+            font-family: 'Orbitron', monospace;
+            font-size: 120px;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--neo-cyan), var(--neo-magenta), var(--neo-yellow));
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-shift 3s ease infinite;
+            text-shadow: 0 0 80px rgba(0, 245, 255, 0.8);
+            letter-spacing: 10px;
+        }
+        #title-subtitle {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--neo-yellow);
+            margin-top: 10px;
+            letter-spacing: 8px;
+            text-shadow: 0 0 20px var(--neo-yellow);
+        }
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes titleFadeOut { 
+            to { opacity: 0; visibility: hidden; } 
+        }
+        #phone-container {
+            position: absolute; 
+            width: 380px; 
+            height: 750px;
+            background: linear-gradient(135deg, #1a1f3a, #2e3856);
+            border: 14px solid #0a0e27;
+            border-radius: 45px;
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
+            z-index: 200; 
+            box-shadow: 0 0 80px rgba(0, 245, 255, 0.6), 0 0 120px rgba(255, 0, 110, 0.4), inset 0 0 60px rgba(0, 0, 0, 0.8);
+            opacity: 0; 
+            animation: phoneFadeIn 1s ease-out 3.5s forwards;
+        }
+        @keyframes phoneFadeIn { 
+            to { opacity: 1; } 
+        }
+        #phone-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 30px;
+            background: #000;
+            border-radius: 0 0 20px 20px;
+            z-index: 10;
+        }
+        #chat-header { 
+            background: linear-gradient(135deg, var(--dark-2), var(--dark-3));
+            padding: 45px 20px 20px 20px; 
+            text-align: center; 
+            border-bottom: 2px solid var(--neo-cyan);
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--neo-cyan);
+            position: relative;
+            flex-shrink: 0;
+        }
+        #chat-header::after {
+            content: '●';
+            position: absolute;
+            top: 50px;
+            right: 20px;
+            color: var(--success);
+            font-size: 14px;
+            animation: blink 1.5s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        #chat-body { 
+            flex: 1; 
+            padding: 20px 20px 120px 20px;
+            display: flex; 
+            flex-direction: column; 
+            gap: 14px; 
+            background: var(--dark-1);
+            overflow-y: auto; 
+            overflow-x: hidden;
+        }
+        #chat-body::-webkit-scrollbar { width: 6px; }
+        #chat-body::-webkit-scrollbar-track { background: var(--dark-2); }
+        #chat-body::-webkit-scrollbar-thumb { 
+            background: var(--neo-cyan); 
+            border-radius: 10px; 
+        }
+        .msg {
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 75%;
+            word-wrap: break-word;
+            line-height: 1.5;
+            font-size: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            animation: msgSlide 0.4s ease-out;
+        }
+        @keyframes msgSlide {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .msg.left {
+            background: linear-gradient(135deg, var(--dark-3), var(--dark-2));
+            border: 1px solid var(--neo-cyan);
+            align-self: flex-start;
+        }
+        .msg.right {
+            background: linear-gradient(135deg, var(--neo-magenta), #c0006e);
+            border: 1px solid var(--neo-magenta);
+            align-self: flex-end;
+            text-align: right;
+        }
+        .sender {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            opacity: 0.8;
+            letter-spacing: 1px;
+        }
+        #btn-start {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 16px 30px;
+            background: linear-gradient(135deg, var(--danger), #e74c3c);
+            color: white;
+            font-weight: 900;
+            font-size: 16px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 6px 30px rgba(255, 0, 60, 0.8);
+            transition: all 0.3s ease;
+            display: none;
+            z-index: 20;
+        }
+        #btn-start:hover {
+            transform: translateX(-50%) translateY(-3px);
+            box-shadow: 0 10px 40px rgba(255, 0, 60, 1);
+        }
+        #game-container {
+            display: none;
+            position: relative;
+            z-index: 100;
+        }
+        canvas { 
+            background: #000;
+            border: 6px solid var(--dark-3);
+            border-radius: 20px;
+            box-shadow: 0 0 60px rgba(0, 245, 255, 0.5), 0 0 100px rgba(255, 0, 110, 0.3), inset 0 0 100px rgba(0, 0, 0, 0.8);
+            image-rendering: pixelated;
+        }
+        #game-ui {
+            position: absolute; 
+            top: 20px; 
+            right: 20px;
+            background: rgba(10, 14, 39, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 25px;
+            border-radius: 20px;
+            border: 2px solid var(--neo-cyan);
+            min-width: 240px;
+            z-index: 10;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            animation: hud-slide-in 0.6s ease-out;
+        }
+        @keyframes hud-slide-in {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .ui-level {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--neo-yellow);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            text-shadow: 0 0 10px var(--neo-yellow);
+        }
+        .ui-score {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--success);
+            text-shadow: 0 0 15px var(--success);
+        }
+        #msg-popup {
+            margin-top: 15px;
+            padding: 12px;
+            background: rgba(255, 190, 11, 0.2);
+            border: 2px solid var(--neo-yellow);
+            border-radius: 12px;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+            animation: popup-bounce 0.5s ease-out;
+        }
+        @keyframes popup-bounce {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        #main-popup {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(26, 31, 58, 0.98), rgba(46, 56, 86, 0.98));
+            backdrop-filter: blur(15px);
+            padding: 40px;
+            border: 4px solid var(--neo-cyan);
+            border-radius: 20px;
+            z-index: 100;
+            display: none;
+            text-align: center;
+            box-shadow: 0 0 60px var(--neo-cyan), inset 0 0 80px rgba(0, 0, 0, 0.5);
+            animation: popup-enter 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            min-width: 400px;
+        }
+        @keyframes popup-enter {
+            from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        #main-popup h3 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: var(--neo-cyan);
+            text-shadow: 0 0 20px var(--neo-cyan);
+        }
+        #main-popup p {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        #letter-popup {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.95), rgba(100, 50, 200, 0.95));
+            backdrop-filter: blur(15px);
+            padding: 40px;
+            border: 4px solid var(--neo-magenta);
+            border-radius: 20px;
+            z-index: 150;
+            display: none;
+            text-align: center;
+            box-shadow: 0 0 60px var(--neo-magenta), inset 0 0 80px rgba(0, 0, 0, 0.5);
+            animation: popup-enter 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            min-width: 400px;
+        }
+        #letter-popup h3 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: var(--neo-magenta);
+            text-shadow: 0 0 20px var(--neo-magenta);
+        }
+        #letter-popup p {
+            font-size: 18px;
+            line-height: 1.8;
+            font-style: italic;
+            color: #fff;
+        }
+        #metro-transition {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 500;
+            overflow: hidden;
+        }
+        .metro-screen {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .metro-tunnel {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(90deg, #1a1a1a 0px, #333 10px, #1a1a1a 20px);
+            animation: tunnel-move 1s linear infinite;
+        }
+        @keyframes tunnel-move {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(20px); }
+        }
+        .metro-train {
+            position: absolute;
+            width: 200px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--dark-2), var(--dark-3));
+            border: 4px solid var(--neo-cyan);
+            border-radius: 20px;
+            box-shadow: 0 0 40px var(--neo-cyan);
+            animation: train-shake 0.1s infinite;
+        }
+        @keyframes train-shake {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(2px); }
+        }
+        .metro-text {
+            position: absolute;
+            top: 30%;
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--neo-cyan);
+            text-shadow: 0 0 30px var(--neo-cyan);
+            letter-spacing: 4px;
+            z-index: 10;
+        }
+        .metro-station {
+            position: absolute;
+            bottom: 20%;
+            font-size: 24px;
+            color: var(--neo-yellow);
+            text-shadow: 0 0 20px var(--neo-yellow);
+            z-index: 10;
+        }
+        #end-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--dark-1), var(--dark-2));
+            z-index: 600;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px;
+            animation: fadeIn 1s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        #end-screen h1 {
+            font-size: 56px;
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, var(--neo-cyan), var(--neo-magenta), var(--neo-yellow));
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-shift 3s ease infinite;
+            text-shadow: 0 0 40px rgba(0, 245, 255, 0.6);
+        }
+        #samuel-img {
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            border: 6px solid var(--neo-cyan);
+            box-shadow: 0 0 60px var(--neo-cyan);
+            margin-bottom: 30px;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        .end-text-box { 
+            background: linear-gradient(135deg, var(--dark-2), var(--dark-3));
+            backdrop-filter: blur(10px);
+            padding: 30px 40px;
+            border-radius: 20px;
+            border: 2px solid var(--neo-cyan);
+            max-width: 650px;
+            font-size: 20px;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            animation: slideUpBox 0.8s ease-out 0.5s backwards;
+        }
+        @keyframes slideUpBox { 
+            from { opacity: 0; transform: translateY(50px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        button.replay-btn {
+            padding: 18px 45px;
+            font-size: 20px;
+            font-weight: 900;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--danger), #e74c3c);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 6px 30px rgba(255, 0, 60, 0.6);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        button.replay-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        button.replay-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        button.replay-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(255, 0, 60, 0.8);
+        }
+    </style>
 </head>
 <body>
-<div class="scanlines"></div>
-
-<div id="phone-container">
-<div id="chat-header">Les Chipies (4)</div>
-<div id="chat-body"></div>
-<button id="btn-start">🔫 SAUVER LE SOLDAT SAMUEL</button>
-</div>
-
-<div id="game-container">
-<canvas id="game-canvas" width="800" height="800"></canvas>
-<div id="game-ui">
-<div class="ui-level" id="level-name"></div>
-<div class="ui-score">Indices : <span id="score">0</span> / 3</div>
-</div>
-</div>
-
-<div id="end-screen">
-<h1>🎉 MISSION ACCOMPLIE ! 🎉</h1>
-<button class="replay-btn" onclick="location.reload()">🔄 REJOUER</button>
-</div>
-
-<script>
-const canvas=document.getElementById("game-canvas");
-const ctx=canvas.getContext("2d");
-const GRID=20,TILE=40;
-let currentLevel=1,score=0,gameActive=false,msgIndex=0;
-let player={x:10,y:18};
-const chatMessages=[
-{s:"SAMUEL",t:"Oh les gars ! C'est chaud là !"},
-{s:"SAMUEL",t:"La police me course !!"},
-{s:"INÈS",t:"Mdr arrête Sam 😂"},
-{s:"SAMUEL",t:"J'ai fui vers Pigalle."}
-];
-function playChat(){
-if(msgIndex>=chatMessages.length){
-document.getElementById("btn-start").style.display="block";
-return}
-const m=chatMessages[msgIndex++];
-const d=document.createElement("div");
-d.className="msg "+(m.s==="SAMUEL"?"right":"left");
-d.innerHTML=`<span class="sender">${m.s}</span>${m.t}`;
-document.getElementById("chat-body").appendChild(d);
-setTimeout(playChat,1000)
-}
-function startGame(){
-document.getElementById("phone-container").style.display="none";
-document.getElementById("game-container").style.display="block";
-gameActive=true;draw()
-}
-function draw(){
-ctx.clearRect(0,0,800,800);
-ctx.fillStyle="#39FF14";
-ctx.fillRect(player.x*TILE,player.y*TILE,TILE,TILE)
-}
-document.addEventListener("keydown",e=>{
-if(!gameActive)return;
-if(e.key==="ArrowUp")player.y--;
-if(e.key==="ArrowDown")player.y++;
-if(e.key==="ArrowLeft")player.x--;
-if(e.key==="ArrowRight")player.x++;
-draw()
-});
-document.getElementById("btn-start").onclick=startGame;
-setTimeout(playChat,1500);
-</script>
+    <div class="scanlines"></div>
+    <div id="title-screen">
+        <div id="title-main">PARIS</div>
+        <div id="title-subtitle">BY NIGHT !</div>
+    </div>
+    <div id="phone-container">
+        <div id="chat-header">Les Chipies (4)</div>
+        <div id="chat-body"></div>
+        <div id="btn-start">🔫 SAUVER LE SOLDAT SAMUEL</div>
+    </div>
+    <div id="game-container">
+        <canvas id="game-canvas" width="800" height="800"></canvas>
+        <div id="game-ui">
+            <div class="ui-level" id="level-name">PLACE DES VOSGES</div>
+            <div class="ui-score">Indices : <span id="score">0</span> / 3</div>
+            <div id="msg-popup"></div>
+        </div>
+        <div id="main-popup"></div>
+        <div id="letter-popup">
+            <h3>💌 Lettre d'Amour</h3>
+            <p><em>"Mon Alexis,<br>Tu me manques déjà...<br>Bisous, Samuel 💕"</em></p>
+        </div>
+    </div>
+    <div id="metro-transition">
+        <div class="metro-screen">
+            <div class="metro-tunnel"></div>
+            <div class="metro-train"></div>
+            <div class="metro-text">EN ROUTE VERS PIGALLE</div>
+            <div class="metro-station">Prochaine station ➜ Pigalle</div>
+        </div>
+    </div>
+    <div id="end-screen">
+        <h1>🎉 MISSION ACCOMPLIE ! 🎉</h1>
+        <img id="samuel-img" src="https://i.pravatar.cc/280?img=12" alt="Samuel">
+        <div class="end-text-box">
+            <p><strong>Félicitations !</strong> Grâce à toi, Samuel a récupéré toutes ses affaires et a pu rejoindre Alexis à temps ! 💕</p>
+            <p>Les Chipies te remercient pour ton aide précieuse ! 🙌</p>
+        </div>
+        <button class="replay-btn" onclick="location.reload()">🔄 REJOUER</button>
+    </div>
+    <div id="yt-audio"></div>
+    <script>
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const GRID_SIZE = 20;
+        const TILE = 40;
+        let currentLevel = 1;
+        let map = [];
+        let playerPos = {x: 10, y: 18};
+        let items = [];
+        let enemies = [];
+        let score = 0;
+        let gameActive = false;
+        let animTimer = 0;
+        let msgIndex = 0;
+        const chatMessages = [
+            {s: 'SAMUEL', t: 'Oh les gars ! C\'est chaud là !'},
+            {s: 'SAMUEL', t: 'La police me course !!'},
+            {s: 'INÈS', t: 'Mdr arrête Sam, t\'as encore bu avaué 😂'},
+            {s: 'SAMUEL', t: 'Non ! J\'étais Place des Vosges, puis j\'ai fui vers Pigalle.'},
+            {s: 'LILY', t: 'Encore...'},
+            {s: 'SAMUEL', t: 'J\'ai paumé mes affaires. Attention aux pigeons, ils sont violents.'}
+        ];
+        const levels = {
+            1: {
+                name: "🏛️ PLACE DES VOSGES",
+                exitName: "le Métro",
+                colorWall: '#8b0000',
+                colorPath: '#c0c0c0',
+                colorGround: '#2ecc71',
+                items: [
+                    {x: 4, y: 5, type: 'card', name: "💳 Carte Bancaire"},
+                    {x: 15, y: 4, type: 'kebab', name: "🥙 Kebab Froid"},
+                    {x: 5, y: 15, type: 'cap', name: "🧢 Casquette"}
+                ],
+                enemies: [
+                    {x:6, y:6, dx:1}, 
+                    {x:13, y:13, dx:-1}, 
+                    {x:6, y:13, dx:1}, 
+                    {x:12, y:5, dx:-1}
+                ],
+                start: {x: 10, y: 18},
+                exit: {x: 10, y: 1}
+            },
+            2: {
+                name: "🌃 PIGALLE (LA NUIT)",
+                exitName: "Samuel",
+                colorWall: '#1a1a2e',
+                colorPath: '#2c2c3e',
+                colorGround: '#0f0f1e',
+                items: [
+                    {x: 2, y: 4, type: 'letter', name: "💌 Lettre d'Amour"},
+                    {x: 17, y: 4, type: 'key', name: "🔑 Clé Mystère"},
+                    {x: 10, y: 10, type: 'foodbag', name: "🛍️ Sac de Courses"}
+                ],
+                enemies: [
+                    {x:5, y:8, dx:1}, 
+                    {x:14, y:8, dx:-1}, 
+                    {x:5, y:12, dx:1}, 
+                    {x:14, y:12, dx:-1},
+                    {x:10, y:15, dx:1}
+                ],
+                start: {x: 10, y: 18},
+                exit: {x: 10, y: 10}
+            }
+        };
+        function generateMaze() {
+            map = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(1));
+            const stack = [];
+            const startX = 1, startY = 1;
+            map[startY][startX] = 0;
+            stack.push({x: startX, y: startY});
+            const dirs = [[0,-2],[2,0],[0,2],[-2,0]];
+            while(stack.length > 0) {
+                const current = stack[stack.length - 1];
+                const neighbors = [];
+                dirs.forEach(([dx, dy]) => {
+                    const nx = current.x + dx, ny = current.y + dy;
+                    if(nx > 0 && nx < GRID_SIZE-1 && ny > 0 && ny < GRID_SIZE-1 && map[ny][nx] === 1) {
+                        neighbors.push({x: nx, y: ny, mx: current.x + dx/2, my: current.y + dy/2});
+                    }
+                });
+                if(neighbors.length > 0) {
+                    const next = neighbors[Math.floor(Math.random() * neighbors.length)];
+                    map[next.my][next.mx] = 0;
+                    map[next.y][next.x] = 0;
+                    stack.push({x: next.x, y: next.y});
+                } else {
+                    stack.pop();
+                }
+            }
+        }
+        function loadLevel(lvl) {
+            currentLevel = lvl;
+            const level = levels[lvl];
+            generateMaze();
+            playerPos = {...level.start};
+            items = level.items.map(i => ({...i}));
+            enemies = level.enemies.map(e => ({...e}));
+            score = 0;
+            updateScore();
+            document.getElementById('level-name').textContent = level.name;
+        }
+        function updateScore() {
+            document.getElementById('score').textContent = score;
+        }
+        function showMsg(text) {
+            const msgEl = document.getElementById('msg-popup');
+            msgEl.textContent = text;
+            msgEl.style.display = 'block';
+            setTimeout(() => { msgEl.style.display = 'none'; }, 2500);
+        }
+        function showPopup(title, text, callback) {
+            const popup = document.getElementById('main-popup');
+            popup.innerHTML = `<h3>${title}</h3><p>${text}</p>`;
+            popup.style.display = 'block';
+            setTimeout(() => {
+                popup.style.display = 'none';
+                if(callback) callback();
+            }, 3000);
+        }
+        function showLetterPopup() {
+            const popup = document.getElementById('letter-popup');
+            popup.style.display = 'block';
+            setTimeout(() => { popup.style.display = 'none'; }, 4000);
+        }
+        function movePlayer(dx, dy) {
+            if(!gameActive) return;
+            const newX = playerPos.x + dx;
+            const newY = playerPos.y + dy;
+            if(newX < 0 || newX >= GRID_SIZE || newY < 0 || newY >= GRID_SIZE) return;
+            if(map[newY][newX] === 1) return;
+            playerPos.x = newX;
+            playerPos.y = newY;
+            const itemIndex = items.findIndex(i => i.x === newX && i.y === newY);
+            if(itemIndex !== -1) {
+                const item = items[itemIndex];
+                score++;
+                updateScore();
+                showMsg(`✅ ${item.name} récupéré !`);
+                if(item.type === 'letter') {
+                    showLetterPopup();
+                }
+                items.splice(itemIndex, 1);
+            }
+            const ex = levels[currentLevel].exit;
+            if(newX === ex.x && newY === ex.y) {
+                if(score === 3) {
+                    if(currentLevel === 1) {
+                        gameActive = false;
+                        showPopup("🚇 Métro !", "Direction Pigalle !", () => {
+                            showMetroTransition(() => {
+                                loadLevel(2);
+                                gameActive = true;
+                            });
+                        });
+                    } else {
+                        gameActive = false;
+                        showEndScreen();
+                    }
+                } else {
+                    showMsg(`⚠️ Il te manque ${3 - score} indice(s) !`);
+                }
+            }
+        }
+        function showMetroTransition(callback) {
+            const metro = document.getElementById('metro-transition');
+            metro.style.display = 'block';
+            setTimeout(() => {
+                metro.style.display = 'none';
+                if(callback) callback();
+            }, 3000);
+        }
+        function showEndScreen() {
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('end-screen').style.display = 'flex';
+            if(window.player && window.player.pauseVideo) {
+                window.player.pauseVideo();
+            }
+        }
+        function drawSprite(ctx, type, x, y) {
+            const px = x * TILE, py = y * TILE;
+            ctx.shadowBlur = 0;
+            switch(type) {
+                case 'player':
+                    const bounce = Math.sin(animTimer * 8) * 2;
+                    ctx.fillStyle = '#FFD700';
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#FFD700';
+                    ctx.beginPath();
+                    ctx.arc(px+20, py+15-bounce, 8, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#FF6B6B';
+                    ctx.fillRect(px+12, py+20-bounce, 16, 18);
+                    ctx.fillStyle = '#4ECDC4';
+                    ctx.fillRect(px+10, py+38-bounce, 8, 10);
+                    ctx.fillRect(px+22, py+38-bounce, 8, 10);
+                    break;
+                case 'pigeon':
+                    const flapOffset = Math.sin(animTimer * 10) * 3;
+                    ctx.fillStyle = '#7f8c8d';
+                    ctx.fillRect(px+16, py+20, 8, 12);
+                    ctx.fillStyle = '#95a5a6';
+                    ctx.fillRect(px+18, py+18, 4, 6);
+                    ctx.fillStyle = '#34495e';
+                    ctx.fillRect(px+8, py+22+flapOffset, 8, 3);
+                    ctx.fillRect(px+24, py+22+flapOffset, 8, 3);
+                    ctx.fillStyle = '#e67e22';
+                    ctx.fillRect(px+19, py+24, 2, 3);
+                    break;
+                case 'card':
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#00F5FF';
+                    ctx.fillStyle = '#00F5FF';
+                    ctx.fillRect(px+10, py+15, 20, 14);
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#FFD700';
+                    ctx.fillRect(px+12, py+17, 16, 2);
+                    ctx.fillRect(px+12, py+21, 10, 2);
+                    break;
+                case 'kebab':
+                    ctx.fillStyle = '#f39c12';
+                    ctx.fillRect(px+14, py+12, 12, 20);
+                    ctx.fillStyle = '#27ae60';
+                    ctx.fillRect(px+16, py+15, 8, 3);
+                    ctx.fillStyle = '#e74c3c';
+                    ctx.fillRect(px+16, py+20, 8, 3);
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(px+17, py+10, 6, 3);
+                    break;
+                case 'cap':
+                    ctx.fillStyle = '#e74c3c';
+                    ctx.fillRect(px+10, py+18, 20, 8);
+                    ctx.fillRect(px+8, py+22, 24, 4);
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(px+16, py+20, 8, 2);
+                    break;
+                case 'letter':
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#FF006E';
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(px+12, py+16, 16, 14);
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#FF006E';
+                    ctx.fillRect(px+14, py+19, 12, 1);
+                    ctx.fillRect(px+14, py+22, 12, 1);
+                    ctx.fillRect(px+14, py+25, 8, 1);
+                    break;
+                case 'key':
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#FFBE0B';
+                    ctx.fillStyle = '#FFBE0B';
+                    ctx.beginPath();
+                    ctx.arc(px+15, py+20, 4, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.fillRect(px+18, py+19, 10, 2);
+                    ctx.fillRect(px+26, py+17, 2, 2);
+                    ctx.fillRect(px+26, py+20, 2, 2);
+                    ctx.shadowBlur = 0;
+                    break;
+                case 'foodbag':
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(px+10, py+14, 20, 18);
+                    ctx.fillStyle = '#A0522D';
+                    ctx.fillRect(px+14, py+10, 4, 6);
+                    ctx.fillRect(px+22, py+10, 4, 6);
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(px+16, py+20, 3, 3);
+                    ctx.fillRect(px+21, py+20, 3, 3);
+                    break;
+                case 'metro':
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = '#00F5FF';
+                    ctx.fillStyle = '#00F5FF';
+                    ctx.fillRect(px+8, py+8, 24, 24);
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#0A0E27';
+                    ctx.font = 'bold 20px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('M', px+20, py+28);
+                    ctx.textAlign = 'start';
+                    break;
+                case 'samuel':
+                    ctx.fillStyle = '#FFD700';
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = '#FFD700';
+                    ctx.beginPath();
+                    ctx.arc(px+20, py+15, 10, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#3498db';
+                    ctx.fillRect(px+10, py+25, 20, 20);
+                    ctx.fillStyle = '#2c3e50';
+                    ctx.fillRect(px+8, py+45, 10, 12);
+                    ctx.fillRect(px+22, py+45, 10, 12);
+                    break;
+            }
+        }
+        function updateEnemies() {
+            enemies.forEach(e => {
+                const nextX = e.x + e.dx;
+                if(nextX < 1 || nextX >= GRID_SIZE-1 || map[e.y][nextX] === 1) {
+                    e.dx *= -1;
+                } else {
+                    e.x = nextX;
+                }
+                if(e.x === playerPos.x && e.y === playerPos.y) {
+                    if(score > 0) {
+                        score--;
+                        updateScore();
+                        showMsg("🦅 Le pigeon a volé un indice !");
+                        const originalItems = levels[currentLevel].items;
+                        const randomItem = originalItems[Math.floor(Math.random() * originalItems.length)];
+                        let respawnX, respawnY;
+                        do {
+                            respawnX = Math.floor(Math.random() * (GRID_SIZE-4)) + 2;
+                            respawnY = Math.floor(Math.random() * (GRID_SIZE-4)) + 2;
+                        } while(map[respawnY][respawnX] === 1);
+                        items.push({x: respawnX, y: respawnY, type: randomItem.type, name: randomItem.name});
+                    } else {
+                        showMsg("💥 Aïe ! Sale pigeon !");
+                    }
+                    let backX = playerPos.x - e.dx * 2;
+                    if(backX > 1 && backX < GRID_SIZE-1 && map[playerPos.y][backX] !== 1) {
+                        playerPos.x = backX;
+                    }
+                }
+            });
+        }
+        function draw() {
+            if(!gameActive) return;
+            animTimer += 0.016;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const level = levels[currentLevel];
+            for(let y = 0; y < GRID_SIZE; y++) {
+                for(let x = 0; x < GRID_SIZE; x++) {
+                    if(map[y][x] === 1) {
+                        ctx.fillStyle = level.colorWall;
+                        ctx.fillRect(x*TILE, y*TILE, TILE, TILE);
+                        ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+                        ctx.strokeRect(x*TILE, y*TILE, TILE, TILE);
+                    } else {
+                        ctx.fillStyle = level.colorPath;
+                        ctx.fillRect(x*TILE, y*TILE, TILE, TILE);
+                    }
+                }
+            }
+            const ex = level.exit;
+            if(currentLevel === 1) {
+                drawSprite(ctx, 'metro', ex.x, ex.y);
+            } else {
+                drawSprite(ctx, 'samuel', ex.x, ex.y);
+                ctx.fillStyle = '#FFD700';
+                ctx.font = 'bold 12px Arial';
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#FFD700';
+                ctx.textAlign = 'center';
+                ctx.fillText('SAM', ex.x*TILE+20, ex.y*TILE+48);
+                ctx.textAlign = 'start';
+                if(score === 3) {
+                    const arrowBounce = Math.sin(animTimer * 4) * 5;
+                    ctx.fillStyle = '#39FF14';
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#39FF14';
+                    ctx.beginPath();
+                    ctx.moveTo(ex.x*TILE+20, ex.y*TILE-10-arrowBounce);
+                    ctx.lineTo(ex.x*TILE+15, ex.y*TILE-20-arrowBounce);
+                    ctx.lineTo(ex.x*TILE+25, ex.y*TILE-20-arrowBounce);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            }
+            items.forEach(i => drawSprite(ctx, i.type, i.x, i.y));
+            enemies.forEach(e => drawSprite(ctx, 'pigeon', e.x, e.y));
+            drawSprite(ctx, 'player', playerPos.x, playerPos.y);
+            updateEnemies();
+            requestAnimationFrame(draw);
+        }
+        function startGame() {
+            document.getElementById('phone-container').style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
+            loadLevel(1);
+            gameActive = true;
+            draw();
+            if(window.player && window.player.playVideo) {
+                window.player.playVideo();
+            }
+        }
+        document.addEventListener('keydown', e => {
+            if(!gameActive) return;
+            switch(e.key) {
+                case 'ArrowUp': case 'z': case 'w': movePlayer(0, -1); break;
+                case 'ArrowDown': case 's': movePlayer(0, 1); break;
+                case 'ArrowLeft': case 'q': case 'a': movePlayer(-1, 0); break;
+                case 'ArrowRight': case 'd': movePlayer(1, 0); break;
+            }
+        });
+        let touchStartX = 0, touchStartY = 0;
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, {passive: true});
+        document.addEventListener('touchend', e => {
+            if(!gameActive) return;
+            const dx = e.changedTouches[0].clientX - touchStartX;
+            const dy = e.changedTouches[0].clientY - touchStartY;
+            if(Math.abs(dx) > Math.abs(dy)) {
+                movePlayer(dx > 0 ? 1 : -1, 0);
+            } else {
+                movePlayer(0, dy > 0 ? 1 : -1);
+            }
+        }, {passive: true});
+        var player;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('yt-audio', {
+                height: '0',
+                width: '0',
+                videoId: 'jfKfPfyJRdk',
+                playerVars: {
+                    'autoplay': 0,
+                    'loop': 1,
+                    'playlist': 'jfKfPfyJRdk',
+                    'controls': 0
+                },
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+        function onPlayerReady(event) {}
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                playChat();
+            }, 1500);
+            const btnStart = document.getElementById('btn-start');
+            if(btnStart) {
+                btnStart.addEventListener('click', startGame);
+            }
+        });
+        function scrollToBottom() {
+            const chatBody = document.getElementById('chat-body');
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+        function playChat() {
+            if(msgIndex >= chatMessages.length) { 
+                const btn = document.getElementById('btn-start');
+                if(btn) btn.style.display = 'block'; 
+                scrollToBottom();
+                return; 
+            }
+            const m = chatMessages[msgIndex];
+            const div = document.createElement('div'); 
+            div.className = `msg ${m.s === 'SAMUEL' ? 'right' : 'left'}`;
+            div.innerHTML = `<span class="sender">${m.s}</span>${m.t}`;
+            const chatBody = document.getElementById('chat-body');
+            if(chatBody) {
+                chatBody.appendChild(div);
+                scrollToBottom();
+            }
+            msgIndex++;
+            setTimeout(playChat, 1200); 
+        }
+    </script>
+    <script src="https://www.youtube.com/iframe_api"></script>
 </body>
 </html>
