@@ -25,9 +25,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body { 
-            background: linear-gradient(270deg, #0A0E27, #1A1F3A, #2E3856, #1A1F3A);
-            background-size: 400% 400%;
-            animation: bg-shift 20s ease infinite;
+            background: linear-gradient(135deg, #000000 0%, #0d1b2a 50%, #1b263b 100%);
             margin: 0; overflow: hidden; 
             font-family: 'Rajdhani', 'Courier New', monospace; 
             color: white; 
@@ -35,12 +33,6 @@
             height: 100vh;
             user-select: none;
             position: relative;
-        }
-
-        @keyframes bg-shift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
         }
 
         /* --- SCANLINES + VIGNETTE --- */
@@ -71,82 +63,113 @@
             z-index: 998;
         }
 
-        /* --- TITLE SCREEN --- */
+        /* --- ANIMATED BACKGROUND --- */
+        @keyframes bg-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        body {
+            background: linear-gradient(270deg, #0A0E27, #1A1F3A, #2E3856, #1A1F3A);
+            background-size: 400% 400%;
+            animation: bg-shift 20s ease infinite;
+        }
+
+        /* ===========================
+           📺 TITLE SCREEN
+           =========================== */
         #title-screen {
-            position: absolute; 
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #000000, #1a1f3a);
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(ellipse at center, #000 0%, #000428 100%);
             z-index: 300; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center; 
-            align-items: center;
-            animation: titleFadeOut 1.5s ease-in-out 3s forwards;
-            pointer-events: none;
+            display: flex; flex-direction: column; 
+            justify-content: center; align-items: center;
+            animation: fadeOut 1.5s ease-in-out 3s forwards;
         }
 
         #title-main { 
             font-family: 'Orbitron', monospace;
-            font-size: 90px; 
+            font-size: 120px; 
             font-weight: 900; 
-            background: linear-gradient(45deg, var(--neo-cyan), var(--neo-magenta));
+            background: linear-gradient(45deg, var(--neo-cyan), var(--neo-magenta), var(--neo-yellow));
+            background-size: 200% 200%;
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 60px var(--neo-cyan);
-            animation: titlePulse 2s ease-in-out infinite;
+            text-shadow: 
+                0 0 20px rgba(0, 245, 255, 0.8),
+                0 0 40px rgba(255, 0, 110, 0.6);
+            animation: title-glow 3s ease-in-out infinite, title-shift 8s ease infinite;
+            letter-spacing: 8px;
+        }
+
+        @keyframes title-glow {
+            0%, 100% { filter: brightness(1) drop-shadow(0 0 20px var(--neo-cyan)); }
+            50% { filter: brightness(1.5) drop-shadow(0 0 40px var(--neo-magenta)); }
+        }
+
+        @keyframes title-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         #title-subtitle {
-            font-family: 'Orbitron', monospace;
-            font-size: 60px;
+            font-size: 48px; 
+            color: var(--neo-magenta); 
+            letter-spacing: 12px; 
+            margin-top: 20px;
+            text-shadow: 0 0 30px var(--neo-magenta);
+            animation: pulse-subtitle 2s ease-in-out infinite;
             font-weight: 700;
-            color: var(--neo-yellow);
-            text-shadow: 0 0 40px var(--neo-yellow);
-            margin-top: 10px;
         }
 
-        @keyframes titlePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        @keyframes pulse-subtitle {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
         }
 
-        @keyframes titleFadeOut { 
+        @keyframes fadeOut { 
             to { opacity: 0; visibility: hidden; } 
         }
 
-        /* --- PHONE CONTAINER --- */
+        /* ===========================
+           📱 PHONE INTERFACE
+           =========================== */
         #phone-container {
             position: absolute; 
             width: 380px; 
-            height: 750px;
-            background: linear-gradient(135deg, #1a1f3a, #2e3856);
-            border: 14px solid #0a0e27;
-            border-radius: 45px;
+            height: 760px;
+            background: linear-gradient(135deg, var(--dark-2), var(--dark-3));
+            border: 8px solid var(--dark-1);
+            border-radius: 50px;
             display: flex; 
             flex-direction: column; 
             overflow: hidden;
             z-index: 200; 
             box-shadow: 
-                0 0 80px rgba(0, 245, 255, 0.6),
-                0 0 120px rgba(255, 0, 110, 0.4),
-                inset 0 0 60px rgba(0, 0, 0, 0.8);
+                0 0 60px rgba(0, 245, 255, 0.6),
+                0 0 100px rgba(255, 0, 110, 0.4),
+                inset 0 0 80px rgba(0, 0, 0, 0.8);
             opacity: 0; 
-            animation: phoneFadeIn 1s ease-out 3.5s forwards;
+            transform: scale(0.8) rotateX(10deg);
+            animation: phone-appear 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) 3.5s forwards;
         }
 
-        @keyframes phoneFadeIn { 
-            to { opacity: 1; } 
+        @keyframes phone-appear { 
+            to { opacity: 1; transform: scale(1) rotateX(0deg); } 
         }
 
-        /* Notch iPhone */
+        /* Phone notch */
         #phone-container::before {
             content: '';
             position: absolute;
-            top: 0;
+            top: 10px;
             left: 50%;
             transform: translateX(-50%);
-            width: 150px;
-            height: 30px;
+            width: 120px;
+            height: 25px;
             background: #000;
             border-radius: 0 0 20px 20px;
             z-index: 10;
@@ -154,7 +177,7 @@
 
         #chat-header { 
             background: linear-gradient(135deg, var(--dark-2), var(--dark-3));
-            padding: 45px 20px 20px 20px; 
+            padding: 35px 20px 20px 20px; 
             text-align: center; 
             border-bottom: 2px solid var(--neo-cyan);
             font-weight: 700;
@@ -162,13 +185,12 @@
             letter-spacing: 2px;
             text-shadow: 0 0 10px var(--neo-cyan);
             position: relative;
-            flex-shrink: 0;
         }
 
         #chat-header::after {
             content: '●';
             position: absolute;
-            top: 50px;
+            top: 40px;
             right: 20px;
             color: var(--success);
             font-size: 14px;
@@ -182,13 +204,12 @@
 
         #chat-body { 
             flex: 1; 
-            padding: 20px 20px 120px 20px;
+            padding: 20px; 
             display: flex; 
             flex-direction: column; 
             gap: 14px; 
             background: var(--dark-1);
             overflow-y: auto; 
-            overflow-x: hidden;
         }
 
         #chat-body::-webkit-scrollbar { width: 6px; }
@@ -204,69 +225,86 @@
             border-radius: 20px; 
             font-size: 14px; 
             line-height: 1.5;
-            animation: msgSlideUp 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
         }
 
-        @keyframes msgSlideUp { 
-            from { transform: translateY(20px); opacity: 0; } 
-            to { transform: translateY(0); opacity: 1; } 
+        @keyframes slideUp { 
+            from { transform: translateY(20px) scale(0.9); opacity: 0; } 
+            to { transform: translateY(0) scale(1); opacity: 1; } 
         }
 
         .left { 
-            background: linear-gradient(135deg, #2e3856, #3c4865);
-            align-self: flex-start; 
-            color: #e0e0e0; 
-            border-bottom-left-radius: 4px;
+            background: linear-gradient(135deg, var(--dark-3), var(--dark-2));
+            align-self: flex-start;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-left: 3px solid var(--neo-cyan);
         }
 
         .right { 
-            background: linear-gradient(135deg, #007aff, #0051d5);
-            align-self: flex-end; 
-            color: white;
-            border-bottom-right-radius: 4px;
+            background: linear-gradient(135deg, var(--neo-cyan), var(--neo-purple));
+            align-self: flex-end;
+            color: #fff;
+            font-weight: 600;
+            border-right: 3px solid var(--neo-yellow);
         }
 
         .sender { 
-            font-size: 11px; 
-            color: var(--neo-yellow); 
+            font-size: 10px; 
+            color: var(--neo-yellow);
             margin-bottom: 6px; 
             display: block; 
             font-weight: 700; 
-            text-transform: uppercase;
+            text-transform: uppercase; 
             letter-spacing: 1px;
         }
 
-        #btn-start {
+        #btn-start { 
+            padding: 28px; 
             background: linear-gradient(135deg, var(--success), #2ecc71);
-            color: #000;
-            padding: 20px;
-            text-align: center;
-            font-weight: 900;
-            font-size: 16px;
-            cursor: pointer;
-            display: none;
-            border-radius: 0;
+            text-align: center; 
+            cursor: pointer; 
+            font-weight: 900; 
+            font-size: 20px; 
+            display: none; 
+            border-top: 3px solid var(--neo-yellow);
             text-transform: uppercase;
             letter-spacing: 2px;
-            box-shadow: 0 -4px 20px rgba(57, 255, 20, 0.4);
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #btn-start::before {
+            content: '';
             position: absolute;
-            bottom: 0;
-            width: 100%;
-            z-index: 20;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        #btn-start:hover::before {
+            width: 400px;
+            height: 400px;
         }
 
         #btn-start:hover {
-            background: linear-gradient(135deg, #2ecc71, var(--success));
-            transform: translateY(-2px);
-            box-shadow: 0 -6px 30px rgba(57, 255, 20, 0.6);
+            transform: scale(1.05);
+            box-shadow: 0 0 30px var(--success);
         }
 
-        /* --- GAME CONTAINER --- */
-        #game-container {
+        /* ===========================
+           🎮 GAME CONTAINER
+           =========================== */
+        #game-container { 
+            position: relative; 
             display: none;
-            position: relative;
             animation: game-enter 0.8s ease-out;
         }
 
@@ -290,48 +328,61 @@
         #game-ui {
             position: absolute; 
             top: 20px; 
-            right: 20px;
-            background: rgba(10, 14, 39, 0.95);
+            left: 20px;
+            background: rgba(10, 14, 39, 0.9);
             backdrop-filter: blur(10px);
             padding: 20px 25px;
             border-radius: 20px;
             border: 2px solid var(--neo-cyan);
-            min-width: 240px;
+            min-width: 280px;
             z-index: 10;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
             animation: hud-slide-in 0.6s ease-out;
         }
 
         @keyframes hud-slide-in {
-            from { transform: translateX(100px); opacity: 0; }
+            from { transform: translateX(-100px); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
 
-        .ui-level {
-            font-size: 16px;
-            font-weight: 700;
+        .ui-level { 
             color: var(--neo-yellow);
-            margin-bottom: 12px;
+            font-weight: 900;
+            font-size: 16px;
+            margin-bottom: 10px;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 2px;
             text-shadow: 0 0 10px var(--neo-yellow);
+            animation: level-pulse 2s ease-in-out infinite;
         }
 
-        .ui-score {
-            font-size: 20px;
-            font-weight: 900;
-            color: var(--success);
-            text-shadow: 0 0 15px var(--success);
+        @keyframes level-pulse {
+            0%, 100% { text-shadow: 0 0 10px var(--neo-yellow); }
+            50% { text-shadow: 0 0 20px var(--neo-yellow), 0 0 30px var(--neo-yellow); }
+        }
+
+        .ui-score { 
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
         }
 
         .ui-score span {
-            font-size: 32px;
-            animation: scorePulse 0.5s ease;
+            color: var(--success);
+            font-weight: 900;
+            font-size: 26px;
+            text-shadow: 0 0 10px var(--success);
+            transition: all 0.3s ease;
         }
 
-        @keyframes scorePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.3); color: var(--neo-yellow); }
+        .ui-score span.score-update {
+            animation: score-pop 0.5s ease;
+        }
+
+        @keyframes score-pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5); color: var(--neo-yellow); }
+            100% { transform: scale(1); }
         }
 
         #msg-popup { 
@@ -343,9 +394,9 @@
             color: var(--danger);
             font-weight: 700;
             min-height: 20px;
-            font-size: 13px;
+            font-size: 14px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
             animation: msg-flash 0.5s ease;
         }
 
@@ -354,7 +405,9 @@
             50% { opacity: 0.5; background: rgba(255, 0, 60, 0.4); }
         }
 
-        /* --- POPUPS --- */
+        /* ===========================
+           💬 POPUPS
+           =========================== */
         #main-popup {
             position: absolute; 
             top: 50%; 
@@ -373,206 +426,115 @@
                 inset 0 0 60px rgba(0, 0, 0, 0.5);
             border-radius: 20px;
             min-width: 350px;
-            max-width: 500px;
             animation: popup-enter 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
 
         @keyframes popup-enter {
-            from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            from { transform: translate(-50%, -50%) scale(0.5) rotate(-10deg); opacity: 0; }
+            to { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
         }
 
-        #main-popup h3 {
-            font-size: 26px;
-            margin-bottom: 15px;
+        #main-popup h3 { 
+            margin-top: 0;
+            margin-bottom: 20px;
             color: var(--neo-yellow);
+            font-size: 28px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
             text-shadow: 0 0 20px var(--neo-yellow);
+            font-weight: 900;
         }
 
-        #main-popup p {
-            font-size: 16px;
+        #main-popup p { 
+            font-size: 18px;
             line-height: 1.6;
+            color: #e0e0e0;
+            font-weight: 500;
         }
 
         #letter-popup {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.95), rgba(100, 50, 200, 0.95));
-            backdrop-filter: blur(15px);
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%) rotate(-2deg);
+            background: linear-gradient(135deg, #fff 0%, #f5f5f5 100%);
+            color: #000;
             padding: 40px;
-            border: 4px solid var(--neo-magenta);
-            border-radius: 20px;
-            z-index: 150;
+            border: 6px double var(--danger);
+            z-index: 101;
             display: none;
             text-align: center;
             box-shadow: 
-                0 0 60px var(--neo-magenta),
-                inset 0 0 80px rgba(0, 0, 0, 0.5);
-            animation: popup-enter 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            min-width: 400px;
+                0 0 60px var(--danger),
+                0 20px 60px rgba(0, 0, 0, 0.8);
+            border-radius: 8px;
+            font-family: 'Courier New', serif;
+            min-width: 380px;
+            animation: letter-enter 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
 
-        #letter-popup h3 {
-            font-size: 28px;
-            margin-bottom: 20px;
-            color: var(--neo-magenta);
-            text-shadow: 0 0 20px var(--neo-magenta);
+        @keyframes letter-enter {
+            from { transform: translate(-50%, -50%) rotate(90deg) scale(0); opacity: 0; }
+            to { transform: translate(-50%, -50%) rotate(-2deg) scale(1); opacity: 1; }
         }
 
-        #letter-popup p {
-            font-size: 18px;
-            line-height: 1.8;
-            font-style: italic;
-            color: #fff;
-        }
-
-        /* --- METRO TRANSITION --- */
-        #metro-transition {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: #000;
-            z-index: 500;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            animation: metro-fade-in 0.5s ease;
-        }
-
-        @keyframes metro-fade-in {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .metro-screen {
-            text-align: center;
-            position: relative;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        .metro-tunnel {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: repeating-linear-gradient(
-                90deg,
-                #1a1a1a 0px,
-                #0a0a0a 50px,
-                #1a1a1a 100px
-            );
-            animation: tunnel-move 1s linear infinite;
-        }
-
-        @keyframes tunnel-move {
-            from { background-position: 0 0; }
-            to { background-position: 100px 0; }
-        }
-
-        .metro-train {
-            position: absolute;
-            bottom: 20%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 400px;
-            height: 200px;
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            border-radius: 20px;
-            box-shadow: 0 0 80px rgba(231, 76, 60, 0.8);
-            animation: train-shake 0.1s infinite;
-        }
-
-        @keyframes train-shake {
-            0%, 100% { transform: translateX(-50%) translateY(0); }
-            50% { transform: translateX(-50%) translateY(2px); }
-        }
-
-        .metro-train::before {
-            content: '';
-            position: absolute;
-            top: 30px;
-            left: 30px;
-            width: 80px;
-            height: 60px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-        }
-
-        .metro-train::after {
-            content: '';
-            position: absolute;
-            top: 30px;
-            right: 30px;
-            width: 80px;
-            height: 60px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-        }
-
-        .metro-text {
-            position: absolute;
-            top: 30%;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 48px;
+        #letter-popup h3 { 
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: var(--danger);
+            font-size: 26px;
+            text-decoration: underline;
             font-weight: 900;
-            color: var(--neo-cyan);
-            text-shadow: 0 0 40px var(--neo-cyan);
-            animation: text-pulse 1s ease-in-out infinite;
         }
 
-        @keyframes text-pulse {
-            0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
-            50% { opacity: 0.7; transform: translateX(-50%) scale(1.1); }
+        #letter-popup p { 
+            font-size: 19px;
+            font-weight: 600;
+            font-style: italic;
+            line-height: 1.8;
         }
 
-        .metro-station {
-            position: absolute;
-            bottom: 15%;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 24px;
-            color: var(--neo-yellow);
-            text-shadow: 0 0 20px var(--neo-yellow);
-        }
-
-        /* --- END SCREEN --- */
+        /* ===========================
+           🏆 END SCREEN
+           =========================== */
         #end-screen {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: linear-gradient(135deg, #0a0e27, #1a1f3a);
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            background: radial-gradient(ellipse at center, rgba(10,14,39,0.98) 0%, rgba(0,0,0,0.99) 100%);
+            backdrop-filter: blur(5px);
+            z-index: 400;
             display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 400;
-            animation: end-fade-in 1s ease;
+            text-align: center;
+            animation: end-enter 1s ease-out;
         }
 
-        @keyframes end-fade-in {
+        @keyframes end-enter {
             from { opacity: 0; }
             to { opacity: 1; }
         }
 
         #end-screen h1 {
-            font-size: 56px;
+            color: var(--success);
+            font-size: 64px;
             font-weight: 900;
-            background: linear-gradient(45deg, var(--success), var(--neo-yellow));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 40px var(--success);
-            margin-bottom: 20px;
-            animation: end-title-bounce 1s ease-out;
+            text-shadow: 
+                0 0 20px var(--success),
+                0 0 40px var(--success),
+                0 0 60px var(--success);
+            margin-bottom: 30px;
+            letter-spacing: 4px;
+            animation: end-title-glow 2s ease-in-out infinite;
         }
 
-        @keyframes end-title-bounce {
-            0% { transform: translateY(-100px); opacity: 0; }
-            60% { transform: translateY(10px); }
-            100% { transform: translateY(0); opacity: 1; }
+        @keyframes end-title-glow {
+            0%, 100% { text-shadow: 0 0 20px var(--success); }
+            50% { text-shadow: 0 0 40px var(--success), 0 0 80px var(--success); }
         }
 
         #samuel-img { 
@@ -656,347 +618,419 @@
 
         button.replay-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 40px rgba(255, 0, 60, 0.8);
+            box-shadow: 0 8px 40px rgba(255, 0, 60, 0.8);
+        }
+
+        /* ===========================
+           📱 RESPONSIVE
+           =========================== */
+        @media (max-width: 850px) {
+            #title-main { font-size: 60px; }
+            #title-subtitle { font-size: 24px; }
+            #phone-container { width: 90vw; height: 90vh; }
+            canvas { width: 95vw !important; height: 95vw !important; }
         }
 
     </style>
 </head>
 <body>
-    <div class="scanlines"></div>
 
-    <!-- TITLE SCREEN -->
+    <div class="scanlines"></div>
+    <div id="youtube-audio" style="position:absolute; top:-9999px;"></div>
+
+    <!-- TITLE -->
     <div id="title-screen">
-        <div id="title-main">MISSION</div>
-        <div id="title-subtitle">SAMUEL</div>
+        <div id="title-main">PARIS</div>
+        <div id="title-subtitle">BY NIGHT</div>
     </div>
 
-    <!-- PHONE INTRO -->
+    <!-- PHONE -->
     <div id="phone-container">
         <div id="chat-header">Les Chipies (4)</div>
         <div id="chat-body"></div>
-        <div id="btn-start">🔫 SAUVER LE SOLDAT SAMUEL</div>
+        <div id="btn-start">🚀 SAUVER LE SOLDAT SAMUEL</div>
     </div>
 
     <!-- GAME -->
     <div id="game-container">
-        <canvas id="game-canvas" width="800" height="800"></canvas>
-        
         <div id="game-ui">
-            <div class="ui-level" id="level-name">PLACE DES VOSGES</div>
+            <div class="ui-level" id="level-name">NIVEAU 1</div>
             <div class="ui-score">Indices : <span id="score">0</span> / 3</div>
             <div id="msg-popup"></div>
         </div>
-
         <div id="main-popup"></div>
         <div id="letter-popup">
-            <h3>💌 Lettre d'Amour</h3>
-            <p><em>"Mon Alexis,<br>Tu me manques déjà...<br>Bisous, Samuel 💕"</em></p>
+            <h3>💌 Lettre d'Alexis 💌</h3>
+            <p>Mon Sam chéri, rejoins-moi vite.<br>Le Kebab refroidit... Je t'attends. ❤️</p>
         </div>
+        <canvas id="gameCanvas" width="800" height="800"></canvas>
     </div>
 
-    <!-- METRO TRANSITION -->
-    <div id="metro-transition">
-        <div class="metro-screen">
-            <div class="metro-tunnel"></div>
-            <div class="metro-train"></div>
-            <div class="metro-text">EN ROUTE VERS PIGALLE</div>
-            <div class="metro-station">Prochaine station ➜ Pigalle</div>
-        </div>
-    </div>
-
-    <!-- END SCREEN -->
+    <!-- END -->
     <div id="end-screen">
-        <h1>🎉 MISSION ACCOMPLIE ! 🎉</h1>
-        <img id="samuel-img" src="https://i.pravatar.cc/280?img=12" alt="Samuel">
-        <div class="end-text-box">
-            <p><strong>Félicitations !</strong> Grâce à toi, Samuel a récupéré toutes ses affaires et a pu rejoindre Alexis à temps ! 💕</p>
-            <p>Les Chipies te remercient pour ton aide précieuse ! 🙌</p>
+        <h1>✨ SAMUEL RETROUVÉ ! ✨</h1>
+        <img id="samuel-img" src="samuel.jpg" alt="Samuel" onerror="this.style.display='none';">
+        <div class="end-text-box"> 
+            Wesh l'équipe... J'avais plus de batterie.<br>
+            Je dormais sur un banc.<br>
+            C'était pas la police, juste des pigeons qui m'attaquaient.<br>
+            <b>Paris be like !</b>
         </div>
         <button class="replay-btn" onclick="location.reload()">🔄 REJOUER</button>
     </div>
 
-    <div id="yt-audio"></div>
-
     <script>
-        const canvas = document.getElementById('game-canvas');
-        const ctx = canvas.getContext('2d');
+        const TILE = 40; 
         const GRID_SIZE = 20;
-        const TILE = 40;
+        
+        // --- AUDIO ---
+        var player;
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('youtube-audio', {
+                height: '0', width: '0', videoId: 'Vol9dZ-t93s',
+                playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': 'Vol9dZ-t93s' }
+            });
+        }
+
+        // --- DATA ---
+        const chatMessages = [
+            { s: 'Mathis', t: "Il est passé où Samuel ?" },
+            { s: 'Samuel', t: "Oh les gars ! C'est Chaud là !" },
+            { s: 'Samuel', t: "La police me coursent !!" },
+            { s: 'Inès', t: "Mdr arrête Sam, t'as encore bu avoue 😂" },
+            { s: 'Samuel', t: "Non ! J'étais Place des Vosges, puis j'ai fui vers Pigalle." },
+            { s: 'Lily', t: "Encore..." },
+            { s: 'Samuel', t: "J'ai paumé mes affaires. Attention aux pigeons, ils sont violents." },
+            { s: 'Moi', t: "Ok j'arrive. 💪" }
+        ];
 
         let currentLevel = 1;
         let map = [];
-        let playerPos = {x: 10, y: 18};
         let items = [];
         let enemies = [];
+        let playerPos = {x: 0, y: 0};
         let score = 0;
         let gameActive = false;
         let animTimer = 0;
-        let player = null;
 
-        // --- MESSAGES CHAT ---
-        const chatMessages = [
-            {s: 'SAMUEL', t: 'Oh les gars ! C\'est chaud là !'},
-            {s: 'SAMUEL', t: 'La police me coursent !!'},
-            {s: 'INÈS', t: 'Mdr arrête Sam, t\'as encore bu avaué 😂'},
-            {s: 'SAMUEL', t: 'Non ! J\'étais Place des Vosges, puis j\'ai fui vers Pigalle.'},
-            {s: 'LILY', t: 'Encore...'},
-            {s: 'SAMUEL', t: 'J\'ai paumé mes affaires. Attention aux pigeons, ils sont violents.'}
-        ];
-
-        // --- LEVELS ---
+        // CONFIG NIVEAUX
         const levels = {
             1: {
-                name: "🏛️ PLACE DES VOSGES",
-                exitName: "le Métro",
-                colorWall: '#8b0000',
-                colorPath: '#c0c0c0',
-                colorGround: '#2ecc71',
+                name: "🌳 PLACE DES VOSGES",
+                colorWall: '#a52a2a', 
+                colorGround: '#27ae60', 
+                colorPath: '#ecf0f1',
                 items: [
-                    {x: 4, y: 5, type: 'card', name: "💳 Carte Bancaire"},
-                    {x: 15, y: 4, type: 'kebab', name: "🥙 Kebab Froid"},
-                    {x: 5, y: 15, type: 'cap', name: "🧢 Casquette"}
+                    {x: 4, y: 4, type: 'card', name: '💳 Carte Bancaire'},
+                    {x: 15, y: 4, type: 'kebab', name: '🥙 Kebab Sauce Blanche'},
+                    {x: 4, y: 15, type: 'cap', name: '🧢 Casquette Mbappé'}
                 ],
-                enemies: [
-                    {x:6, y:6, dx:1}, 
-                    {x:13, y:13, dx:-1}, 
-                    {x:6, y:13, dx:1}, 
-                    {x:12, y:5, dx:-1}
-                ],
-                start: {x: 10, y: 18},
-                exit: {x: 10, y: 1}
+                enemies: [{x: 8, y: 8, dx: 1}, {x: 12, y: 12, dx: -1}], 
+                start: {x: 10, y: 18}, 
+                exit: {x: 10, y: 0}, 
+                exitName: "MÉTRO"
             },
             2: {
                 name: "🌃 PIGALLE (LA NUIT)",
-                exitName: "Samuel",
-                colorWall: '#1a1a2e',
-                colorPath: '#2c2c3e',
-                colorGround: '#0f0f1e',
+                colorWall: '#2c2c2c', 
+                colorGround: '#1a1a1a', 
+                colorPath: '#333',
                 items: [
-                    {x: 2, y: 4, type: 'letter', name: "💌 Lettre d'Amour"},
-                    {x: 17, y: 4, type: 'key', name: "🔑 Clé Mystère"},
-                    {x: 10, y: 10, type: 'foodbag', name: "🛍️ Sac de Courses"}
+                    {x: 3, y: 3, type: 'letter', name: "💌 Lettre d'amour d'Alexis"},
+                    {x: 16, y: 3, type: 'key', name: "🔑 Clé d'Angèle"},
+                    {x: 16, y: 16, type: 'foodbag', name: "🛍️ Sac de nourriture"}
                 ],
                 enemies: [
-                    {x:5, y:8, dx:1}, 
-                    {x:14, y:8, dx:-1}, 
-                    {x:5, y:12, dx:1}, 
-                    {x:14, y:12, dx:-1},
-                    {x:10, y:15, dx:1}
+                    {x: 5, y: 5, dx: 1}, 
+                    {x: 15, y: 15, dx: -1}, 
+                    {x: 5, y: 15, dx: 1}, 
+                    {x: 10, y: 10, dx: 1}
                 ],
-                start: {x: 10, y: 18},
-                exit: {x: 10, y: 10}
+                start: {x: 10, y: 18}, 
+                exit: {x: 10, y: 9}, 
+                exitName: "SAMUEL"
             }
         };
 
-        // --- MAP GENERATION ---
-        function generateMap(lvl) {
-            const m = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
-            
-            if(lvl === 1) { // Place des Vosges
-                for(let y=0; y<GRID_SIZE; y++) {
-                    for(let x=0; x<GRID_SIZE; x++) {
-                        if(y===0 || y===GRID_SIZE-1 || x===0 || x===GRID_SIZE-1) m[y][x] = 1;
-                        else if(y===1 || y===GRID_SIZE-2 || x===1 || x===GRID_SIZE-2) m[y][x] = 2;
-                    }
-                }
-                m[1][10] = 0; // Métro
-            } else { // Pigalle
-                for(let y=0; y<GRID_SIZE; y++) {
-                    for(let x=0; x<GRID_SIZE; x++) {
-                        if(y<4 || y>15) m[y][x] = 1;
-                        else if(x<4 || x>15) m[y][x] = 1;
-                        else if(x>=4 && x<=6 && y>=7 && y<=9) m[y][x] = 1;
-                        else if(x>=13 && x<=15 && y>=7 && y<=9) m[y][x] = 1;
-                        else if(x>=4 && x<=6 && y>=11 && y<=13) m[y][x] = 1;
-                        else if(x>=13 && x<=15 && y>=11 && y<=13) m[y][x] = 1;
-                        else m[y][x] = (x===4 || x===15 || y===4 || y===15) ? 2 : 0;
-                    }
-                }
-            }
-            return m;
-        }
+        const ctx = document.getElementById('gameCanvas').getContext('2d');
+        ctx.imageSmoothingEnabled = false;
 
-        // --- SPRITES AMÉLIORÉS ---
+        // --- SPRITES (AMÉLIORÉS) ---
         function drawSprite(ctx, type, x, y) {
-            const px = x * TILE;
+            const px = x * TILE; 
             const py = y * TILE;
             
-            // Ombre portée
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-            ctx.beginPath();
-            ctx.ellipse(px+20, py+35, 12, 5, 0, 0, Math.PI*2);
-            ctx.fill();
-
-            switch(type) {
-                case 'player':
-                    const bounce = Math.sin(animTimer * 4) * 2;
-                    
-                    // Glow
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = '#00F5FF';
-                    
-                    // Corps
-                    ctx.fillStyle = '#00F5FF';
-                    ctx.fillRect(px+12, py+18-bounce, 16, 16);
-                    
-                    // Tête
-                    ctx.fillStyle = '#FFD700';
-                    ctx.beginPath();
-                    ctx.arc(px+20, py+13-bounce, 8, 0, Math.PI*2);
-                    ctx.fill();
-                    
-                    ctx.shadowBlur = 0;
-                    
-                    // Yeux
-                    ctx.fillStyle = '#000';
-                    ctx.fillRect(px+17, py+11-bounce, 2, 2);
-                    ctx.fillRect(px+21, py+11-bounce, 2, 2);
-                    break;
-
-                case 'pigeon':
-                    const flap = Math.sin(animTimer * 6) * 3;
-                    
-                    // Corps
-                    ctx.fillStyle = '#999';
-                    ctx.beginPath();
-                    ctx.ellipse(px+20, py+22, 10, 8, 0, 0, Math.PI*2);
-                    ctx.fill();
-                    
-                    // Tête
-                    ctx.fillStyle = '#888';
-                    ctx.beginPath();
-                    ctx.arc(px+20, py+16, 6, 0, Math.PI*2);
-                    ctx.fill();
-                    
-                    // Bec
-                    ctx.fillStyle = '#f39c12';
-                    ctx.beginPath();
-                    ctx.moveTo(px+25, py+16);
-                    ctx.lineTo(px+30, py+16);
-                    ctx.lineTo(px+27, py+18);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    // Ailes
-                    ctx.fillStyle = '#666';
-                    ctx.beginPath();
-                    ctx.ellipse(px+12, py+22+flap, 8, 4, -0.5, 0, Math.PI*2);
-                    ctx.fill();
-                    ctx.beginPath();
-                    ctx.ellipse(px+28, py+22+flap, 8, 4, 0.5, 0, Math.PI*2);
-                    ctx.fill();
-                    
-                    // Yeux
-                    ctx.fillStyle = '#FF003C';
-                    ctx.fillRect(px+18, py+15, 2, 2);
-                    ctx.fillRect(px+22, py+15, 2, 2);
-                    break;
-
-                case 'card':
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = '#00F5FF';
-                    ctx.fillStyle = '#00F5FF';
-                    ctx.fillRect(px+10, py+15, 20, 14);
-                    ctx.shadowBlur = 0;
-                    ctx.fillStyle = '#FFD700';
-                    ctx.fillRect(px+12, py+17, 16, 2);
-                    ctx.fillRect(px+12, py+21, 10, 2);
-                    break;
-
-                case 'kebab':
-                    ctx.fillStyle = '#f39c12';
-                    ctx.fillRect(px+14, py+12, 12, 20);
-                    ctx.fillStyle = '#27ae60';
-                    ctx.fillRect(px+16, py+15, 8, 3);
-                    ctx.fillStyle = '#e74c3c';
-                    ctx.fillRect(px+16, py+20, 8, 3);
-                    ctx.fillStyle = '#8B4513';
-                    ctx.fillRect(px+17, py+10, 6, 3);
-                    break;
-
-                case 'cap':
-                    ctx.fillStyle = '#e74c3c';
-                    ctx.fillRect(px+10, py+18, 20, 8);
-                    ctx.fillRect(px+8, py+22, 24, 4);
-                    ctx.fillStyle = '#fff';
-                    ctx.fillRect(px+16, py+20, 8, 2);
-                    break;
-
-                case 'letter':
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = '#FF006E';
-                    ctx.fillStyle = '#fff';
-                    ctx.fillRect(px+12, py+16, 16, 12);
-                    ctx.shadowBlur = 0;
-                    ctx.fillStyle = '#FF006E';
-                    ctx.fillRect(px+14, py+20, 12, 1);
-                    ctx.fillRect(px+14, py+22, 12, 1);
-                    ctx.fillRect(px+14, py+24, 8, 1);
-                    break;
-
-                case 'key':
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = '#FFBE0B';
-                    ctx.fillStyle = '#FFBE0B';
-                    ctx.beginPath();
-                    ctx.arc(px+15, py+20, 5, 0, Math.PI*2);
-                    ctx.fill();
-                    ctx.fillRect(px+18, py+18, 10, 4);
-                    ctx.shadowBlur = 0;
-                    ctx.fillRect(px+26, py+16, 2, 2);
-                    ctx.fillRect(px+26, py+20, 2, 2);
-                    break;
-
-                case 'foodbag':
-                    ctx.fillStyle = '#8B5CF6';
-                    ctx.fillRect(px+12, py+16, 16, 16);
-                    ctx.fillStyle = '#fff';
-                    ctx.font = 'bold 14px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('🍎', px+20, py+28);
-                    ctx.textAlign = 'start';
-                    break;
-
-                case 'metroExit':
-                    const pulse = Math.sin(animTimer * 3) * 5;
-                    ctx.shadowBlur = 20 + pulse;
-                    ctx.shadowColor = '#39FF14';
-                    ctx.fillStyle = '#39FF14';
-                    ctx.fillRect(px+8, py+8, 24, 24);
-                    ctx.shadowBlur = 0;
-                    ctx.fillStyle = '#000';
-                    ctx.font = 'bold 16px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('M', px+20, py+26);
-                    ctx.textAlign = 'start';
-                    break;
+            if (type === 'card') {
+                // Carte bancaire avec reflet
+                const grad = ctx.createLinearGradient(px+8, py+10, px+32, py+26);
+                grad.addColorStop(0, '#2980b9');
+                grad.addColorStop(1, '#3498db');
+                ctx.fillStyle = grad;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#3498db';
+                ctx.fillRect(px+8, py+10, 24, 16);
+                ctx.shadowBlur = 0;
+                
+                ctx.fillStyle = '#f1c40f';
+                ctx.fillRect(px+10, py+14, 8, 6);
+                ctx.fillStyle = '#000';
+                ctx.fillRect(px+8, py+12, 24, 2);
+                
+                // Brillance
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.fillRect(px+10, py+11, 20, 1);
+            } 
+            else if (type === 'kebab') {
+                // Kebab avec ombre
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowOffsetY = 3;
+                
+                ctx.fillStyle = '#e67e22';
+                ctx.beginPath();
+                ctx.ellipse(px+20, py+20, 10, 14, 0.2, 0, Math.PI*2);
+                ctx.fill();
+                
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetY = 0;
+                
+                ctx.fillStyle = '#ecf0f1';
+                ctx.fillRect(px+16, py+10, 8, 10);
+                ctx.fillStyle = '#c0392b';
+                ctx.fillRect(px+18, py+20, 4, 4);
+                ctx.fillStyle = '#2ecc71';
+                ctx.fillRect(px+17, py+17, 6, 2);
+            } 
+            else if (type === 'cap') {
+                // Casquette PSG
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(px+20, py+18, 12, 0, Math.PI, true);
+                ctx.fill();
+                
+                ctx.fillStyle = '#e74c3c';
+                ctx.fillRect(px+15, py+18, 20, 5);
+                
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 9px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('PSG', px+20, py+17);
+                ctx.textAlign = 'start';
+            } 
+            else if (type === 'key') {
+                // Clé dorée avec brillance
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#f1c40f';
+                ctx.fillStyle = '#f1c40f';
+                ctx.fillRect(px+15, py+10, 10, 10);
+                ctx.fillRect(px+18, py+20, 4, 15);
+                ctx.fillRect(px+22, py+30, 6, 4);
+                ctx.fillRect(px+22, py+27, 6, 2);
+                ctx.shadowBlur = 0;
+            } 
+            else if (type === 'foodbag') {
+                // Sac de courses
+                ctx.fillStyle = '#8e44ad';
+                ctx.fillRect(px+10, py+15, 20, 20);
+                
+                ctx.fillStyle = '#2ecc71';
+                ctx.fillRect(px+12, py+10, 5, 5);
+                ctx.fillStyle = '#e74c3c';
+                ctx.fillRect(px+20, py+10, 5, 5);
+                
+                ctx.strokeStyle = '#6c3483';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(px+10, py+15, 20, 20);
+                ctx.lineWidth = 1;
+            } 
+            else if (type === 'letter') {
+                // Lettre avec cœur
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(px+8, py+12, 24, 16);
+                
+                ctx.strokeStyle = '#e74c3c';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(px+8, py+12, 24, 16);
+                
+                ctx.fillStyle = '#e74c3c';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('❤️', px+20, py+24);
+                ctx.textAlign = 'start';
+                ctx.lineWidth = 1;
+            } 
+            else if (type === 'pigeon') {
+                // Pigeon animé avec ombre
+                let bounce = Math.sin(animTimer) * 3;
+                
+                // Ombre
+                ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                ctx.beginPath();
+                ctx.ellipse(px+20, py+35, 12, 4, 0, 0, Math.PI*2);
+                ctx.fill();
+                
+                // Corps
+                ctx.fillStyle = '#7f8c8d';
+                ctx.beginPath();
+                ctx.arc(px+20, py+20+bounce, 10, 0, Math.PI*2);
+                ctx.fill();
+                
+                // Tête
+                ctx.fillStyle = '#bdc3c7';
+                ctx.beginPath();
+                ctx.arc(px+20, py+15+bounce, 6, 0, Math.PI*2);
+                ctx.fill();
+                
+                // Bec
+                ctx.fillStyle = '#f39c12';
+                ctx.beginPath();
+                ctx.moveTo(px+26, py+15+bounce);
+                ctx.lineTo(px+32, py+16+bounce);
+                ctx.lineTo(px+26, py+17+bounce);
+                ctx.fill();
+                
+                // Œil (rouge méchant)
+                ctx.fillStyle = '#FF003C';
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = '#FF003C';
+                ctx.beginPath();
+                ctx.arc(px+24, py+13+bounce, 2, 0, Math.PI*2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                // Aile
+                ctx.fillStyle = '#95a5a6';
+                ctx.beginPath();
+                ctx.ellipse(px+16, py+22+bounce, 8, 4, -0.5, 0, Math.PI*2);
+                ctx.fill();
+            } 
+            else if (type === 'player') {
+                // Joueur amélioré avec animation
+                const bob = Math.sin(animTimer / 2) * 2;
+                
+                // Ombre
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.beginPath();
+                ctx.ellipse(px+20, py+35, 12, 5, 0, 0, Math.PI*2);
+                ctx.fill();
+                
+                // Corps
+                ctx.fillStyle = '#3498db';
+                ctx.fillRect(px+10, py+15+bob, 20, 18);
+                
+                // Tête
+                ctx.fillStyle = '#f1c40f';
+                ctx.beginPath();
+                ctx.arc(px+20, py+12+bob, 10, 0, Math.PI*2);
+                ctx.fill();
+                
+                // Yeux
+                ctx.fillStyle = '#000';
+                ctx.fillRect(px+16, py+10+bob, 3, 3);
+                ctx.fillRect(px+21, py+10+bob, 3, 3);
+                
+                // Sourire
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(px+20, py+14+bob, 5, 0, Math.PI);
+                ctx.stroke();
+                ctx.lineWidth = 1;
+            } 
+            else if (type === 'flower') {
+                // Fleur
+                ctx.fillStyle = '#2ecc71';
+                ctx.fillRect(px+19, py+25, 2, 10);
+                
+                ctx.fillStyle = (x+y)%2===0 ? '#e74c3c' : '#fff';
+                ctx.beginPath();
+                ctx.arc(px+20, py+22, 7, 0, Math.PI*2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#f1c40f';
+                ctx.beginPath();
+                ctx.arc(px+20, py+22, 3, 0, Math.PI*2);
+                ctx.fill();
+            } 
+            else if (type === 'bench') {
+                // Banc
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(px+5, py+10, 30, 10);
+                ctx.fillStyle = '#A0522D';
+                ctx.fillRect(px+5, py+12, 30, 2);
+                ctx.fillRect(px+5, py+16, 30, 2);
+            } 
+            else if (type === 'metroExit') {
+                // Entrée métro stylée
+                ctx.fillStyle = '#2c3e50';
+                ctx.fillRect(px, py+15, TILE, TILE-15);
+                
+                ctx.fillStyle = '#34495e';
+                for(let i=0; i<3; i++) {
+                    ctx.fillRect(px, py+15 + i*6, TILE, 2);
+                }
+                
+                // Panneau M avec glow
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = '#f1c40f';
+                ctx.fillStyle = '#f1c40f';
+                ctx.beginPath();
+                ctx.arc(px+20, py+5, 14, 0, Math.PI*2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                ctx.strokeStyle = '#f39c12';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(px+20, py+5, 14, 0, Math.PI*2);
+                ctx.stroke();
+                
+                ctx.fillStyle = '#2980b9';
+                ctx.font = 'bold 18px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('M', px+20, py+10);
+                ctx.textAlign = 'start';
+                ctx.lineWidth = 1;
             }
         }
 
-        // --- POPUP ---
-        function showPopup(html, duration = 3000) {
-            const popup = document.getElementById('main-popup');
-            popup.innerHTML = html;
-            popup.style.display = 'block';
-            setTimeout(() => popup.style.display = 'none', duration);
-        }
-
-        // --- METRO ANIMATION ---
-        function showMetroTransition() {
-            const metro = document.getElementById('metro-transition');
-            metro.style.display = 'flex';
-            
-            setTimeout(() => {
-                metro.style.display = 'none';
-                loadLevel(2);
-            }, 3000);
-        }
-
-        // --- LOAD LEVEL ---
+        // --- GAME LOGIC ---
         function loadLevel(lvlIdx) {
             currentLevel = lvlIdx;
-            map = generateMap(lvlIdx);
             const data = levels[lvlIdx];
+            map = [];
+            
+            // INIT MAP
+            for(let y=0; y<GRID_SIZE; y++) {
+                let row = [];
+                for(let x=0; x<GRID_SIZE; x++) {
+                    let type = 0; // Sol
+                    
+                    if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) {
+                        type = 1; // Murs
+                    }
+                    
+                    if (lvlIdx === 1) { // VOSGES
+                        if (x === 10 && y === 0) type = 2; // Metro
+                        else if (x===2 || x===GRID_SIZE-3 || y===2 || y===GRID_SIZE-3) type = 2;
+                        else if (x===GRID_SIZE/2 && y===GRID_SIZE/2) type = 2;
+                    } 
+                    else if (lvlIdx === 2) { // PIGALLE
+                        if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) type = 1;
+                        else if (x===2 || x===GRID_SIZE-3 || y===2 || y===GRID_SIZE-3 || x===GRID_SIZE/2 || y===GRID_SIZE/2) type = 2;
+                        else type = 0;
+                    }
+                    
+                    row.push(type);
+                }
+                map.push(row);
+            }
+
             items = JSON.parse(JSON.stringify(data.items));
             enemies = JSON.parse(JSON.stringify(data.enemies));
             playerPos = {...data.start};
@@ -1005,16 +1039,13 @@
             document.getElementById('level-name').innerText = data.name;
             document.getElementById('score').innerText = '0';
             
-            if(lvlIdx === 2) {
-                showMsg("🌃 Sam est à Pigalle !");
-            }
+            if(lvlIdx === 2) showMsg("🌃 Sam est à Pigalle !");
         }
 
         function startGame() {
             document.getElementById('phone-container').style.display = 'none';
             document.getElementById('game-container').style.display = 'block';
             
-            // Musique
             if(player && player.playVideo) { 
                 player.unMute(); 
                 player.setVolume(50); 
@@ -1035,19 +1066,16 @@
             requestAnimationFrame(gameLoop);
         }
 
-        function updateScore() {
-            document.getElementById('score').innerText = score;
-        }
-
-        // --- ENEMIES AI ---
         function updateEnemies() {
+            if (Math.floor(animTimer) % 10 !== 0) return;
+            
             enemies.forEach(e => {
-                const nextX = e.x + e.dx;
+                let nextX = e.x + e.dx;
                 
-                if(nextX < 2 || nextX >= GRID_SIZE-2 || map[e.y][nextX] === 1) {
+                if (nextX < 0 || nextX >= GRID_SIZE || map[e.y][nextX] === 1) {
                     e.dx *= -1;
                 } else {
-                    e.x = nextX;
+                    e.x += e.dx;
                 }
 
                 // Collision avec joueur
@@ -1060,18 +1088,7 @@
                         // Respawn item
                         const originalItems = levels[currentLevel].items;
                         const randomItem = originalItems[Math.floor(Math.random() * originalItems.length)];
-                        let respawnX, respawnY;
-                        do {
-                            respawnX = Math.floor(Math.random() * (GRID_SIZE-4)) + 2;
-                            respawnY = Math.floor(Math.random() * (GRID_SIZE-4)) + 2;
-                        } while(map[respawnY][respawnX] === 1);
-                        
-                        items.push({
-                            x: respawnX, 
-                            y: respawnY, 
-                            type: randomItem.type, 
-                            name: randomItem.name
-                        });
+                        items.push({x: 10, y: 10, type: randomItem.type, name: randomItem.name});
                     } else {
                         showMsg("💥 Aïe ! Sale pigeon !");
                     }
@@ -1085,42 +1102,66 @@
             });
         }
 
-        // --- MOVE PLAYER ---
+        function updateScore() {
+            const scoreEl = document.getElementById('score');
+            scoreEl.innerText = score;
+            scoreEl.classList.add('score-update');
+            setTimeout(() => scoreEl.classList.remove('score-update'), 500);
+        }
+
+        let popupTimeout;
+        function showPopup(html, duration = 3000) {
+            const popup = document.getElementById('main-popup');
+            popup.innerHTML = html;
+            popup.style.display = 'block';
+            clearTimeout(popupTimeout);
+            popupTimeout = setTimeout(() => { popup.style.display = 'none'; }, duration);
+        }
+
+        function showLoveLetter() {
+            const popup = document.getElementById('letter-popup');
+            popup.style.display = 'block';
+            setTimeout(() => { popup.style.display = 'none'; }, 5000);
+        }
+
         function movePlayer(dx, dy) {
             if(!gameActive) return;
-
-            const nx = playerPos.x + dx;
-            const ny = playerPos.y + dy;
-
-            if(nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) return;
-            if(map[ny][nx] === 1) return;
-
+            
+            let nx = playerPos.x + dx;
+            let ny = playerPos.y + dy;
+            
+            // Collision murs (sauf sortie niveau 1)
+            if(map[ny][nx] === 1 && !(currentLevel===1 && nx===10 && ny===0)) return;
+            
             playerPos.x = nx;
             playerPos.y = ny;
 
-            // Collectibles
-            const itemIndex = items.findIndex(i => i.x === nx && i.y === ny);
-            if(itemIndex !== -1) {
-                const item = items[itemIndex];
-                items.splice(itemIndex, 1);
+            // Ramassage items
+            let idx = items.findIndex(i => i.x === nx && i.y === ny);
+            if(idx !== -1) {
                 score++;
                 updateScore();
+                const item = items[idx];
                 
                 if(item.type === 'letter') {
-                    document.getElementById('letter-popup').style.display = 'block';
-                    setTimeout(() => {
-                        document.getElementById('letter-popup').style.display = 'none';
-                    }, 3000);
+                    showLoveLetter();
                 } else {
-                    showPopup(`<h3>✅ TROUVÉ !</h3><p>${item.name}</p>`, 2000);
+                    let desc = "✅ Indice trouvé !";
+                    
+                    if(item.type === 'card') desc = "La carte de Sam ! Il l'a encore paumée...";
+                    if(item.type === 'kebab') desc = "Le dîner de Sam. Il y a un mot d'Alexis dessus.";
+                    if(item.type === 'cap') desc = "Il ne sort jamais sans.";
+                    if(item.type === 'key') desc = "Pourquoi il a les clés d'Angèle ? Bizarre...";
+                    if(item.type === 'foodbag') desc = "Il a fait des courses avant de s'endormir.";
+                    
+                    showPopup(`<h3>${item.name}</h3><p>${desc}</p>`, 3500);
                 }
                 
-                // FIX: Délai avant d'afficher le message de sortie
+                items.splice(idx, 1);
+
                 if(score === 3) {
                     const exitName = levels[currentLevel].exitName;
-                    setTimeout(() => {
-                        showPopup(`<h3>✅ MISSION ACCOMPLIE ✅</h3><p>Fonce vers <b>${exitName}</b> !</p>`, 4000);
-                    }, 2800);
+                    setTimeout(() => showPopup(`<h3>✅ MISSION ACCOMPLIE ✅</h3><p>Fonce vers <b>${exitName}</b> !</p>`, 4000), 100);
                 }
             }
 
@@ -1128,14 +1169,10 @@
             const exit = levels[currentLevel].exit;
             if(nx === exit.x && ny === exit.y) {
                 if(score >= 3) {
-                    gameActive = false;
-                    
                     if(currentLevel === 1) {
-                        showMetroTransition();
-                        setTimeout(() => {
-                            gameActive = true;
-                        }, 3100);
+                        loadLevel(2);
                     } else {
+                        gameActive = false;
                         document.getElementById('game-container').style.display='none';
                         document.getElementById('end-screen').style.display='flex';
                     }
@@ -1152,85 +1189,45 @@
             setTimeout(() => el.innerText = '', 2500);
         }
 
-        // --- RENDER AMÉLIORÉ ---
+        // --- RENDER ---
         function drawGame() {
             ctx.clearRect(0, 0, 800, 800);
             const conf = levels[currentLevel];
 
-            // MAP
+            // TERRAIN
             for(let y=0; y<GRID_SIZE; y++) {
                 for(let x=0; x<GRID_SIZE; x++) {
-                    const t = map[y][x];
-                    const px = x * TILE;
-                    const py = y * TILE;
-
-                    if(currentLevel === 1) { // PLACE DES VOSGES (AMÉLIO)
-                        if (t === 1) {
-                            // Murs briques
+                    let t = map[y][x];
+                    let px = x*TILE;
+                    let py = y*TILE;
+                    
+                    if(currentLevel === 1) { // VOSGES
+                        if (t===1) {
                             ctx.fillStyle = conf.colorWall;
-                            ctx.fillRect(px, py, TILE, TILE);
-                            
-                            // Texture brique
-                            ctx.strokeStyle = '#6b0000';
-                            ctx.strokeRect(px, py, TILE, TILE);
-                            ctx.strokeRect(px, py + TILE/2, TILE, TILE/2);
-                        } else if (t === 2) {
-                            // Chemin pavé
+                            ctx.fillRect(px,py,TILE,TILE);
+                            ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+                            ctx.strokeRect(px,py,TILE,TILE);
+                        }
+                        else if (t===2) {
                             ctx.fillStyle = conf.colorPath;
-                            ctx.fillRect(px, py, TILE, TILE);
-                            ctx.strokeStyle = '#a0a0a0';
-                            ctx.strokeRect(px, py, TILE, TILE);
-                        } else {
-                            // Herbe
+                            ctx.fillRect(px,py,TILE,TILE);
+                        }
+                        else {
                             ctx.fillStyle = conf.colorGround;
-                            ctx.fillRect(px, py, TILE, TILE);
+                            ctx.fillRect(px,py,TILE,TILE);
                             
-                            // Double ton de vert
-                            if((x+y) % 2 === 0) {
-                                ctx.fillStyle = '#27ae60';
-                                ctx.fillRect(px+5, py+5, TILE-10, TILE-10);
-                            }
-                            
-                            ctx.strokeStyle = '#239954';
-                            ctx.strokeRect(px, py, TILE, TILE);
-                            
-                            // Fleurs aléatoires
-                            if(x % 4 === 0 && y % 4 === 0 && x > 2 && x < 17 && y > 2 && y < 17) {
-                                const flowerColors = ['#e74c3c', '#fff', '#f1c40f', '#ff69b4'];
-                                ctx.fillStyle = flowerColors[(x+y) % flowerColors.length];
-                                ctx.beginPath();
-                                ctx.arc(px+20, py+20, 3, 0, Math.PI*2);
-                                ctx.fill();
+                            // Fleurs
+                            if((x+y)%9 === 0 && x%3 !== 0 && x>2 && x<17 && y>2 && y<17 && t===0) {
+                                drawSprite(ctx, 'flower', x, y);
                             }
                             
                             // Bancs
-                            if((x === 7 || x === 13) && y === 10) {
-                                ctx.fillStyle = '#8B4513';
-                                ctx.fillRect(px+8, py+12, 24, 6);
-                                ctx.fillRect(px+10, py+8, 4, 10);
-                                ctx.fillRect(px+26, py+8, 4, 10);
-                            }
-                            
-                            // Lampadaires
-                            if((x === 5 || x === 15) && (y === 5 || y === 15)) {
-                                ctx.strokeStyle = '#333';
-                                ctx.lineWidth = 3;
-                                ctx.beginPath();
-                                ctx.moveTo(px+20, py+30);
-                                ctx.lineTo(px+20, py+10);
-                                ctx.stroke();
-                                
-                                ctx.fillStyle = '#f1c40f';
-                                ctx.shadowBlur = 15;
-                                ctx.shadowColor = '#f1c40f';
-                                ctx.beginPath();
-                                ctx.arc(px+20, py+10, 4, 0, Math.PI*2);
-                                ctx.fill();
-                                ctx.shadowBlur = 0;
-                                ctx.lineWidth = 1;
+                            if((x === 3 || x === 16) && y%4 === 0 && y>2 && y<17) {
+                                drawSprite(ctx, 'bench', x, y);
                             }
                         }
-                    } else { // PIGALLE (NEON)
+                    } 
+                    else { // PIGALLE (NEON)
                         if (t===1) {
                             ctx.fillStyle = conf.colorWall;
                             ctx.fillRect(px,py,TILE,TILE);
@@ -1251,37 +1248,14 @@
                             }
                         } 
                         else if (t===2) {
-                            // Trottoir
                             ctx.fillStyle = conf.colorPath;
                             ctx.fillRect(px,py,TILE,TILE);
-                            
-                            // Lignes
-                            ctx.strokeStyle = '#3c3c4e';
-                            ctx.strokeRect(px,py,TILE,TILE);
                         } 
                         else {
-                            // Route
                             ctx.fillStyle = conf.colorGround;
                             ctx.fillRect(px,py,TILE,TILE);
-                            
                             ctx.strokeStyle = '#222';
                             ctx.strokeRect(px,py,TILE,TILE);
-                            
-                            // Marquage routier
-                            if(x === GRID_SIZE/2 && y%3===0) {
-                                ctx.fillStyle = '#f1c40f';
-                                ctx.fillRect(px+15, py+10, 10, 20);
-                            }
-                            
-                            // Enseignes néon
-                            if((x===3 || x===16) && y%5===0 && y>2 && y<17) {
-                                const neonColors = ['#ff00cc', '#00ccff', '#39FF14'];
-                                ctx.fillStyle = neonColors[(x+y) % neonColors.length];
-                                ctx.shadowBlur = 15;
-                                ctx.shadowColor = ctx.fillStyle;
-                                ctx.fillRect(px+2, py+10, 8, 20);
-                                ctx.shadowBlur = 0;
-                            }
                         }
                     }
                 }
@@ -1297,80 +1271,33 @@
             if(currentLevel === 1) {
                 drawSprite(ctx, 'metroExit', ex.x, ex.y);
             } else {
-                // SAM à Pigalle
-                const pulse = Math.sin(animTimer * 3) * 3;
-                
-                // Ombre
-                ctx.fillStyle = 'rgba(0,0,0,0.4)';
-                ctx.beginPath();
-                ctx.ellipse(ex.x*TILE+20, ex.y*TILE+35, 15, 6, 0, 0, Math.PI*2);
-                ctx.fill();
-                
-                // Glow
-                ctx.shadowBlur = 20 + pulse;
+                ctx.shadowBlur = 20;
                 ctx.shadowColor = '#e74c3c';
-                
-                // Corps Sam
                 ctx.fillStyle = '#e74c3c';
-                ctx.fillRect(ex.x*TILE+10, ex.y*TILE+15, 20, 18);
-                
-                // Tête
-                ctx.fillStyle = '#f39c12';
-                ctx.beginPath();
-                ctx.arc(ex.x*TILE+20, ex.y*TILE+12, 10, 0, Math.PI*2);
-                ctx.fill();
-                
+                ctx.fillRect(ex.x*TILE+10, ex.y*TILE+10, 20, 20);
                 ctx.shadowBlur = 0;
                 
-                // Yeux
-                ctx.fillStyle = '#000';
-                ctx.fillRect(ex.x*TILE+16, ex.y*TILE+10, 3, 3);
-                ctx.fillRect(ex.x*TILE+21, ex.y*TILE+10, 3, 3);
-                
-                // Label SAM
-                ctx.fillStyle = '#fff';
+                ctx.fillStyle='white';
                 ctx.font = 'bold 12px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('SAM', ex.x*TILE+20, ex.y*TILE+48);
-                ctx.textAlign = 'start';
-                
-                // Flèche qui pointe Sam (si tous les items sont collectés)
-                if(score === 3) {
-                    const arrowBounce = Math.sin(animTimer * 4) * 5;
-                    ctx.fillStyle = '#39FF14';
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = '#39FF14';
-                    
-                    // Flèche vers le bas
-                    ctx.beginPath();
-                    ctx.moveTo(ex.x*TILE+20, ex.y*TILE-10-arrowBounce);
-                    ctx.lineTo(ex.x*TILE+15, ex.y*TILE-20-arrowBounce);
-                    ctx.lineTo(ex.x*TILE+25, ex.y*TILE-20-arrowBounce);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    ctx.shadowBlur = 0;
-                }
+                ctx.fillText('SAM', ex.x*TILE+8, ex.y*TILE+24);
             }
         }
 
-        // --- CHAT SYSTEM ---
+        // --- CHAT ---
         let msgIndex = 0;
         function playChat() {
-            if (msgIndex >= chatMessages.length) { 
-                document.getElementById('btn-start').style.display = 'block'; 
-                return; 
+            if (msgIndex >= chatMessages.length) {
+                document.getElementById('btn-start').style.display = 'block';
+                return;
             }
             
             const m = chatMessages[msgIndex];
-            const div = document.createElement('div'); 
+            const div = document.createElement('div');
             div.className = `msg ${m.s === 'Moi' ? 'right' : 'left'}`;
             div.innerHTML = `<span class="sender">${m.s}</span>${m.t}`;
-            document.getElementById('chat-body').appendChild(div);
             
-            // Auto-scroll
-            const chatBody = document.getElementById('chat-body');
-            chatBody.scrollTop = chatBody.scrollHeight;
+            document.getElementById('chat-body').appendChild(div);
+            document.getElementById('chat-body').scrollTop = document.getElementById('chat-body').scrollHeight;
             
             msgIndex++;
             setTimeout(playChat, 1200);
@@ -1378,13 +1305,12 @@
 
         // --- INPUTS ---
         window.addEventListener('keydown', e => {
-            if(e.key.includes('Arrow') || e.key === 'w' || e.key === 'a' || e.key === 's' || e.key === 'd') {
+            if(e.key.includes('Arrow')) {
                 e.preventDefault();
-                
-                if(e.key==='ArrowUp' || e.key==='w') movePlayer(0,-1);
-                if(e.key==='ArrowDown' || e.key==='s') movePlayer(0,1);
-                if(e.key==='ArrowLeft' || e.key==='a') movePlayer(-1,0);
-                if(e.key==='ArrowRight' || e.key==='d') movePlayer(1,0);
+                if(e.key==='ArrowUp') movePlayer(0,-1);
+                if(e.key==='ArrowDown') movePlayer(0,1);
+                if(e.key==='ArrowLeft') movePlayer(-1,0);
+                if(e.key==='ArrowRight') movePlayer(1,0);
             }
         });
 
@@ -1408,29 +1334,6 @@
             }
         }, {passive: true});
 
-        // --- YOUTUBE API ---
-        var player;
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('yt-audio', {
-                height: '0',
-                width: '0',
-                videoId: 'jfKfPfyJRdk',
-                playerVars: {
-                    'autoplay': 0,
-                    'loop': 1,
-                    'playlist': 'jfKfPfyJRdk',
-                    'controls': 0
-                },
-                events: {
-                    'onReady': onPlayerReady
-                }
-            });
-        }
-
-        function onPlayerReady(event) {
-            // Player prêt
-        }
-
         // --- INIT ---
         window.onload = () => {
             setTimeout(playChat, 4000);
@@ -1439,8 +1342,5 @@
         document.getElementById('btn-start').addEventListener('click', startGame);
 
     </script>
-    
-    <!-- YouTube API -->
-    <script src="https://www.youtube.com/iframe_api"></script>
 </body>
 </html>
