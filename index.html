@@ -1319,7 +1319,7 @@
                     if(item.type === 'kebab') desc = "Le dîner de Sam. Il y a un mot d'Alexis dessus.";
                     if(item.type === 'cap') desc = "Il ne sort jamais sans.";
                     if(item.type === 'key') desc = "Pourquoi il a les clés d'Angèle ? Bizarre...";
-                    if(item.type === 'foodbag') desc = "Il a fait des courses avant de s'endormir.";
+                    if(item.type === 'foodbag') desc = "Comment a il fait des courses ?.";
                     
                     showPopup(`<h3>${item.name}</h3><p>${desc}</p>`, 3500);
                 }
@@ -1329,7 +1329,7 @@
                     Sound.win();
                     const exitName = levels[currentLevel].exitName;
                     setTimeout(() => {
-                        showPopup(`<h3>✅ MISSION ACCOMPLIE ✅</h3><p>Fonce vers <b>${exitName}</b> !</p>`, 4000);
+                        showPopup(`<h3>✅MISSION ACCOMPLIE✅</h3><p>Fonce vers le<b>${exitName}</b> !</p>`, 4000);
                     }, 4000);
                 }
             }
