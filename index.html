@@ -1,364 +1,225 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Mission Samuel – Night Call</title>
-
+<meta charset="UTF-8">
+<title>Mission Samuel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-/* =======================
-   BASE / AMBIANCE
-======================= */
-*{box-sizing:border-box}
-body{
+html,body{
   margin:0;
-  background:#050505;
-  font-family:'Courier New', monospace;
-  color:#fff;
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  user-select:none;
+  background:#05070c;
+  overflow:hidden;
+  font-family:Courier New, monospace;
+  color:white;
 }
-
-/* scanlines */
+canvas{display:block}
 .scanlines{
-  position:fixed;inset:0;
+  position:fixed;
+  inset:0;
   pointer-events:none;
-  z-index:999;
   background:linear-gradient(
-    rgba(18,16,16,0) 50%,
-    rgba(0,0,0,0.12) 50%
+    rgba(0,0,0,0) 50%,
+    rgba(0,0,0,0.15) 50%
   );
   background-size:100% 4px;
 }
-
-/* =======================
-   PHONE
-======================= */
-#phone{
-  width:360px;
-  height:720px;
-  background:#0d0d0d;
-  border:12px solid #222;
-  border-radius:40px;
-  overflow:hidden;
-  box-shadow:0 0 60px rgba(0,0,0,0.9);
-  display:flex;
-  flex-direction:column;
-}
-
-/* =======================
-   CHAT
-======================= */
-#chat-header{
-  padding:16px;
-  text-align:center;
-  background:#181818;
-  border-bottom:1px solid #333;
-  font-weight:bold;
-  letter-spacing:1px;
-}
-
-#chat-body{
-  flex:1;
-  padding:14px;
-  background:#000;
-  overflow-y:auto;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-
-.msg{
-  max-width:80%;
-  padding:10px 14px;
-  border-radius:16px;
-  font-size:13px;
-  animation:msgIn .3s ease-out;
-}
-.left{background:#333;color:#ddd;align-self:flex-start}
-.right{background:#007aff;align-self:flex-end}
-.sender{
-  display:block;
-  font-size:9px;
-  opacity:.6;
-  margin-bottom:3px;
-}
-
-@keyframes msgIn{
-  from{opacity:0;transform:translateY(6px)}
-  to{opacity:1;transform:none}
-}
-
-#btn-start{
-  display:none;
-  padding:20px;
-  text-align:center;
-  background:#27ae60;
-  cursor:pointer;
-  font-weight:bold;
-  border-top:2px solid #2ecc71;
-}
-
-/* =======================
-   GAME
-======================= */
-#game{
-  display:none;
-  flex-direction:column;
-  height:100%;
-}
-
-/* HUD */
-#hud{
-  height:48px;
-  background:rgba(20,20,20,.9);
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:0 14px;
-  font-size:12px;
-  border-bottom:1px solid #222;
-}
-#score.glow{color:#2ecc71;text-shadow:0 0 8px #2ecc71}
-
-/* canvas */
-#wrap{
-  flex:1;
-  background:#000;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-canvas{
-  background:#000;
-}
-
-/* popups */
-#popup{
-  position:absolute;
-  bottom:120px;
-  left:50%;
-  transform:translateX(-50%);
-  background:#111;
-  border:1px solid #444;
-  padding:14px 18px;
-  font-size:13px;
-  opacity:0;
-  transition:.3s;
-  box-shadow:0 0 20px rgba(0,0,0,.6);
-}
-#popup.show{opacity:1}
 </style>
 </head>
-
 <body>
+<canvas id="c"></canvas>
 <div class="scanlines"></div>
 
-<div id="phone">
-
-  <!-- CHAT -->
-  <div id="chat-header">📱 Messages</div>
-  <div id="chat-body"></div>
-  <div id="btn-start">▶ LOCALISER SAM</div>
-
-  <!-- GAME -->
-  <div id="game">
-    <div id="hud">
-      <div id="level">ZONE : QUARTIER</div>
-      <div id="score">INDICES : 0 / 3</div>
-    </div>
-    <div id="wrap">
-      <canvas id="c" width="400" height="400"></canvas>
-    </div>
-  </div>
-
-</div>
-
-<div id="popup"></div>
-
 <script>
-/* =======================
-   CHAT
-======================= */
-const chat=[
-  {s:"Alexis",t:"Samuel ne répond plus."},
-  {s:"Moi",t:"Encore ?"},
-  {s:"Alexis",t:"Il s'est endormi quelque part. Comme d'habitude."},
-  {s:"Moi",t:"J'y vais."},
-  {s:"Alexis",t:"Fais vite. Il est pas seul dehors."}
-];
-let chatIndex=0;
-const chatBody=document.getElementById('chat-body');
-function playChat(){
-  if(chatIndex>=chat.length){
-    document.getElementById('btn-start').style.display="block";
-    return;
-  }
-  const m=chat[chatIndex++];
-  const d=document.createElement('div');
-  d.className=`msg ${m.s==="Moi"?"right":"left"}`;
-  d.innerHTML=`<span class="sender">${m.s}</span>${m.t}`;
-  chatBody.appendChild(d);
-  chatBody.scrollTop=9999;
-  setTimeout(playChat,1100);
+/* ===================== SETUP ===================== */
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+resize();
+window.addEventListener("resize", resize);
+
+function resize(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
 }
-setTimeout(playChat,800);
 
-/* =======================
-   GAME SETUP
-======================= */
-const canvas=document.getElementById('c');
-const ctx=canvas.getContext('2d');
-const TILE=40, GRID=10;
-let score=0;
-let level=1;
-let dangerTimer=0;
+const TILE = 40;
+const GRID_W = 11;
+const GRID_H = 11;
+const offsetX = canvas.width/2 - (GRID_W*TILE)/2;
+const offsetY = canvas.height/2 - (GRID_H*TILE)/2;
 
-const player={x:1,y:1,px:1,py:1};
-const exit={x:8,y:8};
-const items=[
-  {x:2,y:5},{x:6,y:3},{x:4,y:8}
-];
-const pigeons=[
-  {x:5,y:5,dir:1}
+/* ===================== STATE ===================== */
+let player = {x:5,y:10};
+let shake = 0;
+let freeze = 0;
+let glowFlash = 0;
+let gameEnded = false;
+
+const pigeons = [
+  {x:3,y:5,static:false},
+  {x:7,y:4,static:false},
+  {x:5,y:2,static:true}
 ];
 
-function startGame(){
-  document.getElementById('chat-header').style.display="none";
-  chatBody.style.display="none";
-  document.getElementById('btn-start').style.display="none";
-  document.getElementById('game').style.display="flex";
-}
-document.getElementById('btn-start').onclick=startGame;
+const waitZone = {x:5,y:6};
+let waitTimer = 0;
+let mustWait = false;
 
-/* =======================
-   INPUT
-======================= */
-window.addEventListener('keydown',e=>{
-  if(!document.getElementById('game').style.display)return;
-  let dx=0,dy=0;
-  if(e.key==="ArrowUp")dy=-1;
-  if(e.key==="ArrowDown")dy=1;
-  if(e.key==="ArrowLeft")dx=-1;
-  if(e.key==="ArrowRight")dx=1;
-  if(dx||dy)move(dx,dy);
-});
+/* ===================== CHAT ===================== */
+let chat = [
+  {t:"Alexis :",d:0},
+  {t:"Je suis perdu.",d:800},
+  {t:"Retrouve‑moi.",d:800}
+];
+let chatIndex = 0;
+let chatTimer = 0;
 
-function move(dx,dy){
-  const nx=player.x+dx, ny=player.y+dy;
-  if(nx<0||ny<0||nx>=GRID||ny>=GRID)return;
-  player.x=nx; player.y=ny;
+/* ===================== INPUT ===================== */
+const keys = {};
+onkeydown = e => keys[e.key] = true;
+onkeyup = e => keys[e.key] = false;
 
-  // item
-  items.forEach((it,i)=>{
-    if(it.x===nx&&it.y===ny){
-      items.splice(i,1);
-      score++;
-      flashScore();
-      popup("Indice trouvé.");
-      chatEvent();
-    }
-  });
-
-  // exit
-  if(nx===exit.x&&ny===exit.y){
-    if(score>=3){
-      popup("✅ SAM LOCALISÉ");
-    }else popup("Il manque des indices.");
-  }
-}
-
-function flashScore(){
-  const s=document.getElementById('score');
-  s.classList.add('glow');
-  setTimeout(()=>s.classList.remove('glow'),400);
-}
-
-/* =======================
-   NARRATION REACTIVE
-======================= */
-function chatEvent(){
-  if(score===2)popup("Alexis : Il est tout près.");
-  if(score===3)popup("Alexis : Bouge. Maintenant.");
-}
-
-/* =======================
-   POPUP
-======================= */
-const pop=document.getElementById('popup');
-function popup(t){
-  pop.innerText=t;
-  pop.classList.add('show');
-  setTimeout(()=>pop.classList.remove('show'),2200);
-}
-
-/* =======================
-   LOOP
-======================= */
-function update(){
-  // lerp
-  player.px+=(player.x-player.px)*0.25;
-  player.py+=(player.y-player.py)*0.25;
-
-  // pigeons
-  pigeons.forEach(p=>{
-    if(Math.random()<0.01)p.dir*=-1;
-    p.x+=p.dir*0.02;
-  });
-
-  dangerTimer+=0.01;
-}
-
-function draw(){
-  ctx.clearRect(0,0,400,400);
-
-  // grid
-  for(let y=0;y<GRID;y++){
-    for(let x=0;x<GRID;x++){
-      ctx.fillStyle="#111";
-      ctx.fillRect(x*TILE,y*TILE,TILE,TILE);
-      ctx.strokeStyle="#000";
-      ctx.strokeRect(x*TILE,y*TILE,TILE,TILE);
-    }
-  }
-
-  // exit glow
-  ctx.fillStyle="rgba(231,76,60,.8)";
-  ctx.fillRect(exit.x*TILE+10,exit.y*TILE+10,20,20);
-
-  // items
-  ctx.fillStyle="#2ecc71";
-  items.forEach(i=>{
-    ctx.beginPath();
-    ctx.arc(i.x*TILE+20,i.y*TILE+20,6,0,Math.PI*2);
-    ctx.fill();
-  });
-
-  // pigeons
-  ctx.fillStyle="orange";
-  pigeons.forEach(p=>{
-    ctx.fillRect(p.x*TILE+14,p.y*TILE+14,12,12);
-  });
-
-  // player
-  ctx.fillStyle="#00ccff";
-  ctx.beginPath();
-  ctx.arc(player.px*TILE+20,player.py*TILE+20,10,0,Math.PI*2);
-  ctx.fill();
-
-  // HUD
-  document.getElementById('score').innerText=`INDICES : ${score} / 3`;
-}
-
+/* ===================== LOOP ===================== */
 function loop(){
   update();
   draw();
   requestAnimationFrame(loop);
 }
 loop();
+
+/* ===================== UPDATE ===================== */
+function update(){
+  if(gameEnded) return;
+
+  if(freeze>0){ freeze--; return; }
+
+  let moved = false;
+  let nx = player.x;
+  let ny = player.y;
+
+  if(keys.ArrowUp){ny--; moved=true}
+  if(keys.ArrowDown){ny++; moved=true}
+  if(keys.ArrowLeft){nx--; moved=true}
+  if(keys.ArrowRight){nx++; moved=true}
+
+  if(moved){
+    keys.ArrowUp=keys.ArrowDown=keys.ArrowLeft=keys.ArrowRight=false;
+
+    if(nx>=0&&nx<GRID_W&&ny>=0&&ny<GRID_H){
+      player.x=nx; player.y=ny;
+      shake=2; glowFlash=4;
+    }
+  }
+
+  // pigeon collision
+  for(let p of pigeons){
+    if(player.x===p.x && player.y===p.y){
+      freeze=10;
+    }
+  }
+
+  // wait zone
+  if(player.x===waitZone.x && player.y===waitZone.y){
+    mustWait=true;
+    waitTimer++;
+    if(waitTimer>120){
+      endGame();
+    }
+  }else{
+    mustWait=false;
+    waitTimer=0;
+  }
+
+  // chat timing
+  chatTimer++;
+}
+
+/* ===================== END ===================== */
+function endGame(){
+  gameEnded=true;
+  chat=[
+    {t:"Alexis :",d:0},
+    {t:"Sam ?",d:900},
+    {t:"J’ai retrouvé mon tel.",d:900},
+    {t:"En fait non.",d:1200},
+    {t:"Je suis dans un kebab.",d:1500}
+  ];
+  chatIndex=0;
+  chatTimer=0;
+}
+
+/* ===================== DRAW ===================== */
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // vignette
+  ctx.fillStyle="rgba(0,0,0,0.4)";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  let sx = offsetX + (Math.random()*shake - shake/2);
+  let sy = offsetY + (Math.random()*shake - shake/2);
+  shake = Math.max(0, shake-1);
+
+  // grid
+  for(let y=0;y<GRID_H;y++){
+    for(let x=0;x<GRID_W;x++){
+      ctx.strokeStyle="#0b132a";
+      ctx.strokeRect(sx+x*TILE, sy+y*TILE, TILE, TILE);
+    }
+  }
+
+  // wait zone
+  ctx.fillStyle="rgba(0,255,255,0.15)";
+  ctx.fillRect(sx+waitZone.x*TILE, sy+waitZone.y*TILE, TILE, TILE);
+
+  // pigeons
+  for(let p of pigeons){
+    ctx.shadowBlur=20;
+    ctx.shadowColor="#ffd500";
+    ctx.fillStyle="#ffd500";
+    ctx.fillRect(sx+p.x*TILE+10, sy+p.y*TILE+10, 20, 20);
+  }
+  ctx.shadowBlur=0;
+
+  // player
+  ctx.shadowBlur=glowFlash>0?30:15;
+  ctx.shadowColor="#ff3cff";
+  ctx.fillStyle="#ff3cff";
+  ctx.fillRect(
+    sx+player.x*TILE+8,
+    sy+player.y*TILE+8,
+    24,24
+  );
+  ctx.shadowBlur=0;
+  glowFlash=Math.max(0,glowFlash-1);
+
+  // chat
+  drawChat();
+}
+
+/* ===================== CHAT DRAW ===================== */
+function drawChat(){
+  ctx.fillStyle="rgba(0,0,0,0.7)";
+  ctx.fillRect(0,canvas.height-140,canvas.width,140);
+
+  ctx.fillStyle="#fff";
+  ctx.font="20px Courier New";
+
+  let y = canvas.height-100;
+  let time = 0;
+
+  for(let i=0;i<chat.length;i++){
+    time += chat[i].d;
+    if(chatTimer>time){
+      ctx.fillText(chat[i].t,20,y);
+      y+=26;
+    }
+  }
+
+  if(gameEnded && chatTimer>5000){
+    ctx.fillStyle="#aaa";
+    ctx.fillText("Un jeu inutile. Merci d’avoir marché.",20,canvas.height-20);
+  }
+}
 </script>
 </body>
 </html>
