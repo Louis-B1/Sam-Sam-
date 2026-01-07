@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission Samuel à Paris — Final Fix</title>
+    <title>Mission Samuel à Paris — Ultimate Edition</title>
     <style>
         /* ===========================
            🎨 DESIGN SYSTEM NEO-PARIS
@@ -161,7 +161,6 @@
             to { opacity: 1; transform: scale(1) rotateX(0deg); } 
         }
 
-        /* Phone notch */
         #phone-container::before {
             content: '';
             position: absolute;
@@ -322,23 +321,19 @@
                 0 0 100px rgba(255, 0, 110, 0.3),
                 inset 0 0 100px rgba(0, 0, 0, 0.8);
             image-rendering: pixelated;
-            
-            /* --- POST PROCESSING --- */
             filter: contrast(1.1) brightness(1.1) sepia(0.2);
         }
 
-        /* --- HUD (Modifié pour visibilité) --- */
+        /* --- HUD CORRIGÉ --- */
         #game-ui {
             position: absolute; 
             top: 15px; 
             left: 15px;
-            /* Fond beaucoup plus transparent (0.6 au lieu de 0.9) */
             background: rgba(10, 14, 39, 0.6); 
             backdrop-filter: blur(4px);
-            padding: 10px 15px; /* Plus petit */
+            padding: 10px 15px;
             border-radius: 15px;
             border: 1px solid var(--neo-cyan);
-            /* min-width supprimé pour être plus compact */
             z-index: 10;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
             animation: hud-slide-in 0.6s ease-out;
@@ -352,7 +347,7 @@
         .ui-level { 
             color: var(--neo-yellow);
             font-weight: 900;
-            font-size: 14px; /* Police réduite */
+            font-size: 14px;
             margin-bottom: 5px;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -360,7 +355,7 @@
         }
 
         .ui-score { 
-            font-size: 18px; /* Police réduite */
+            font-size: 18px;
             font-weight: 700;
             color: #fff;
         }
@@ -396,7 +391,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             animation: msg-flash 0.5s ease;
-            display: none; /* Caché par défaut */
+            display: none;
         }
 
         @keyframes msg-flash {
@@ -551,14 +546,8 @@
         }
 
         @keyframes pulseSam { 
-            0%, 100% { 
-                transform: scale(1); 
-                box-shadow: 0 0 40px var(--success); 
-            } 
-            50% { 
-                transform: scale(1.08); 
-                box-shadow: 0 0 80px var(--success), 0 0 120px rgba(57, 255, 20, 0.5); 
-            } 
+            0%, 100% { transform: scale(1); box-shadow: 0 0 40px var(--success); } 
+            50% { transform: scale(1.08); box-shadow: 0 0 80px var(--success), 0 0 120px rgba(57, 255, 20, 0.5); } 
         }
 
         .end-text-box { 
@@ -620,9 +609,6 @@
             box-shadow: 0 8px 40px rgba(255, 0, 60, 0.8);
         }
 
-        /* ===========================
-           📱 RESPONSIVE
-           =========================== */
         @media (max-width: 850px) {
             #title-main { font-size: 60px; }
             #title-subtitle { font-size: 24px; }
@@ -678,13 +664,115 @@
         const TILE = 40; 
         const GRID_SIZE = 20;
         
-        // --- VARIABLES VISUELLES (Game Feel) ---
+        // --- VISUELS ---
         let renderPlayer = { x: 0, y: 0 }; 
         let screenShake = 0;               
         let particles = [];                
         const LERP_SPEED = 0.2;            
 
-        // --- AUDIO ---
+        // --- AUDIO ENGINE (WEB AUDIO API) ---
+        // Pas de fichiers MP3, juste du code pour générer les sons !
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function initAudio() {
+            if(!audioCtx) audioCtx = new AudioContext();
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        const Sound = {
+            step: () => {
+                if(!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                // Petit bruit blanc/tone très court
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.05);
+                
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.05);
+            },
+            collect: () => {
+                if(!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                // Son type "Pièce" ou "Ding"
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            },
+            hurt: () => {
+                if(!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                // Son discordant "Bzzzt"
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(50, audioCtx.currentTime + 0.2);
+                
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.2);
+            },
+            win: () => {
+                if(!audioCtx) return;
+                // Petite mélodie
+                [440, 554, 659].forEach((freq, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    const now = audioCtx.currentTime + i * 0.1;
+                    osc.type = 'square';
+                    osc.frequency.value = freq;
+                    
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                });
+            },
+            chat: () => {
+                if(!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            }
+        };
+
+        // --- YOUTUBE AUDIO ---
         var player;
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
@@ -991,7 +1079,6 @@
             }
         }
 
-        // --- DESSIN JOUEUR ---
         function drawPlayerSprite(ctx) {
             const bob = Math.sin(animTimer / 2) * 2;
             
@@ -1020,34 +1107,20 @@
             ctx.lineWidth = 1;
         }
 
-        // --- CORRECTION BUG LUMIÈRE PIGALLE ---
         function drawLightingEffect(ctx) {
             if(currentLevel === 2) { 
-                // Au lieu d'utiliser des modes de fusion compliqués (multiply) qui buggent,
-                // On utilise un simple dégradé radial inversé.
-                // Centre = Transparent (Lumière) -> Bords = Noir (Nuit)
-                
                 const centerX = renderPlayer.x + 20;
                 const centerY = renderPlayer.y + 20;
-                
-                // Créer un gradient radial centré sur le joueur
-                // x0, y0, r0, x1, y1, r1
                 const gradient = ctx.createRadialGradient(centerX, centerY, 30, centerX, centerY, 300);
+                gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');     
+                gradient.addColorStop(0.3, 'rgba(10, 10, 26, 0.7)'); 
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0.98)');   
                 
-                gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');     // Centre transparent
-                gradient.addColorStop(0.3, 'rgba(10, 10, 26, 0.7)'); // Pénombre
-                gradient.addColorStop(1, 'rgba(0, 0, 0, 0.98)');   // Noir presque total
-                
-                // Dessiner ce gradient sur tout l'écran
                 ctx.save();
-                ctx.globalCompositeOperation = 'source-over'; // Mode normal
+                ctx.globalCompositeOperation = 'source-over'; 
                 ctx.fillStyle = gradient;
-                
-                // On remplit un grand rectangle qui couvre tout le canvas
-                // On utilise des coordonnées relatives car le contexte est déjà translaté par le shake
                 ctx.fillRect(-100, -100, 1000, 1000);
                 
-                // Ajouter un petit spot lumineux sur la sortie pour la repérer
                 const ex = levels[currentLevel].exit;
                 const exitX = ex.x * TILE + 20;
                 const exitY = ex.y * TILE + 20;
@@ -1060,7 +1133,6 @@
                 
                 ctx.restore();
             } else { 
-                // Vosges (Vignette subtile)
                 ctx.save();
                 ctx.globalCompositeOperation = 'source-over';
                 const grad = ctx.createRadialGradient(400, 400, 300, 400, 400, 600);
@@ -1078,7 +1150,6 @@
             const data = levels[lvlIdx];
             map = [];
             
-            // INIT MAP
             for(let y=0; y<GRID_SIZE; y++) {
                 let row = [];
                 for(let x=0; x<GRID_SIZE; x++) {
@@ -1104,7 +1175,6 @@
             playerPos = {...data.start};
             score = 0;
             
-            // INIT VISUELS
             renderPlayer = { x: playerPos.x * TILE, y: playerPos.y * TILE };
             particles = []; 
             
@@ -1121,6 +1191,9 @@
         }
 
         function startGame() {
+            // INIT AUDIO
+            initAudio();
+
             document.getElementById('phone-container').style.display = 'none';
             document.getElementById('game-container').style.display = 'block';
             
@@ -1156,6 +1229,9 @@
 
                 if (e.x === playerPos.x && e.y === playerPos.y) {
                     screenShake = 20; 
+                    // SOUND
+                    Sound.hurt();
+
                     if(score > 0) {
                         score--;
                         updateScore();
@@ -1205,6 +1281,9 @@
             
             if(map[ny][nx] === 1 && !(currentLevel===1 && nx===10 && ny===0)) return;
             
+            // SOUND STEP
+            Sound.step();
+
             playerPos.x = nx;
             playerPos.y = ny;
 
@@ -1217,6 +1296,9 @@
                 screenShake = 10;
                 spawnParticles('score', nx * TILE + 20, ny * TILE + 20, 10);
                 
+                // SOUND COLLECT
+                Sound.collect();
+
                 const item = items[idx];
                 
                 if(item.type === 'letter') {
@@ -1233,11 +1315,9 @@
                 }
                 items.splice(idx, 1);
 
-                // --- MODIFICATION TIMING ---
                 if(score === 3) {
+                    Sound.win(); // Petit son de victoire partielle
                     const exitName = levels[currentLevel].exitName;
-                    // On attend 4 secondes avant d'afficher le message de mission accomplie
-                    // pour laisser le temps de lire le dernier objet.
                     setTimeout(() => {
                         showPopup(`<h3>✅ MISSION ACCOMPLIE ✅</h3><p>Fonce vers <b>${exitName}</b> !</p>`, 4000);
                     }, 4000);
@@ -1248,6 +1328,7 @@
             const exit = levels[currentLevel].exit;
             if(nx === exit.x && ny === exit.y) {
                 if(score >= 3) {
+                    Sound.win();
                     if(currentLevel === 1) {
                         loadLevel(2);
                     } else {
@@ -1271,13 +1352,11 @@
 
         // --- RENDER ---
         function drawGame() {
-            // Interpolation
             let targetX = playerPos.x * TILE;
             let targetY = playerPos.y * TILE;
             renderPlayer.x += (targetX - renderPlayer.x) * LERP_SPEED;
             renderPlayer.y += (targetY - renderPlayer.y) * LERP_SPEED;
 
-            // Shake
             let shakeX = 0;
             let shakeY = 0;
             if(screenShake > 0) {
@@ -1293,7 +1372,6 @@
             ctx.clearRect(0, 0, 800, 800);
             const conf = levels[currentLevel];
 
-            // TERRAIN
             for(let y=0; y<GRID_SIZE; y++) {
                 for(let x=0; x<GRID_SIZE; x++) {
                     let t = map[y][x];
@@ -1322,7 +1400,7 @@
                             }
                         }
                     } 
-                    else { // PIGALLE (NEON)
+                    else { // PIGALLE
                         if (t===1) {
                             ctx.fillStyle = conf.colorWall;
                             ctx.fillRect(px,py,TILE,TILE);
@@ -1352,7 +1430,6 @@
                 }
             }
 
-            // ENTITIES
             items.forEach(i => drawSprite(ctx, i.type, i.x, i.y));
             
             enemies.forEach(e => {
@@ -1368,7 +1445,6 @@
             drawPlayerSprite(ctx); 
             ctx.restore();
 
-            // EXIT
             const ex = levels[currentLevel].exit;
             if(currentLevel === 1) {
                 drawSprite(ctx, 'metroExit', ex.x, ex.y);
@@ -1383,14 +1459,12 @@
                 ctx.fillText('SAM', ex.x*TILE+8, ex.y*TILE+24);
             }
 
-            // PARTICULES
             particles.forEach((p, index) => {
                 p.update();
                 p.draw(ctx);
                 if(p.life <= 0 && p.type !== 'rain') particles.splice(index, 1);
             });
 
-            // LIGHTING (FIXED)
             drawLightingEffect(ctx);
 
             ctx.restore();
@@ -1403,6 +1477,9 @@
                 document.getElementById('btn-start').style.display = 'block';
                 return;
             }
+            
+            initAudio(); // Essayer d'init l'audio dès qu'il y a une interaction, mais le navigateur bloquera sans clic.
+            // Sound.chat(); // On évite de jouer le son ici car l'utilisateur n'a pas encore cliqué, ça créerait une erreur console.
             
             const m = chatMessages[msgIndex];
             const div = document.createElement('div');
