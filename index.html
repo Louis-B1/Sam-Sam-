@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission Samuel à Paris — Neo Edition (Remastered)</title>
+    <title>Mission Samuel à Paris — Final Fix</title>
     <style>
         /* ===========================
            🎨 DESIGN SYSTEM NEO-PARIS
@@ -323,23 +323,24 @@
                 inset 0 0 100px rgba(0, 0, 0, 0.8);
             image-rendering: pixelated;
             
-            /* --- NOUVEAU : POST PROCESSING --- */
+            /* --- POST PROCESSING --- */
             filter: contrast(1.1) brightness(1.1) sepia(0.2);
         }
 
-        /* --- HUD --- */
+        /* --- HUD (Modifié pour visibilité) --- */
         #game-ui {
             position: absolute; 
-            top: 20px; 
-            left: 20px;
-            background: rgba(10, 14, 39, 0.9);
-            backdrop-filter: blur(10px);
-            padding: 20px 25px;
-            border-radius: 20px;
-            border: 2px solid var(--neo-cyan);
-            min-width: 280px;
+            top: 15px; 
+            left: 15px;
+            /* Fond beaucoup plus transparent (0.6 au lieu de 0.9) */
+            background: rgba(10, 14, 39, 0.6); 
+            backdrop-filter: blur(4px);
+            padding: 10px 15px; /* Plus petit */
+            border-radius: 15px;
+            border: 1px solid var(--neo-cyan);
+            /* min-width supprimé pour être plus compact */
             z-index: 10;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
             animation: hud-slide-in 0.6s ease-out;
         }
 
@@ -351,21 +352,15 @@
         .ui-level { 
             color: var(--neo-yellow);
             font-weight: 900;
-            font-size: 16px;
-            margin-bottom: 10px;
+            font-size: 14px; /* Police réduite */
+            margin-bottom: 5px;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px var(--neo-yellow);
-            animation: level-pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes level-pulse {
-            0%, 100% { text-shadow: 0 0 10px var(--neo-yellow); }
-            50% { text-shadow: 0 0 20px var(--neo-yellow), 0 0 30px var(--neo-yellow); }
+            letter-spacing: 1px;
+            text-shadow: 0 0 5px var(--neo-yellow);
         }
 
         .ui-score { 
-            font-size: 22px;
+            font-size: 18px; /* Police réduite */
             font-weight: 700;
             color: #fff;
         }
@@ -373,7 +368,7 @@
         .ui-score span {
             color: var(--success);
             font-weight: 900;
-            font-size: 26px;
+            font-size: 20px;
             text-shadow: 0 0 10px var(--success);
             transition: all 0.3s ease;
         }
@@ -389,18 +384,19 @@
         }
 
         #msg-popup { 
-            margin-top: 15px;
-            padding: 10px;
+            margin-top: 10px;
+            padding: 5px 8px;
             background: rgba(255, 0, 60, 0.2);
-            border-left: 3px solid var(--danger);
-            border-radius: 8px;
+            border-left: 2px solid var(--danger);
+            border-radius: 4px;
             color: var(--danger);
             font-weight: 700;
             min-height: 20px;
-            font-size: 14px;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 1px;
             animation: msg-flash 0.5s ease;
+            display: none; /* Caché par défaut */
         }
 
         @keyframes msg-flash {
@@ -682,11 +678,11 @@
         const TILE = 40; 
         const GRID_SIZE = 20;
         
-        // --- NOUVEAU : VARIABLES VISUELLES (Game Feel) ---
-        let renderPlayer = { x: 0, y: 0 }; // Position visuelle lissée
-        let screenShake = 0;               // Intensité du tremblement
-        let particles = [];                // Tableau de particules
-        const LERP_SPEED = 0.2;            // Vitesse de lissage (0.1 = lent, 0.5 = rapide)
+        // --- VARIABLES VISUELLES (Game Feel) ---
+        let renderPlayer = { x: 0, y: 0 }; 
+        let screenShake = 0;               
+        let particles = [];                
+        const LERP_SPEED = 0.2;            
 
         // --- AUDIO ---
         var player;
@@ -765,7 +761,7 @@
         const ctx = document.getElementById('gameCanvas').getContext('2d');
         ctx.imageSmoothingEnabled = false;
 
-        // --- NOUVEAU : SYSTÈME DE PARTICULES ---
+        // --- PARTICULES ---
         class Particle {
             constructor(x, y, type) {
                 this.x = x;
@@ -995,32 +991,27 @@
             }
         }
 
-        // --- NOUVEAU : FONCTION DE DESSIN DU JOUEUR (RELATIF) ---
+        // --- DESSIN JOUEUR ---
         function drawPlayerSprite(ctx) {
             const bob = Math.sin(animTimer / 2) * 2;
             
-            // Ombre
             ctx.fillStyle = 'rgba(0,0,0,0.5)';
             ctx.beginPath();
             ctx.ellipse(20, 35, 12, 5, 0, 0, Math.PI*2);
             ctx.fill();
             
-            // Corps
             ctx.fillStyle = '#3498db';
             ctx.fillRect(10, 15+bob, 20, 18);
             
-            // Tête
             ctx.fillStyle = '#f1c40f';
             ctx.beginPath();
             ctx.arc(20, 12+bob, 10, 0, Math.PI*2);
             ctx.fill();
             
-            // Yeux
             ctx.fillStyle = '#000';
             ctx.fillRect(16, 10+bob, 3, 3);
             ctx.fillRect(21, 10+bob, 3, 3);
             
-            // Sourire
             ctx.strokeStyle = '#000';
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -1029,38 +1020,47 @@
             ctx.lineWidth = 1;
         }
 
-        // --- NOUVEAU : EFFETS DE LUMIÈRE ---
+        // --- CORRECTION BUG LUMIÈRE PIGALLE ---
         function drawLightingEffect(ctx) {
-            if(currentLevel === 2) { // Pigalle (Nuit + Lampe torche)
+            if(currentLevel === 2) { 
+                // Au lieu d'utiliser des modes de fusion compliqués (multiply) qui buggent,
+                // On utilise un simple dégradé radial inversé.
+                // Centre = Transparent (Lumière) -> Bords = Noir (Nuit)
+                
+                const centerX = renderPlayer.x + 20;
+                const centerY = renderPlayer.y + 20;
+                
+                // Créer un gradient radial centré sur le joueur
+                // x0, y0, r0, x1, y1, r1
+                const gradient = ctx.createRadialGradient(centerX, centerY, 30, centerX, centerY, 300);
+                
+                gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');     // Centre transparent
+                gradient.addColorStop(0.3, 'rgba(10, 10, 26, 0.7)'); // Pénombre
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0.98)');   // Noir presque total
+                
+                // Dessiner ce gradient sur tout l'écran
                 ctx.save();
-                ctx.globalCompositeOperation = 'multiply';
-                ctx.fillStyle = '#0a0a1a'; // Nuit sombre
-                ctx.fillRect(-50, -50, 900, 900);
+                ctx.globalCompositeOperation = 'source-over'; // Mode normal
+                ctx.fillStyle = gradient;
                 
-                // Lumière joueur
-                ctx.globalCompositeOperation = 'destination-out';
-                const grad = ctx.createRadialGradient(
-                    renderPlayer.x + 20, renderPlayer.y + 20, 20, 
-                    renderPlayer.x + 20, renderPlayer.y + 20, 150
-                );
-                grad.addColorStop(0, 'rgba(0,0,0,1)');
-                grad.addColorStop(1, 'rgba(0,0,0,0)');
+                // On remplit un grand rectangle qui couvre tout le canvas
+                // On utilise des coordonnées relatives car le contexte est déjà translaté par le shake
+                ctx.fillRect(-100, -100, 1000, 1000);
                 
-                ctx.fillStyle = grad;
-                ctx.beginPath();
-                ctx.arc(renderPlayer.x + 20, renderPlayer.y + 20, 150, 0, Math.PI*2);
-                ctx.fill();
-                
-                // Lumière sortie
+                // Ajouter un petit spot lumineux sur la sortie pour la repérer
                 const ex = levels[currentLevel].exit;
-                const gradExit = ctx.createRadialGradient(ex.x*TILE+20, ex.y*TILE+20, 10, ex.x*TILE+20, ex.y*TILE+20, 60);
-                gradExit.addColorStop(0, 'rgba(0,0,0,1)');
+                const exitX = ex.x * TILE + 20;
+                const exitY = ex.y * TILE + 20;
+                
+                const gradExit = ctx.createRadialGradient(exitX, exitY, 5, exitX, exitY, 50);
+                gradExit.addColorStop(0, 'rgba(255, 255, 0, 0.2)');
                 gradExit.addColorStop(1, 'rgba(0,0,0,0)');
                 ctx.fillStyle = gradExit;
-                ctx.fillRect(ex.x*TILE-40, ex.y*TILE-40, 120, 120);
-
+                ctx.fillRect(exitX - 50, exitY - 50, 100, 100);
+                
                 ctx.restore();
-            } else { // Vosges (Vignette)
+            } else { 
+                // Vosges (Vignette subtile)
                 ctx.save();
                 ctx.globalCompositeOperation = 'source-over';
                 const grad = ctx.createRadialGradient(400, 400, 300, 400, 400, 600);
@@ -1082,14 +1082,14 @@
             for(let y=0; y<GRID_SIZE; y++) {
                 let row = [];
                 for(let x=0; x<GRID_SIZE; x++) {
-                    let type = 0; // Sol
-                    if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) type = 1; // Murs
-                    if (lvlIdx === 1) { // VOSGES
-                        if (x === 10 && y === 0) type = 2; // Metro
+                    let type = 0; 
+                    if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) type = 1; 
+                    if (lvlIdx === 1) { 
+                        if (x === 10 && y === 0) type = 2; 
                         else if (x===2 || x===GRID_SIZE-3 || y===2 || y===GRID_SIZE-3) type = 2;
                         else if (x===GRID_SIZE/2 && y===GRID_SIZE/2) type = 2;
                     } 
-                    else if (lvlIdx === 2) { // PIGALLE
+                    else if (lvlIdx === 2) { 
                         if (x===0 || x===GRID_SIZE-1 || y===0 || y===GRID_SIZE-1) type = 1;
                         else if (x===2 || x===GRID_SIZE-3 || y===2 || y===GRID_SIZE-3 || x===GRID_SIZE/2 || y===GRID_SIZE/2) type = 2;
                         else type = 0;
@@ -1104,7 +1104,7 @@
             playerPos = {...data.start};
             score = 0;
             
-            // NOUVEAU : INIT VISUELS
+            // INIT VISUELS
             renderPlayer = { x: playerPos.x * TILE, y: playerPos.y * TILE };
             particles = []; 
             
@@ -1132,7 +1132,6 @@
             
             gameActive = true;
             loadLevel(1);
-            // drawGame est appelé dans la loop
             gameLoop();
         }
 
@@ -1149,22 +1148,18 @@
             
             enemies.forEach(e => {
                 let nextX = e.x + e.dx;
-                
                 if (nextX < 0 || nextX >= GRID_SIZE || map[e.y][nextX] === 1) {
                     e.dx *= -1;
                 } else {
                     e.x += e.dx;
                 }
 
-                // Collision avec joueur
                 if (e.x === playerPos.x && e.y === playerPos.y) {
-                    screenShake = 20; // NOUVEAU : Shake
+                    screenShake = 20; 
                     if(score > 0) {
                         score--;
                         updateScore();
                         showMsg("🦅 Le pigeon a volé un indice !");
-                        
-                        // Respawn item
                         const originalItems = levels[currentLevel].items;
                         const randomItem = originalItems[Math.floor(Math.random() * originalItems.length)];
                         items.push({x: 10, y: 10, type: randomItem.type, name: randomItem.name});
@@ -1172,7 +1167,6 @@
                         showMsg("💥 Aïe ! Sale pigeon !");
                     }
                     
-                    // Push player back
                     let backX = playerPos.x - e.dx * 2;
                     if(backX > 1 && backX < GRID_SIZE-1 && map[playerPos.y][backX] !== 1) {
                         playerPos.x = backX;
@@ -1209,7 +1203,6 @@
             let nx = playerPos.x + dx;
             let ny = playerPos.y + dy;
             
-            // Collision murs
             if(map[ny][nx] === 1 && !(currentLevel===1 && nx===10 && ny===0)) return;
             
             playerPos.x = nx;
@@ -1221,7 +1214,6 @@
                 score++;
                 updateScore();
                 
-                // NOUVEAU : Feedback visuel
                 screenShake = 10;
                 spawnParticles('score', nx * TILE + 20, ny * TILE + 20, 10);
                 
@@ -1241,9 +1233,14 @@
                 }
                 items.splice(idx, 1);
 
+                // --- MODIFICATION TIMING ---
                 if(score === 3) {
                     const exitName = levels[currentLevel].exitName;
-                    setTimeout(() => showPopup(`<h3>✅ MISSION ACCOMPLIE ✅</h3><p>Fonce vers <b>${exitName}</b> !</p>`, 4000), 100);
+                    // On attend 4 secondes avant d'afficher le message de mission accomplie
+                    // pour laisser le temps de lire le dernier objet.
+                    setTimeout(() => {
+                        showPopup(`<h3>✅ MISSION ACCOMPLIE ✅</h3><p>Fonce vers <b>${exitName}</b> !</p>`, 4000);
+                    }, 4000);
                 }
             }
 
@@ -1268,18 +1265,19 @@
         function showMsg(txt) {
             const el = document.getElementById('msg-popup');
             el.innerText = txt;
-            setTimeout(() => el.innerText = '', 2500);
+            el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 2500);
         }
 
-        // --- NOUVEAU : RENDER (AMÉLIORÉ) ---
+        // --- RENDER ---
         function drawGame() {
-            // 1. Interpolation fluide (Lerp)
+            // Interpolation
             let targetX = playerPos.x * TILE;
             let targetY = playerPos.y * TILE;
             renderPlayer.x += (targetX - renderPlayer.x) * LERP_SPEED;
             renderPlayer.y += (targetY - renderPlayer.y) * LERP_SPEED;
 
-            // 2. Gestion du Screen Shake
+            // Shake
             let shakeX = 0;
             let shakeY = 0;
             if(screenShake > 0) {
@@ -1357,7 +1355,6 @@
             // ENTITIES
             items.forEach(i => drawSprite(ctx, i.type, i.x, i.y));
             
-            // Ennemis
             enemies.forEach(e => {
                 ctx.fillStyle = 'rgba(0,0,0,0.3)';
                 ctx.beginPath();
@@ -1366,7 +1363,6 @@
                 drawSprite(ctx, 'pigeon', e.x, e.y);
             });
 
-            // JOUEUR (Lissé)
             ctx.save();
             ctx.translate(renderPlayer.x, renderPlayer.y);
             drawPlayerSprite(ctx); 
@@ -1394,7 +1390,7 @@
                 if(p.life <= 0 && p.type !== 'rain') particles.splice(index, 1);
             });
 
-            // LIGHTING
+            // LIGHTING (FIXED)
             drawLightingEffect(ctx);
 
             ctx.restore();
@@ -1431,7 +1427,6 @@
             }
         });
 
-        // Touch controls
         let touchStartX = 0, touchStartY = 0;
         document.addEventListener('touchstart', e => {
             touchStartX = e.touches[0].clientX;
@@ -1440,10 +1435,8 @@
 
         document.addEventListener('touchend', e => {
             if(!gameActive) return;
-            
             const dx = e.changedTouches[0].clientX - touchStartX;
             const dy = e.changedTouches[0].clientY - touchStartY;
-            
             if(Math.abs(dx) > Math.abs(dy)) {
                 movePlayer(dx > 0 ? 1 : -1, 0);
             } else {
@@ -1451,7 +1444,6 @@
             }
         }, {passive: true});
 
-        // --- INIT ---
         window.onload = () => {
             setTimeout(playChat, 4000);
         };
