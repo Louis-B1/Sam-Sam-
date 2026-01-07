@@ -6,6 +6,7 @@
     <title>Mission Samuel — Paris By Night</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
+
         :root {
             --neo-cyan: #00F5FF;
             --neo-magenta: #FF006E;
@@ -17,7 +18,9 @@
             --success: #39FF14;
             --danger: #FF003C;
         }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body { 
             background: linear-gradient(270deg, #0A0E27, #1A1F3A, #2E3856, #1A1F3A);
             background-size: 400% 400%;
@@ -30,21 +33,31 @@
             user-select: none;
             position: relative;
         }
+
         @keyframes bg-shift {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
+
         .scanlines {
             position: fixed; left: 0; top: 0; width: 100%; height: 100%; 
             pointer-events: none; z-index: 999;
-            background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15) 1px, transparent 1px, transparent 2px);
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
             animation: scanline-anim 8s linear infinite;
         }
+
         @keyframes scanline-anim {
             0% { transform: translateY(0); }
             100% { transform: translateY(10px); }
         }
+
         body::before {
             content: '';
             position: fixed;
@@ -53,238 +66,238 @@
             pointer-events: none;
             z-index: 998;
         }
+
         #title-screen {
             position: absolute;
-            z-index: 300;
             text-align: center;
-            animation: titleFadeOut 1s ease-out 3s forwards;
+            z-index: 10;
+            animation: title-fade 4s forwards;
         }
+
+        @keyframes title-fade {
+            0%, 70% { opacity: 1; }
+            100% { opacity: 0; pointer-events: none; }
+        }
+
         #title-main {
             font-family: 'Orbitron', monospace;
             font-size: 120px;
             font-weight: 900;
-            background: linear-gradient(45deg, var(--neo-cyan), var(--neo-magenta), var(--neo-yellow));
-            background-size: 200% 200%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradient-shift 3s ease infinite;
-            text-shadow: 0 0 80px rgba(0, 245, 255, 0.8);
-            letter-spacing: 10px;
+            color: var(--neo-cyan);
+            text-shadow: 0 0 40px var(--neo-cyan), 0 0 80px var(--neo-magenta);
+            animation: neon-pulse 2s ease-in-out infinite;
         }
+
         #title-subtitle {
-            font-family: 'Rajdhani', sans-serif;
+            font-family: 'Orbitron', monospace;
             font-size: 32px;
             font-weight: 700;
-            color: var(--neo-yellow);
+            color: var(--neo-magenta);
             margin-top: 10px;
-            letter-spacing: 8px;
-            text-shadow: 0 0 20px var(--neo-yellow);
+            text-shadow: 0 0 20px var(--neo-magenta);
+            animation: subtitle-glow 1.5s ease-in-out infinite alternate;
         }
-        @keyframes gradient-shift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+
+        @keyframes neon-pulse {
+            0%, 100% { text-shadow: 0 0 40px var(--neo-cyan), 0 0 80px var(--neo-magenta); }
+            50% { text-shadow: 0 0 60px var(--neo-cyan), 0 0 120px var(--neo-magenta); }
         }
-        @keyframes titleFadeOut { 
-            to { opacity: 0; visibility: hidden; } 
+
+        @keyframes subtitle-glow {
+            from { text-shadow: 0 0 20px var(--neo-magenta); }
+            to { text-shadow: 0 0 40px var(--neo-magenta), 0 0 60px var(--neo-yellow); }
         }
+
         #phone-container {
-            position: absolute; 
-            width: 380px; 
-            height: 750px;
+            width: 375px;
+            height: 667px;
             background: linear-gradient(135deg, #1a1f3a, #2e3856);
-            border: 14px solid #0a0e27;
-            border-radius: 45px;
-            display: flex; 
-            flex-direction: column; 
+            border-radius: 30px;
+            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.8), 0 0 0 8px #0a0e27;
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
-            z-index: 200; 
-            box-shadow: 0 0 80px rgba(0, 245, 255, 0.6), 0 0 120px rgba(255, 0, 110, 0.4), inset 0 0 60px rgba(0, 0, 0, 0.8);
-            opacity: 0; 
-            animation: phoneFadeIn 1s ease-out 3.5s forwards;
+            position: relative;
+            z-index: 5;
+            animation: phone-enter 1s ease-out 3.5s backwards;
         }
-        @keyframes phoneFadeIn { 
-            to { opacity: 1; } 
+
+        @keyframes phone-enter {
+            from { opacity: 0; transform: translateY(50px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
-        #phone-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 150px;
-            height: 30px;
-            background: #000;
-            border-radius: 0 0 20px 20px;
-            z-index: 10;
-        }
-        #chat-header { 
-            background: linear-gradient(135deg, var(--dark-2), var(--dark-3));
-            padding: 45px 20px 20px 20px; 
-            text-align: center; 
-            border-bottom: 2px solid var(--neo-cyan);
+
+        #chat-header {
+            background: linear-gradient(135deg, #2e3856, #1a1f3a);
+            padding: 20px;
+            text-align: center;
             font-weight: 700;
             font-size: 18px;
-            letter-spacing: 2px;
+            color: var(--neo-cyan);
             text-shadow: 0 0 10px var(--neo-cyan);
-            position: relative;
-            flex-shrink: 0;
+            border-bottom: 2px solid var(--neo-purple);
         }
-        #chat-header::after {
-            content: '●';
-            position: absolute;
-            top: 50px;
-            right: 20px;
-            color: var(--success);
-            font-size: 14px;
-            animation: blink 1.5s infinite;
+
+        #chat-body {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: linear-gradient(180deg, #0a0e27, #1a1f3a);
         }
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+
+        #chat-body::-webkit-scrollbar {
+            width: 6px;
         }
-        #chat-body { 
-            flex: 1; 
-            padding: 20px 20px 120px 20px;
-            display: flex; 
-            flex-direction: column; 
-            gap: 14px; 
-            background: var(--dark-1);
-            overflow-y: auto; 
-            overflow-x: hidden;
+
+        #chat-body::-webkit-scrollbar-thumb {
+            background: var(--neo-purple);
+            border-radius: 10px;
         }
-        #chat-body::-webkit-scrollbar { width: 6px; }
-        #chat-body::-webkit-scrollbar-track { background: var(--dark-2); }
-        #chat-body::-webkit-scrollbar-thumb { 
-            background: var(--neo-cyan); 
-            border-radius: 10px; 
-        }
-        .msg {
-            padding: 12px 16px;
-            border-radius: 18px;
-            max-width: 75%;
-            word-wrap: break-word;
+
+        .msg { 
+            max-width: 75%; 
+            padding: 14px 18px; 
+            border-radius: 20px; 
+            font-size: 14px; 
             line-height: 1.5;
-            font-size: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-            animation: msgSlide 0.4s ease-out;
+            animation: msgSlideUp 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
-        @keyframes msgSlide {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+
+        @keyframes msgSlideUp { 
+            from { transform: translateY(20px); opacity: 0; } 
+            to { transform: translateY(0); opacity: 1; } 
         }
-        .msg.left {
-            background: linear-gradient(135deg, var(--dark-3), var(--dark-2));
-            border: 1px solid var(--neo-cyan);
-            align-self: flex-start;
+
+        .left { 
+            background: linear-gradient(135deg, #2e3856, #3c4865);
+            align-self: flex-start; 
+            color: #e0e0e0; 
+            border-bottom-left-radius: 4px;
         }
-        .msg.right {
-            background: linear-gradient(135deg, var(--neo-magenta), #c0006e);
-            border: 1px solid var(--neo-magenta);
-            align-self: flex-end;
-            text-align: right;
+
+        .right { 
+            background: linear-gradient(135deg, #007aff, #0051d5);
+            align-self: flex-end; 
+            color: white;
+            border-bottom-right-radius: 4px;
         }
-        .sender {
-            display: block;
-            font-size: 11px;
-            font-weight: 700;
+
+        .sender { 
+            font-size: 11px; 
+            color: var(--neo-yellow); 
+            margin-bottom: 6px; 
+            display: block; 
+            font-weight: 700; 
             text-transform: uppercase;
-            margin-bottom: 4px;
-            opacity: 0.8;
             letter-spacing: 1px;
         }
+
         #btn-start {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 16px 30px;
-            background: linear-gradient(135deg, var(--danger), #e74c3c);
-            color: white;
+            background: linear-gradient(135deg, var(--success), #2ecc71);
+            color: #000;
+            padding: 20px;
+            text-align: center;
             font-weight: 900;
             font-size: 16px;
-            border: none;
-            border-radius: 50px;
             cursor: pointer;
+            display: none;
+            border-radius: 0;
             text-transform: uppercase;
             letter-spacing: 2px;
-            box-shadow: 0 6px 30px rgba(255, 0, 60, 0.8);
+            box-shadow: 0 -4px 20px rgba(57, 255, 20, 0.4);
             transition: all 0.3s ease;
-            display: none;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
             z-index: 20;
+            border: none;
         }
+
         #btn-start:hover {
-            transform: translateX(-50%) translateY(-3px);
-            box-shadow: 0 10px 40px rgba(255, 0, 60, 1);
+            background: linear-gradient(135deg, #2ecc71, var(--success));
+            transform: translateY(-2px);
+            box-shadow: 0 -6px 30px rgba(57, 255, 20, 0.6);
         }
+
         #game-container {
             display: none;
             position: relative;
-            z-index: 100;
+            animation: game-enter 0.8s ease-out;
         }
-        canvas { 
-            background: #000;
-            border: 6px solid var(--dark-3);
-            border-radius: 20px;
-            box-shadow: 0 0 60px rgba(0, 245, 255, 0.5), 0 0 100px rgba(255, 0, 110, 0.3), inset 0 0 100px rgba(0, 0, 0, 0.8);
-            image-rendering: pixelated;
+
+        @keyframes game-enter {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
         }
+
+        #game-canvas {
+            border: 4px solid var(--neo-cyan);
+            box-shadow: 0 0 40px var(--neo-cyan);
+            border-radius: 10px;
+        }
+
         #game-ui {
-            position: absolute; 
-            top: 20px; 
+            position: absolute;
+            top: 20px;
+            left: 20px;
             right: 20px;
-            background: rgba(10, 14, 39, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 20px 25px;
-            border-radius: 20px;
-            border: 2px solid var(--neo-cyan);
-            min-width: 240px;
-            z-index: 10;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-            animation: hud-slide-in 0.6s ease-out;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
         }
-        @keyframes hud-slide-in {
-            from { transform: translateX(100px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
+
         .ui-level {
-            font-size: 16px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.9), rgba(100, 50, 200, 0.9));
+            padding: 12px 24px;
+            border-radius: 30px;
             font-weight: 700;
-            color: var(--neo-yellow);
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            text-shadow: 0 0 10px var(--neo-yellow);
+            font-size: 18px;
+            color: white;
+            text-shadow: 0 0 10px var(--neo-magenta);
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.5);
+            border: 2px solid var(--neo-magenta);
         }
+
         .ui-score {
-            font-size: 20px;
-            font-weight: 900;
-            color: var(--success);
-            text-shadow: 0 0 15px var(--success);
+            background: linear-gradient(135deg, rgba(0, 245, 255, 0.9), rgba(0, 150, 200, 0.9));
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 18px;
+            color: #000;
+            box-shadow: 0 4px 20px rgba(0, 245, 255, 0.5);
+            border: 2px solid var(--neo-cyan);
         }
+
         #msg-popup {
-            margin-top: 15px;
-            padding: 12px;
-            background: rgba(255, 190, 11, 0.2);
-            border: 2px solid var(--neo-yellow);
-            border-radius: 12px;
-            font-size: 14px;
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, rgba(255, 0, 110, 0.95), rgba(200, 0, 80, 0.95));
+            padding: 16px 32px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 16px;
+            color: white;
             text-align: center;
-            display: none;
-            animation: popup-bounce 0.5s ease-out;
+            box-shadow: 0 4px 30px rgba(255, 0, 110, 0.7);
+            border: 2px solid var(--neo-magenta);
+            min-width: 250px;
+            pointer-events: none;
         }
-        @keyframes popup-bounce {
-            0% { transform: scale(0.8); opacity: 0; }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); opacity: 1; }
-        }
+
         #main-popup {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, rgba(26, 31, 58, 0.98), rgba(46, 56, 86, 0.98));
+            background: linear-gradient(135deg, rgba(0, 245, 255, 0.95), rgba(0, 150, 200, 0.95));
             backdrop-filter: blur(15px);
             padding: 40px;
             border: 4px solid var(--neo-cyan);
@@ -296,20 +309,25 @@
             animation: popup-enter 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             min-width: 400px;
         }
+
         @keyframes popup-enter {
-            from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
         }
+
         #main-popup h3 {
-            font-size: 28px;
+            font-size: 32px;
             margin-bottom: 20px;
-            color: var(--neo-cyan);
+            color: #000;
             text-shadow: 0 0 20px var(--neo-cyan);
         }
+
         #main-popup p {
             font-size: 16px;
             line-height: 1.6;
+            color: #000;
         }
+
         #letter-popup {
             position: absolute;
             top: 50%;
@@ -327,158 +345,177 @@
             animation: popup-enter 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             min-width: 400px;
         }
+
         #letter-popup h3 {
             font-size: 28px;
             margin-bottom: 20px;
             color: var(--neo-magenta);
             text-shadow: 0 0 20px var(--neo-magenta);
         }
+
         #letter-popup p {
             font-size: 18px;
             line-height: 1.8;
             font-style: italic;
             color: #fff;
         }
+
         #metro-transition {
-            display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
             background: #000;
-            z-index: 500;
-            overflow: hidden;
-        }
-        .metro-screen {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            display: flex;
-            flex-direction: column;
+            z-index: 200;
+            display: none;
             justify-content: center;
             align-items: center;
         }
-        .metro-tunnel {
-            position: absolute;
+
+        .metro-screen {
+            position: relative;
             width: 100%;
             height: 100%;
-            background: repeating-linear-gradient(90deg, #1a1a1a 0px, #333 10px, #1a1a1a 20px);
-            animation: tunnel-move 1s linear infinite;
+            overflow: hidden;
         }
+
+        .metro-tunnel {
+            position: absolute;
+            width: 200%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                90deg,
+                #222 0px,
+                #111 50px,
+                #222 100px
+            );
+            animation: tunnel-move 2s linear infinite;
+        }
+
         @keyframes tunnel-move {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(20px); }
+            from { transform: translateX(0); }
+            to { transform: translateX(-100px); }
         }
+
         .metro-train {
             position: absolute;
-            width: 200px;
-            height: 100px;
-            background: linear-gradient(135deg, var(--dark-2), var(--dark-3));
-            border: 4px solid var(--neo-cyan);
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            height: 200px;
+            background: linear-gradient(135deg, #444, #666);
             border-radius: 20px;
-            box-shadow: 0 0 40px var(--neo-cyan);
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.8);
             animation: train-shake 0.1s infinite;
         }
+
         @keyframes train-shake {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(2px); }
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(2px); }
         }
+
         .metro-text {
             position: absolute;
             top: 30%;
+            width: 100%;
+            text-align: center;
             font-size: 48px;
             font-weight: 900;
-            color: var(--neo-cyan);
-            text-shadow: 0 0 30px var(--neo-cyan);
-            letter-spacing: 4px;
-            z-index: 10;
+            color: var(--neo-yellow);
+            text-shadow: 0 0 30px var(--neo-yellow);
+            animation: text-blink 0.5s infinite;
         }
+
+        @keyframes text-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
         .metro-station {
             position: absolute;
-            bottom: 20%;
-            font-size: 24px;
-            color: var(--neo-yellow);
-            text-shadow: 0 0 20px var(--neo-yellow);
-            z-index: 10;
-        }
-        #end-screen {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
+            bottom: 15%;
             width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, var(--dark-1), var(--dark-2));
-            z-index: 600;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+        }
+
+        #end-screen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #0a0e27, #1a1f3a);
+            z-index: 250;
+            display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding: 40px;
-            animation: fadeIn 1s ease-out;
+            gap: 30px;
+            animation: end-enter 1s ease-out;
         }
-        @keyframes fadeIn {
+
+        @keyframes end-enter {
             from { opacity: 0; }
             to { opacity: 1; }
         }
+
         #end-screen h1 {
-            font-size: 56px;
-            margin-bottom: 30px;
-            background: linear-gradient(45deg, var(--neo-cyan), var(--neo-magenta), var(--neo-yellow));
-            background-size: 200% 200%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradient-shift 3s ease infinite;
-            text-shadow: 0 0 40px rgba(0, 245, 255, 0.6);
+            font-size: 48px;
+            color: var(--success);
+            text-shadow: 0 0 40px var(--success);
+            animation: success-pulse 2s infinite;
         }
+
+        @keyframes success-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
         #samuel-img {
-            width: 280px;
-            height: 280px;
+            width: 200px;
+            height: 200px;
             border-radius: 50%;
             border: 6px solid var(--neo-cyan);
-            box-shadow: 0 0 60px var(--neo-cyan);
-            margin-bottom: 30px;
-            animation: float 3s ease-in-out infinite;
+            box-shadow: 0 0 40px var(--neo-cyan);
+            object-fit: cover;
         }
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-        .end-text-box { 
-            background: linear-gradient(135deg, var(--dark-2), var(--dark-3));
-            backdrop-filter: blur(10px);
-            padding: 30px 40px;
+
+        .end-text-box {
+            max-width: 600px;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(100, 50, 200, 0.3));
+            border: 3px solid var(--neo-purple);
             border-radius: 20px;
-            border: 2px solid var(--neo-cyan);
-            max-width: 650px;
-            font-size: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .end-text-box p {
+            font-size: 18px;
             line-height: 1.8;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
-            animation: slideUpBox 0.8s ease-out 0.5s backwards;
+            margin-bottom: 15px;
         }
-        @keyframes slideUpBox { 
-            from { opacity: 0; transform: translateY(50px); } 
-            to { opacity: 1; transform: translateY(0); } 
-        }
+
         button.replay-btn {
-            padding: 18px 45px;
+            background: linear-gradient(135deg, var(--danger), #cc0030);
+            color: white;
+            padding: 20px 60px;
+            border: none;
+            border-radius: 50px;
             font-size: 20px;
             font-weight: 900;
             cursor: pointer;
-            background: linear-gradient(135deg, var(--danger), #e74c3c);
-            color: white;
-            border: none;
-            border-radius: 50px;
             text-transform: uppercase;
             letter-spacing: 2px;
-            box-shadow: 0 6px 30px rgba(255, 0, 60, 0.6);
+            box-shadow: 0 6px 30px rgba(255, 0, 60, 0.5);
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
+
         button.replay-btn::before {
             content: '';
             position: absolute;
@@ -491,40 +528,69 @@
             transform: translate(-50%, -50%);
             transition: width 0.6s, height 0.6s;
         }
+
         button.replay-btn:hover::before {
             width: 300px;
             height: 300px;
         }
+
         button.replay-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 40px rgba(255, 0, 60, 0.8);
+        }
+
+        @media (max-width: 850px) {
+            #phone-container {
+                width: 90vw;
+                height: 80vh;
+            }
+
+            #game-canvas {
+                width: 90vw;
+                height: 90vw;
+            }
+
+            #title-main {
+                font-size: 60px;
+            }
+
+            #title-subtitle {
+                font-size: 20px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="scanlines"></div>
+
     <div id="title-screen">
         <div id="title-main">PARIS</div>
         <div id="title-subtitle">BY NIGHT !</div>
     </div>
+
     <div id="phone-container">
         <div id="chat-header">Les Chipies (4)</div>
         <div id="chat-body"></div>
-        <div id="btn-start">🔫 SAUVER LE SOLDAT SAMUEL</div>
+        <button id="btn-start">🔫 SAUVER LE SOLDAT SAMUEL</button>
     </div>
+
     <div id="game-container">
         <canvas id="game-canvas" width="800" height="800"></canvas>
+        
         <div id="game-ui">
             <div class="ui-level" id="level-name">PLACE DES VOSGES</div>
             <div class="ui-score">Indices : <span id="score">0</span> / 3</div>
             <div id="msg-popup"></div>
         </div>
+
         <div id="main-popup"></div>
+
         <div id="letter-popup">
             <h3>💌 Lettre d'Amour</h3>
             <p><em>"Mon Alexis,<br>Tu me manques déjà...<br>Bisous, Samuel 💕"</em></p>
         </div>
     </div>
+
     <div id="metro-transition">
         <div class="metro-screen">
             <div class="metro-tunnel"></div>
@@ -533,6 +599,7 @@
             <div class="metro-station">Prochaine station ➜ Pigalle</div>
         </div>
     </div>
+
     <div id="end-screen">
         <h1>🎉 MISSION ACCOMPLIE ! 🎉</h1>
         <img id="samuel-img" src="https://i.pravatar.cc/280?img=12" alt="Samuel">
@@ -542,12 +609,15 @@
         </div>
         <button class="replay-btn" onclick="location.reload()">🔄 REJOUER</button>
     </div>
+
     <div id="yt-audio"></div>
+
     <script>
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
         const GRID_SIZE = 20;
         const TILE = 40;
+
         let currentLevel = 1;
         let map = [];
         let playerPos = {x: 10, y: 18};
@@ -557,6 +627,7 @@
         let gameActive = false;
         let animTimer = 0;
         let msgIndex = 0;
+
         const chatMessages = [
             {s: 'SAMUEL', t: 'Oh les gars ! C\'est chaud là !'},
             {s: 'SAMUEL', t: 'La police me course !!'},
@@ -565,6 +636,7 @@
             {s: 'LILY', t: 'Encore...'},
             {s: 'SAMUEL', t: 'J\'ai paumé mes affaires. Attention aux pigeons, ils sont violents.'}
         ];
+
         const levels = {
             1: {
                 name: "🏛️ PLACE DES VOSGES",
@@ -608,151 +680,117 @@
                 exit: {x: 10, y: 10}
             }
         };
-        function generateMaze() {
-            map = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(1));
-            const stack = [];
-            const startX = 1, startY = 1;
-            map[startY][startX] = 0;
-            stack.push({x: startX, y: startY});
-            const dirs = [[0,-2],[2,0],[0,2],[-2,0]];
-            while(stack.length > 0) {
-                const current = stack[stack.length - 1];
-                const neighbors = [];
-                dirs.forEach(([dx, dy]) => {
-                    const nx = current.x + dx, ny = current.y + dy;
-                    if(nx > 0 && nx < GRID_SIZE-1 && ny > 0 && ny < GRID_SIZE-1 && map[ny][nx] === 1) {
-                        neighbors.push({x: nx, y: ny, mx: current.x + dx/2, my: current.y + dy/2});
+
+        function generateMap() {
+            map = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+            
+            for(let y=0; y<GRID_SIZE; y++) {
+                map[y][0] = 1;
+                map[y][GRID_SIZE-1] = 1;
+            }
+            for(let x=0; x<GRID_SIZE; x++) {
+                map[0][x] = 1;
+                map[GRID_SIZE-1][x] = 1;
+            }
+
+            for(let i=0; i<15; i++) {
+                const x = Math.floor(Math.random() * (GRID_SIZE-4)) + 2;
+                const y = Math.floor(Math.random() * (GRID_SIZE-4)) + 2;
+                const w = Math.floor(Math.random() * 3) + 2;
+                const h = Math.floor(Math.random() * 3) + 2;
+                
+                for(let dy=0; dy<h; dy++) {
+                    for(let dx=0; dx<w; dx++) {
+                        if(y+dy < GRID_SIZE && x+dx < GRID_SIZE) {
+                            map[y+dy][x+dx] = 1;
+                        }
                     }
-                });
-                if(neighbors.length > 0) {
-                    const next = neighbors[Math.floor(Math.random() * neighbors.length)];
-                    map[next.my][next.mx] = 0;
-                    map[next.y][next.x] = 0;
-                    stack.push({x: next.x, y: next.y});
-                } else {
-                    stack.pop();
                 }
             }
+
+            const conf = levels[currentLevel];
+            map[conf.start.y][conf.start.x] = 0;
+            map[conf.exit.y][conf.exit.x] = 0;
+            
+            conf.items.forEach(item => {
+                map[item.y][item.x] = 0;
+            });
         }
+
         function loadLevel(lvl) {
             currentLevel = lvl;
-            const level = levels[lvl];
-            generateMaze();
-            playerPos = {...level.start};
-            items = level.items.map(i => ({...i}));
-            enemies = level.enemies.map(e => ({...e}));
+            const conf = levels[lvl];
+            
+            generateMap();
+            
+            playerPos = {...conf.start};
+            items = conf.items.map(i => ({...i}));
+            enemies = conf.enemies.map(e => ({...e}));
             score = 0;
+            
             updateScore();
-            document.getElementById('level-name').textContent = level.name;
+            document.getElementById('level-name').innerText = conf.name;
         }
+
+        function startGame() {
+            document.getElementById('phone-container').style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
+            
+            loadLevel(1);
+            gameActive = true;
+            gameLoop();
+            
+            if(window.player && typeof window.player.playVideo === 'function') {
+                window.player.playVideo();
+            }
+        }
+
         function updateScore() {
-            document.getElementById('score').textContent = score;
+            document.getElementById('score').innerText = score;
         }
-        function showMsg(text) {
-            const msgEl = document.getElementById('msg-popup');
-            msgEl.textContent = text;
-            msgEl.style.display = 'block';
-            setTimeout(() => { msgEl.style.display = 'none'; }, 2500);
-        }
-        function showPopup(title, text, callback) {
-            const popup = document.getElementById('main-popup');
-            popup.innerHTML = `<h3>${title}</h3><p>${text}</p>`;
-            popup.style.display = 'block';
-            setTimeout(() => {
-                popup.style.display = 'none';
-                if(callback) callback();
-            }, 3000);
-        }
-        function showLetterPopup() {
-            const popup = document.getElementById('letter-popup');
-            popup.style.display = 'block';
-            setTimeout(() => { popup.style.display = 'none'; }, 4000);
-        }
-        function movePlayer(dx, dy) {
-            if(!gameActive) return;
-            const newX = playerPos.x + dx;
-            const newY = playerPos.y + dy;
-            if(newX < 0 || newX >= GRID_SIZE || newY < 0 || newY >= GRID_SIZE) return;
-            if(map[newY][newX] === 1) return;
-            playerPos.x = newX;
-            playerPos.y = newY;
-            const itemIndex = items.findIndex(i => i.x === newX && i.y === newY);
-            if(itemIndex !== -1) {
-                const item = items[itemIndex];
-                score++;
-                updateScore();
-                showMsg(`✅ ${item.name} récupéré !`);
-                if(item.type === 'letter') {
-                    showLetterPopup();
-                }
-                items.splice(itemIndex, 1);
-            }
-            const ex = levels[currentLevel].exit;
-            if(newX === ex.x && newY === ex.y) {
-                if(score === 3) {
-                    if(currentLevel === 1) {
-                        gameActive = false;
-                        showPopup("🚇 Métro !", "Direction Pigalle !", () => {
-                            showMetroTransition(() => {
-                                loadLevel(2);
-                                gameActive = true;
-                            });
-                        });
-                    } else {
-                        gameActive = false;
-                        showEndScreen();
-                    }
-                } else {
-                    showMsg(`⚠️ Il te manque ${3 - score} indice(s) !`);
-                }
-            }
-        }
-        function showMetroTransition(callback) {
-            const metro = document.getElementById('metro-transition');
-            metro.style.display = 'block';
-            setTimeout(() => {
-                metro.style.display = 'none';
-                if(callback) callback();
-            }, 3000);
-        }
-        function showEndScreen() {
-            document.getElementById('game-container').style.display = 'none';
-            document.getElementById('end-screen').style.display = 'flex';
-            if(window.player && window.player.pauseVideo) {
-                window.player.pauseVideo();
-            }
-        }
+
         function drawSprite(ctx, type, x, y) {
-            const px = x * TILE, py = y * TILE;
-            ctx.shadowBlur = 0;
+            const px = x * TILE;
+            const py = y * TILE;
+            
+            ctx.save();
+            
             switch(type) {
                 case 'player':
-                    const bounce = Math.sin(animTimer * 8) * 2;
-                    ctx.fillStyle = '#FFD700';
                     ctx.shadowBlur = 15;
-                    ctx.shadowColor = '#FFD700';
+                    ctx.shadowColor = '#00F5FF';
+                    ctx.fillStyle = '#FFD700';
                     ctx.beginPath();
-                    ctx.arc(px+20, py+15-bounce, 8, 0, Math.PI*2);
+                    ctx.arc(px+20, py+15, 8, 0, Math.PI*2);
                     ctx.fill();
                     ctx.shadowBlur = 0;
-                    ctx.fillStyle = '#FF6B6B';
-                    ctx.fillRect(px+12, py+20-bounce, 16, 18);
-                    ctx.fillStyle = '#4ECDC4';
-                    ctx.fillRect(px+10, py+38-bounce, 8, 10);
-                    ctx.fillRect(px+22, py+38-bounce, 8, 10);
+                    ctx.fillStyle = '#00F5FF';
+                    ctx.fillRect(px+12, py+23, 16, 12);
+                    ctx.fillStyle = '#0080FF';
+                    ctx.fillRect(px+10, py+28, 7, 8);
+                    ctx.fillRect(px+23, py+28, 7, 8);
                     break;
+
                 case 'pigeon':
-                    const flapOffset = Math.sin(animTimer * 10) * 3;
-                    ctx.fillStyle = '#7f8c8d';
-                    ctx.fillRect(px+16, py+20, 8, 12);
-                    ctx.fillStyle = '#95a5a6';
-                    ctx.fillRect(px+18, py+18, 4, 6);
-                    ctx.fillStyle = '#34495e';
-                    ctx.fillRect(px+8, py+22+flapOffset, 8, 3);
-                    ctx.fillRect(px+24, py+22+flapOffset, 8, 3);
-                    ctx.fillStyle = '#e67e22';
-                    ctx.fillRect(px+19, py+24, 2, 3);
+                    const flap = Math.sin(animTimer * 0.2) > 0;
+                    ctx.fillStyle = '#888';
+                    ctx.fillRect(px+16, py+18, 8, 8);
+                    ctx.fillStyle = '#666';
+                    ctx.beginPath();
+                    ctx.arc(px+20, py+16, 4, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.fillStyle = '#888';
+                    if(flap) {
+                        ctx.fillRect(px+10, py+20, 6, 3);
+                        ctx.fillRect(px+24, py+20, 6, 3);
+                    } else {
+                        ctx.fillRect(px+12, py+22, 4, 2);
+                        ctx.fillRect(px+24, py+22, 4, 2);
+                    }
+                    ctx.fillStyle = '#ff0000';
+                    ctx.fillRect(px+18, py+14, 2, 2);
                     break;
+
                 case 'card':
                     ctx.shadowBlur = 10;
                     ctx.shadowColor = '#00F5FF';
@@ -763,6 +801,7 @@
                     ctx.fillRect(px+12, py+17, 16, 2);
                     ctx.fillRect(px+12, py+21, 10, 2);
                     break;
+
                 case 'kebab':
                     ctx.fillStyle = '#f39c12';
                     ctx.fillRect(px+14, py+12, 12, 20);
@@ -773,137 +812,241 @@
                     ctx.fillStyle = '#8B4513';
                     ctx.fillRect(px+17, py+10, 6, 3);
                     break;
-                case 'cap':
+
+case 'cap':
                     ctx.fillStyle = '#e74c3c';
                     ctx.fillRect(px+10, py+18, 20, 8);
                     ctx.fillRect(px+8, py+22, 24, 4);
                     ctx.fillStyle = '#fff';
                     ctx.fillRect(px+16, py+20, 8, 2);
                     break;
+
                 case 'letter':
                     ctx.shadowBlur = 10;
                     ctx.shadowColor = '#FF006E';
                     ctx.fillStyle = '#fff';
-                    ctx.fillRect(px+12, py+16, 16, 14);
+                    ctx.fillRect(px+10, py+12, 20, 16);
                     ctx.shadowBlur = 0;
                     ctx.fillStyle = '#FF006E';
-                    ctx.fillRect(px+14, py+19, 12, 1);
-                    ctx.fillRect(px+14, py+22, 12, 1);
-                    ctx.fillRect(px+14, py+25, 8, 1);
+                    ctx.fillRect(px+12, py+16, 16, 2);
+                    ctx.fillRect(px+12, py+20, 14, 2);
+                    ctx.fillRect(px+12, py+24, 10, 2);
                     break;
+
                 case 'key':
                     ctx.shadowBlur = 10;
-                    ctx.shadowColor = '#FFBE0B';
-                    ctx.fillStyle = '#FFBE0B';
+                    ctx.shadowColor = '#FFD700';
+                    ctx.fillStyle = '#FFD700';
                     ctx.beginPath();
-                    ctx.arc(px+15, py+20, 4, 0, Math.PI*2);
+                    ctx.arc(px+15, py+18, 5, 0, Math.PI*2);
                     ctx.fill();
-                    ctx.fillRect(px+18, py+19, 10, 2);
-                    ctx.fillRect(px+26, py+17, 2, 2);
-                    ctx.fillRect(px+26, py+20, 2, 2);
+                    ctx.fillRect(px+18, py+16, 10, 4);
+                    ctx.fillRect(px+24, py+14, 2, 2);
+                    ctx.fillRect(px+27, py+14, 2, 2);
                     ctx.shadowBlur = 0;
                     break;
+
                 case 'foodbag':
                     ctx.fillStyle = '#8B4513';
-                    ctx.fillRect(px+10, py+14, 20, 18);
-                    ctx.fillStyle = '#A0522D';
-                    ctx.fillRect(px+14, py+10, 4, 6);
-                    ctx.fillRect(px+22, py+10, 4, 6);
-                    ctx.fillStyle = '#fff';
-                    ctx.fillRect(px+16, py+20, 3, 3);
-                    ctx.fillRect(px+21, py+20, 3, 3);
+                    ctx.fillRect(px+12, py+14, 16, 18);
+                    ctx.strokeStyle = '#654321';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(px+12, py+14, 16, 18);
+                    ctx.fillStyle = '#27ae60';
+                    ctx.fillRect(px+14, py+16, 4, 6);
+                    ctx.fillStyle = '#e74c3c';
+                    ctx.fillRect(px+22, py+16, 4, 6);
+                    ctx.fillStyle = '#f39c12';
+                    ctx.fillRect(px+18, py+24, 4, 6);
+                    ctx.lineWidth = 1;
                     break;
-                case 'metro':
-                    ctx.shadowBlur = 20;
-                    ctx.shadowColor = '#00F5FF';
-                    ctx.fillStyle = '#00F5FF';
+
+                case 'metroExit':
+                    const pulse = Math.sin(animTimer * 0.1) * 5;
+                    ctx.shadowBlur = 20 + pulse;
+                    ctx.shadowColor = '#39FF14';
+                    ctx.fillStyle = '#39FF14';
                     ctx.fillRect(px+8, py+8, 24, 24);
                     ctx.shadowBlur = 0;
-                    ctx.fillStyle = '#0A0E27';
+                    ctx.fillStyle = '#000';
                     ctx.font = 'bold 20px Arial';
                     ctx.textAlign = 'center';
-                    ctx.fillText('M', px+20, py+28);
+                    ctx.fillText('M', px+20, py+26);
                     ctx.textAlign = 'start';
                     break;
+
                 case 'samuel':
+                    const bounce = Math.sin(animTimer * 0.1) * 2;
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#FF006E';
                     ctx.fillStyle = '#FFD700';
-                    ctx.shadowBlur = 20;
-                    ctx.shadowColor = '#FFD700';
                     ctx.beginPath();
-                    ctx.arc(px+20, py+15, 10, 0, Math.PI*2);
+                    ctx.arc(px+20, py+15-bounce, 8, 0, Math.PI*2);
                     ctx.fill();
                     ctx.shadowBlur = 0;
-                    ctx.fillStyle = '#3498db';
-                    ctx.fillRect(px+10, py+25, 20, 20);
-                    ctx.fillStyle = '#2c3e50';
-                    ctx.fillRect(px+8, py+45, 10, 12);
-                    ctx.fillRect(px+22, py+45, 10, 12);
+                    ctx.fillStyle = '#FF006E';
+                    ctx.fillRect(px+12, py+23-bounce, 16, 12);
+                    ctx.fillStyle = '#8B5CF6';
+                    ctx.fillRect(px+10, py+28-bounce, 7, 8);
+                    ctx.fillRect(px+23, py+28-bounce, 7, 8);
                     break;
             }
+            
+            ctx.restore();
         }
+
+        function showPopup(html, duration = 3000) {
+            const popup = document.getElementById('main-popup');
+            popup.innerHTML = html;
+            popup.style.display = 'block';
+            setTimeout(() => popup.style.display = 'none', duration);
+        }
+
+        function showLetterPopup() {
+            const popup = document.getElementById('letter-popup');
+            popup.style.display = 'block';
+            setTimeout(() => popup.style.display = 'none', 3000);
+        }
+
+        function showMetroTransition() {
+            const metro = document.getElementById('metro-transition');
+            metro.style.display = 'flex';
+            
+            setTimeout(() => {
+                metro.style.display = 'none';
+                loadLevel(2);
+            }, 3000);
+        }
+
         function updateEnemies() {
             enemies.forEach(e => {
                 const nextX = e.x + e.dx;
-                if(nextX < 1 || nextX >= GRID_SIZE-1 || map[e.y][nextX] === 1) {
+                
+                if(nextX < 2 || nextX >= GRID_SIZE-2 || map[e.y][nextX] === 1) {
                     e.dx *= -1;
                 } else {
                     e.x = nextX;
                 }
+
                 if(e.x === playerPos.x && e.y === playerPos.y) {
-                    if(score > 0) {
-                        score--;
-                        updateScore();
-                        showMsg("🦅 Le pigeon a volé un indice !");
-                        const originalItems = levels[currentLevel].items;
-                        const randomItem = originalItems[Math.floor(Math.random() * originalItems.length)];
-                        let respawnX, respawnY;
-                        do {
-                            respawnX = Math.floor(Math.random() * (GRID_SIZE-4)) + 2;
-                            respawnY = Math.floor(Math.random() * (GRID_SIZE-4)) + 2;
-                        } while(map[respawnY][respawnX] === 1);
-                        items.push({x: respawnX, y: respawnY, type: randomItem.type, name: randomItem.name});
-                    } else {
-                        showMsg("💥 Aïe ! Sale pigeon !");
-                    }
-                    let backX = playerPos.x - e.dx * 2;
-                    if(backX > 1 && backX < GRID_SIZE-1 && map[playerPos.y][backX] !== 1) {
-                        playerPos.x = backX;
-                    }
+                    playerPos = {...levels[currentLevel].start};
+                    showMsg("🐦 Pigeon attack ! Retour au départ !");
                 }
             });
         }
-        function draw() {
+
+        function movePlayer(dx, dy) {
             if(!gameActive) return;
-            animTimer += 0.016;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const level = levels[currentLevel];
-            for(let y = 0; y < GRID_SIZE; y++) {
-                for(let x = 0; x < GRID_SIZE; x++) {
-                    if(map[y][x] === 1) {
-                        ctx.fillStyle = level.colorWall;
-                        ctx.fillRect(x*TILE, y*TILE, TILE, TILE);
-                        ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-                        ctx.strokeRect(x*TILE, y*TILE, TILE, TILE);
+            
+            const nx = playerPos.x + dx;
+            const ny = playerPos.y + dy;
+
+            if(nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) return;
+            if(map[ny][nx] === 1) return;
+
+            playerPos.x = nx;
+            playerPos.y = ny;
+
+            items = items.filter(item => {
+                if(item.x === nx && item.y === ny) {
+                    score++;
+                    updateScore();
+                    showPopup(`<h3>✅ ${item.name}</h3><p>Objet récupéré !</p>`, 2000);
+                    
+                    if(item.type === 'letter') {
+                        setTimeout(showLetterPopup, 500);
+                    }
+                    
+                    return false;
+                }
+                return true;
+            });
+
+            const exit = levels[currentLevel].exit;
+            if(nx === exit.x && ny === exit.y) {
+                if(score >= 3) {
+                    gameActive = false;
+                    
+                    if(currentLevel === 1) {
+                        showMetroTransition();
+                        setTimeout(() => {
+                            gameActive = true;
+                        }, 3100);
                     } else {
-                        ctx.fillStyle = level.colorPath;
-                        ctx.fillRect(x*TILE, y*TILE, TILE, TILE);
+                        document.getElementById('game-container').style.display='none';
+                        document.getElementById('end-screen').style.display='flex';
+                    }
+                } else {
+                    showMsg("❌ Il te manque des objets !");
+                    playerPos.y += (currentLevel===1 ? 1 : -1);
+                }
+            }
+        }
+
+        function showMsg(txt) {
+            const el = document.getElementById('msg-popup');
+            el.innerText = txt;
+            setTimeout(() => el.innerText = '', 2500);
+        }
+
+        function drawGame() {
+            ctx.clearRect(0, 0, 800, 800);
+            const conf = levels[currentLevel];
+
+            for(let y=0; y<GRID_SIZE; y++) {
+                for(let x=0; x<GRID_SIZE; x++) {
+                    const t = map[y][x];
+                    const px = x * TILE;
+                    const py = y * TILE;
+
+                    if(currentLevel === 1) {
+                        if(t === 1) {
+                            ctx.fillStyle = conf.colorWall;
+                            ctx.fillRect(px, py, TILE, TILE);
+                            ctx.strokeStyle = '#6b0000';
+                            ctx.strokeRect(px, py, TILE, TILE);
+                        } else {
+                            ctx.fillStyle = conf.colorGround;
+                            ctx.fillRect(px, py, TILE, TILE);
+                            ctx.strokeStyle = '#239954';
+                            ctx.strokeRect(px, py, TILE, TILE);
+                        }
+                    } else {
+                        if(t === 1) {
+                            ctx.fillStyle = conf.colorWall;
+                            ctx.fillRect(px, py, TILE, TILE);
+                            ctx.strokeStyle = '#111';
+                            ctx.strokeRect(px, py, TILE, TILE);
+                            
+                            if((x % 3 === 0 || y % 3 === 0) && Math.sin(animTimer * 0.05) > 0) {
+                                ctx.fillStyle = (x+y) % 2 === 0 ? '#ff00cc' : '#00ccff';
+                                ctx.shadowBlur = 20;
+                                ctx.shadowColor = ctx.fillStyle;
+                                ctx.fillRect(px+5, py+5, TILE-10, TILE-10);
+                                ctx.shadowBlur = 0;
+                            }
+                        } else {
+                            ctx.fillStyle = conf.colorGround;
+                            ctx.fillRect(px, py, TILE, TILE);
+                            ctx.strokeStyle = '#1a1a2a';
+                            ctx.strokeRect(px, py, TILE, TILE);
+                        }
                     }
                 }
             }
-            const ex = level.exit;
+
+            items.forEach(i => drawSprite(ctx, i.type, i.x, i.y));
+            enemies.forEach(e => drawSprite(ctx, 'pigeon', e.x, e.y));
+            drawSprite(ctx, 'player', playerPos.x, playerPos.y);
+
+            const ex = levels[currentLevel].exit;
             if(currentLevel === 1) {
-                drawSprite(ctx, 'metro', ex.x, ex.y);
+                drawSprite(ctx, 'metroExit', ex.x, ex.y);
             } else {
                 drawSprite(ctx, 'samuel', ex.x, ex.y);
-                ctx.fillStyle = '#FFD700';
-                ctx.font = 'bold 12px Arial';
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = '#FFD700';
-                ctx.textAlign = 'center';
-                ctx.fillText('SAM', ex.x*TILE+20, ex.y*TILE+48);
-                ctx.textAlign = 'start';
+                
                 if(score === 3) {
-                    const arrowBounce = Math.sin(animTimer * 4) * 5;
+                    const arrowBounce = Math.sin(animTimer * 0.1) * 5;
                     ctx.fillStyle = '#39FF14';
                     ctx.shadowBlur = 15;
                     ctx.shadowColor = '#39FF14';
@@ -916,49 +1059,101 @@
                     ctx.shadowBlur = 0;
                 }
             }
-            items.forEach(i => drawSprite(ctx, i.type, i.x, i.y));
-            enemies.forEach(e => drawSprite(ctx, 'pigeon', e.x, e.y));
-            drawSprite(ctx, 'player', playerPos.x, playerPos.y);
-            updateEnemies();
-            requestAnimationFrame(draw);
         }
-        function startGame() {
-            document.getElementById('phone-container').style.display = 'none';
-            document.getElementById('game-container').style.display = 'block';
-            loadLevel(1);
-            gameActive = true;
-            draw();
-            if(window.player && window.player.playVideo) {
-                window.player.playVideo();
+
+        function gameLoop() {
+            if(!gameActive) return;
+            
+            animTimer++;
+            
+            if(animTimer % 30 === 0) {
+                updateEnemies();
             }
+            
+            drawGame();
+            requestAnimationFrame(gameLoop);
         }
+
         document.addEventListener('keydown', e => {
             if(!gameActive) return;
+            
             switch(e.key) {
-                case 'ArrowUp': case 'z': case 'w': movePlayer(0, -1); break;
-                case 'ArrowDown': case 's': movePlayer(0, 1); break;
-                case 'ArrowLeft': case 'q': case 'a': movePlayer(-1, 0); break;
-                case 'ArrowRight': case 'd': movePlayer(1, 0); break;
+                case 'ArrowUp':
+                case 'z':
+                case 'w':
+                    e.preventDefault();
+                    movePlayer(0, -1);
+                    break;
+                case 'ArrowDown':
+                case 's':
+                    e.preventDefault();
+                    movePlayer(0, 1);
+                    break;
+                case 'ArrowLeft':
+                case 'q':
+                case 'a':
+                    e.preventDefault();
+                    movePlayer(-1, 0);
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                    e.preventDefault();
+                    movePlayer(1, 0);
+                    break;
             }
         });
+
         let touchStartX = 0, touchStartY = 0;
         document.addEventListener('touchstart', e => {
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
         }, {passive: true});
+
         document.addEventListener('touchend', e => {
             if(!gameActive) return;
+            
             const dx = e.changedTouches[0].clientX - touchStartX;
             const dy = e.changedTouches[0].clientY - touchStartY;
+            
             if(Math.abs(dx) > Math.abs(dy)) {
                 movePlayer(dx > 0 ? 1 : -1, 0);
             } else {
                 movePlayer(0, dy > 0 ? 1 : -1);
             }
         }, {passive: true});
-        var player;
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('yt-audio', {
+
+        function scrollToBottom() {
+            const chatBody = document.getElementById('chat-body');
+            if(chatBody) {
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
+        }
+
+        function playChat() {
+            if(msgIndex >= chatMessages.length) { 
+                const btn = document.getElementById('btn-start');
+                if(btn) btn.style.display = 'block'; 
+                scrollToBottom();
+                return; 
+            }
+            
+            const m = chatMessages[msgIndex];
+            const div = document.createElement('div'); 
+            div.className = `msg ${m.s === 'SAMUEL' ? 'right' : 'left'}`;
+            div.innerHTML = `<span class="sender">${m.s}</span>${m.t}`;
+            
+            const chatBody = document.getElementById('chat-body');
+            if(chatBody) {
+                chatBody.appendChild(div);
+                scrollToBottom();
+            }
+            
+            msgIndex++;
+            setTimeout(playChat, 1200); 
+        }
+
+        window.onYouTubeIframeAPIReady = function() {
+            window.player = new YT.Player('yt-audio', {
                 height: '0',
                 width: '0',
                 videoId: 'jfKfPfyJRdk',
@@ -967,46 +1162,18 @@
                     'loop': 1,
                     'playlist': 'jfKfPfyJRdk',
                     'controls': 0
-                },
-                events: {
-                    'onReady': onPlayerReady
                 }
             });
-        }
-        function onPlayerReady(event) {}
-        document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                playChat();
-            }, 1500);
-            const btnStart = document.getElementById('btn-start');
-            if(btnStart) {
-                btnStart.addEventListener('click', startGame);
-            }
-        });
-        function scrollToBottom() {
-            const chatBody = document.getElementById('chat-body');
-            chatBody.scrollTop = chatBody.scrollHeight;
-        }
-        function playChat() {
-            if(msgIndex >= chatMessages.length) { 
-                const btn = document.getElementById('btn-start');
-                if(btn) btn.style.display = 'block'; 
-                scrollToBottom();
-                return; 
-            }
-            const m = chatMessages[msgIndex];
-            const div = document.createElement('div'); 
-            div.className = `msg ${m.s === 'SAMUEL' ? 'right' : 'left'}`;
-            div.innerHTML = `<span class="sender">${m.s}</span>${m.t}`;
-            const chatBody = document.getElementById('chat-body');
-            if(chatBody) {
-                chatBody.appendChild(div);
-                scrollToBottom();
-            }
-            msgIndex++;
-            setTimeout(playChat, 1200); 
-        }
+        };
+
+        document.getElementById('btn-start').addEventListener('click', startGame);
+
+        setTimeout(() => {
+            playChat();
+        }, 4000);
     </script>
+    
     <script src="https://www.youtube.com/iframe_api"></script>
 </body>
 </html>
+
